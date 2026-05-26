@@ -1534,7 +1534,7 @@ NGINX;
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                                     Save Config
                                 </button>
-                                                                <button type="button" id="adminPanelBtn" class="flex items-center gap-1" style="font-family: 'Times New Roman', Times, serif; font-size: 15px; font-weight: 900; background-color: rgb(234, 179, 8); color: #f7f7f8; border: 5px solid #ff0040; padding-top: 2px; padding-bottom: 2px;">
+                                                                <button type="button" id="adminPanelBtn" class="flex items-center gap-1" style="font-family: 'Times New Roman', Times, serif; font-size: 15px; font-weight: 900; background-color: rgb(234, 179, 8); color: #f7f7f8; border: 5px solid #ff0040; padding: 4px; padding-bottom: 2px;">
                                     Open Admin
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                                 </button>
