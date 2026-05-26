@@ -1372,7 +1372,7 @@ NGINX;
     <!-- Main Content -->
     <main class="flex-1 flex flex-col min-w-0 bg-slate-950 relative">
         <!-- Top Bar -->
-        <header class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-slate-950/80 backdrop-blur z-10">
+        <header class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-slate-950/80 backdrop-blur z-10" style="width: 1040px;">
             <div class="flex items-center gap-4">
                  <h2 id="page-title" class="text-lg font-semibold text-slate-100">Dashboard</h2>
             </div>
@@ -1454,24 +1454,29 @@ NGINX;
                 
                 <!-- Left Panel: Config -->
                 <div class="w-full lg:w-[400px] xl:w-[450px] border-b lg:border-b-0 lg:border-r border-white/5 bg-slate-900/30 flex flex-col overflow-y-auto custom-scrollbar">
-                    <form id="deployForm" class="flex-1 flex flex-col p-6 space-y-6">
+                    <form id="deployForm" class="flex-1 flex flex-col py-0 px-2.5 space-y-6">
                         <input type="hidden" name="server_id" id="deploy_server_id">
                         <?php if ($lic): ?><input type="hidden" name="license_key" value="<?php echo $lic; ?>"><?php endif; ?>
 
                         <!-- Connection Info Group -->
                         <div class="space-y-4">
-                            <div class="flex items-center justify-between">
+                            <div id="connection-header" class="flex items-center justify-between cursor-pointer" onclick="toggleConnection(event)">
                                 <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Connection</h3>
-                                <button type="button" id="testBtn" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-slate-400 border border-slate-700">Test Ping</button>
-                            </div>
-                            <div class="grid grid-cols-1 gap-3">
-                                <div class="relative">
-                                    <span class="absolute left-3 top-2.5 text-slate-600"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg></span>
-                                    <input type="text" name="host" id="deploy_host" class="w-full pl-9 bg-black/40 border border-slate-700 rounded-md py-2 text-xs text-slate-300 font-mono" placeholder="Host">
+                                <div class="flex items-center gap-2">
+                                    <button type="button" id="testBtn" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-slate-400 border border-slate-700" onclick="event.stopPropagation(); testConnection();">Test Ping</button>
+                                    <svg id="connection-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform transform rotate-180"><polyline points="6 9 12 15 18 9"></polyline></svg>
                                 </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <input type="text" name="user" id="deploy_user" class="bg-black/40 border border-slate-700 rounded-md px-3 py-2 text-xs text-slate-300 font-mono" placeholder="User">
-                                    <input type="password" name="password" id="deploy_password" class="bg-black/40 border border-slate-700 rounded-md px-3 py-2 text-xs text-slate-300 font-mono" placeholder="Password">
+                            </div>
+                            <div id="connection-body" class="hidden">
+                                <div class="grid grid-cols-1 gap-3 mt-4">
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2.5 text-slate-600"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg></span>
+                                        <input type="text" name="host" id="deploy_host" class="w-full pl-9 bg-black/40 border border-slate-700 rounded-md py-2 text-xs text-slate-300 font-mono" placeholder="Host">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <input type="text" name="user" id="deploy_user" class="bg-black/40 border border-slate-700 rounded-md px-3 py-2 text-xs text-slate-300 font-mono" placeholder="User">
+                                        <input type="password" name="password" id="deploy_password" class="bg-black/40 border border-slate-700 rounded-md px-3 py-2 text-xs text-slate-300 font-mono" placeholder="Password">
+                                    </div>
                                 </div>
                             </div>
                             <input type="hidden" name="port" id="deploy_port" value="22">
@@ -1505,6 +1510,37 @@ NGINX;
                             </div>
                         </div>
 
+                        <!-- Actions -->
+                        <div class="pt-4 mt-auto space-y-3">
+                            <button type="submit" id="deployBtn" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-bold text-sm shadow-lg shadow-brand-500/20 transition-all active:scale-[0.98]">
+                                🚀 Full Deploy
+                            </button>
+                            
+                            <button type="button" id="updateAllBtn" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-500/20 rounded-lg text-xs font-medium transition">
+                                Update Code & Domains
+                            </button>
+
+                            <div class="grid grid-cols-2 gap-2 pt-2">
+                                <button type="button" id="toolSslBtn" class="w-full py-1.5 bg-slate-900/50 hover:bg-slate-800 text-purple-300 border border-purple-500/20 rounded text-[10px] transition">
+                                    🔒 SSL Certs
+                                </button>
+                                <button type="button" id="removeDomainsBtn" class="w-full py-1.5 bg-slate-900/50 hover:bg-slate-800 text-orange-300 border border-orange-500/20 rounded text-[10px] transition">
+                                    🧹 Clean SSL & Domains
+                                </button>
+                            </div>
+                            
+                            <div class="flex justify-between pt-2 border-t border-white/5">
+                                <button type="button" id="saveBtn" class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                                    Save Config
+                                </button>
+                                                                <button type="button" id="adminPanelBtn" class="flex items-center gap-1" style="font-family: 'Times New Roman', Times, serif; font-size: 15px; font-weight: 900; background-color: rgb(234, 179, 8); color: #f7f7f8; border: 5px solid #ff0040; padding-top: 2px; padding-bottom: 2px;">
+                                    Open Admin
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Status Group -->
                         <div class="bg-black/20 rounded-lg p-3 border border-white/5 space-y-2">
                             <div class="flex items-center justify-between">
@@ -1527,41 +1563,6 @@ NGINX;
                             <div class="flex gap-2">
                                 <button type="button" id="restartWorkerBtn" class="flex-1 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] text-emerald-400 rounded border border-emerald-500/20 transition">Restart Worker</button>
                                 <button type="button" id="stopWorkerBtn" class="flex-1 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] text-red-400 rounded border border-red-500/20 transition">Stop Worker</button>
-                            </div>
-                        </div>
-
-                       
-                        <!-- Actions -->
-                        <div class="pt-4 mt-auto space-y-3">
-                            <button type="submit" id="deployBtn" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-bold text-sm shadow-lg shadow-brand-500/20 transition-all active:scale-[0.98]">
-                                🚀 Full Deploy
-                            </button>
-                            
-                            <button type="button" id="updateAllBtn" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-500/20 rounded-lg text-xs font-medium transition">
-                                Update Code & Domains
-                            </button>
-
-                            <div class="pt-2">
-                                <button type="button" id="toolSslBtn" class="w-full py-1.5 bg-slate-900/50 hover:bg-slate-800 text-purple-300 border border-purple-500/20 rounded text-[10px] transition">
-                                    🔒 SSL Certs
-                                </button>
-                            </div>
-                            
-                            <div class="grid grid-cols-1 gap-2 pt-1">
-                                <button type="button" id="removeDomainsBtn" class="py-1.5 bg-slate-900/50 hover:bg-slate-800 text-orange-300 border border-orange-500/20 rounded text-[10px] transition">
-                                    🧹 Clean SSL & Domains
-                                </button>
-                            </div>
-                            
-                            <div class="flex justify-between pt-2 border-t border-white/5">
-                                <button type="button" id="saveBtn" class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                                    Save Config
-                                </button>
-                                <button type="button" id="adminPanelBtn" class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1">
-                                    Open Admin
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                                </button>
                             </div>
                         </div>
                     </form>
@@ -1607,6 +1608,13 @@ NGINX;
     <script>
         let servers = [];
         let activeServerId = null;
+
+        function toggleConnection(event) {
+            const body = document.getElementById('connection-body');
+            const chevron = document.getElementById('connection-chevron');
+            body.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
 
         function copyLicense() {
             const licenseKey = document.getElementById('license-key').innerText;
