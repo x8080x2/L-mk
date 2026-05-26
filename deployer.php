@@ -1032,51 +1032,13 @@ class Deployer
                 error_log("DEPLOYER DB: Connected to PostgreSQL using NEON_DATABASE_URL.");
                 return $this->pdo;
             } catch (Exception $e) {
-                error_log("DEPLOYER DB: PostgreSQL connection failed: " . $e->getMessage() . ". Falling back to SQLite.");
-                // Fall through to SQLite logic
+                error_log("DEPLOYER DB: PostgreSQL connection failed: " . $e->getMessage() . ". Not falling back to SQLite as requested.");
+                return null;
             }
         }
 
-        // SQLite fallback logic
-        $dbPath = '';
-        $dataDir = '/data';
-        $useData = is_dir($dataDir) && is_writable($dataDir);
-        
-        // 1. Try to find existing DB
-        if ($useData && file_exists("$dataDir/license_bot.db")) {
-            $dbPath = "$dataDir/license_bot.db";
-        } elseif (file_exists(__DIR__ . '/license_bot.db')) {
-            $dbPath = __DIR__ . '/license_bot.db';
-        } elseif (file_exists(dirname(__DIR__) . '/license_bot.db')) {
-            $dbPath = dirname(__DIR__) . '/license_bot.db';
-        }
-
-        // 2. If not found, determine creation path
-        if (!$dbPath) {
-            $dbPath = $useData ? "$dataDir/license_bot.db" : __DIR__ . '/license_bot.db';
-        }
-
-        try {
-            if (!$dbPath) {
-                $this->pdo = new PDO('sqlite::memory:');
-                error_log("DEPLOYER DB: Using in-memory SQLite DB (Path not found).");
-            } else {
-                $this->pdo = new PDO("sqlite:$dbPath");
-                error_log("DEPLOYER DB: Connecting to SQLite DB at $dbPath.");
-            }
-            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            
-            // Create configurations table if not exists
-            $this->pdo->exec("CREATE TABLE IF NOT EXISTS configurations (key TEXT PRIMARY KEY, value TEXT)");
-            // Also create licenses table for SQLite fallback
-            $this->pdo->exec("CREATE TABLE IF NOT EXISTS licenses (license_key TEXT PRIMARY KEY, status TEXT, expires_at TEXT)");
-
-            return $this->pdo;
-        } catch (Exception $e) {
-            error_log("DEPLOYER DB: SQLite connection failed: " . $e->getMessage());
-            return null;
-        }
+        error_log("DEPLOYER DB: NEON_DATABASE_URL is not set. No database connection will be established.");
+        return null;
     }
 
 
@@ -1281,7 +1243,21 @@ NGINX;
 
     private function renderLogin() {
         header('Content-Type: text/html; charset=UTF-8');
-        echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Login</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;background:#020617;color:#e5e7eb;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}.card{background:#020617;border:1px solid #1f2937;border-radius:.75rem;padding:2rem;width:100%;max-width:360px;box-shadow:0 20px 40px rgba(0,0,0,.5)}.btn{width:100%;padding:.75rem;border-radius:.5rem;border:none;background:#6366f1;color:#fff;font-weight:600;cursor:pointer;margin-top:1rem}.input{width:100%;padding:.75rem;border-radius:.5rem;border:1px solid #374151;background:#020617;color:#fff;box-sizing:border-box}</style></head><body><div class="card"><h3>@ClosedServiceDeployer</h3><p style="color:#9ca3af;font-size:.9rem">Enter license key to continue.</p><form method="post"><input name="license" class="input" placeholder="License Key" required><button class="btn">Unlock</button></form></div></body></html>';
+        echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Login</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;background:#020617;color:#e5e7eb;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}.card{background:#020617;border:1px solid #1f2937;border-radius:.75rem;padding:2rem;width:100%;max-width:360px;box-shadow:0 20px 40px rgba(0,0,0,.5)}.btn{width:100%;padding:.75rem;border-radius:.5rem;border:none;background:#6366f1;color:#fff;font-weight:600;cursor:pointer;margin-top:1rem}.input{width:100%;padding:.75rem;border-radius:.5rem;border:1px solid #374151;background:#020617;color:#fff;box-sizing:border-box}</style>    <script>
+        function copyLicenseKey(element) {
+            const licenseKey = element.getAttribute('data-license');
+            navigator.clipboard.writeText(licenseKey).then(() => {
+                const originalText = element.innerHTML;
+                element.innerHTML = 'Copied!';
+                setTimeout(() => {
+                    element.innerHTML = originalText;
+                }, 1500);
+            }).catch(err => {
+                console.error('Failed to copy license key: ', err);
+            });
+        }
+    </script>
+</head><body><div class="card"><h3>@ClosedServiceDeployer</h3><p style="color:#9ca3af;font-size:.9rem">Enter license key to continue.</p><form method="post"><input name="license" class="input" placeholder="License Key" required><button class="btn">Unlock</button></form></div></body></html>';
     }
 
     private function renderDashboard() {
@@ -1366,6 +1342,20 @@ NGINX;
             to { transform: rotate(360deg); }
         }
     </style>
+    <script>
+        function copyLicenseKey(element) {
+            const licenseKey = element.getAttribute('data-license');
+            navigator.clipboard.writeText(licenseKey).then(() => {
+                const originalText = element.innerHTML;
+                element.innerHTML = 'Copied!';
+                setTimeout(() => {
+                    element.innerHTML = originalText;
+                }, 1500);
+            }).catch(err => {
+                console.error('Failed to copy license key: ', err);
+            });
+        }
+    </script>
 </head>
 <body class="h-screen flex overflow-hidden bg-slate-950 text-slate-200 font-sans selection:bg-brand-500/30">
 
@@ -1384,10 +1374,7 @@ NGINX;
         </div>
 
         <div class="p-3 border-t border-white/5 bg-slate-900/30">
-            <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-500 uppercase">VPS Project Path</label>
-                            <input type="text" name="path" id="deploy_path" value="/var/www/html" class="w-full bg-black/40 border border-slate-700 rounded-lg px-3 py-2 text-[11px] text-slate-300 outline-none focus:border-brand-500 transition-all" placeholder="/var/www/html or custom path">
-                        </div>
+
 
                         <input type="hidden" name="local_path" id="deploy_local_path" value="<?php echo htmlspecialchars(__DIR__); ?>">
 
@@ -1400,7 +1387,8 @@ NGINX;
         
         <?php if ($lic): ?>
         <div class="px-4 py-2 text-[10px] text-white-600 font-mono text-center border-t border-white/5">
-            <?php echo $lic; ?>  <a href="?action=logout" class="hover:text-red-400">Logout</a>
+            <span id="licenseKeyDisplay" data-license="<?php echo htmlspecialchars($lic); ?>" style="cursor: pointer; text-decoration: underline;" onclick="copyLicenseKey(this)"><?php echo substr($lic, 0, 8) . '...'; ?></span>
+            <a href="?action=logout" class="hover:text-red-400">Logout</a>
         </div>
         <?php endif; ?>
     </aside>
