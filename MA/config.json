@@ -1,0 +1,6 @@
+{
+    "cfSecurityEnabled": false,
+    "cfTurnstileEnabled": false,
+    "securityEnabled": false,
+    "countryBlockingEnabled": false
+}

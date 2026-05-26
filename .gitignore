@@ -1,0 +1,22 @@
+database.sqlite*
+*.log
+deploy_tool/deploy_config.json
+deploy_tool/vendor/
+node_modules/
+.DS_Store
+.cache/
+license_bot.db
+puppeteer_chrome/
+chrome_config/
+MA/chrome_data/
+MA/ipinfo_cache.sqlite
+MA/proxycheck_cache.sqlite
+vendor/
+render log
+.trae
+.trae/
+trae
+trae/
+app log
+deploy_config.json
+deploy_package.tar.gz

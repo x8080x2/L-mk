@@ -1,0 +1,409 @@
+[
+    {
+        "path": ".env",
+        "type": "file",
+        "size": 79,
+        "perms": "0755"
+    },
+    {
+        "path": "deployment.json",
+        "type": "file",
+        "size": 76,
+        "perms": "0755"
+    },
+    {
+        "path": "license_bot.db",
+        "type": "file",
+        "size": 12288,
+        "perms": "0755"
+    },
+    {
+        "path": "IP2LOCATION-LITE-DB1.BIN",
+        "type": "file",
+        "size": 2011084,
+        "perms": "0755"
+    },
+    {
+        "path": "api.php",
+        "type": "file",
+        "size": 75,
+        "perms": "0644"
+    },
+    {
+        "path": "config.json",
+        "type": "file",
+        "size": 656,
+        "perms": "0755"
+    },
+    {
+        "path": "package.json",
+        "type": "file",
+        "size": 451,
+        "perms": "0755"
+    },
+    {
+        "path": "puppeteer.log",
+        "type": "file",
+        "size": 27,
+        "perms": "0755"
+    },
+    {
+        "path": "deploy.log",
+        "type": "file",
+        "size": 54,
+        "perms": "0755"
+    },
+    {
+        "path": "worker.log",
+        "type": "file",
+        "size": 24,
+        "perms": "0755"
+    },
+    {
+        "path": "package-lock.json",
+        "type": "file",
+        "size": 65553,
+        "perms": "0755"
+    },
+    {
+        "path": "project.log",
+        "type": "file",
+        "size": 71286,
+        "perms": "0755"
+    },
+    {
+        "path": "templates",
+        "type": "dir",
+        "size": 0,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/.DS_Store",
+        "type": "file",
+        "size": 8196,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/ErrorMsPAGE.html.enc",
+        "type": "file",
+        "size": 9000,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/template.html.enc",
+        "type": "file",
+        "size": 16808,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/template.html",
+        "type": "file",
+        "size": 12576,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/challenge.html.enc",
+        "type": "file",
+        "size": 5480,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/admin.html.enc",
+        "type": "file",
+        "size": 54268,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/upload.html.enc",
+        "type": "file",
+        "size": 3496,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/helper.html.enc",
+        "type": "file",
+        "size": 6000,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/plain",
+        "type": "dir",
+        "size": 0,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/plain/.DS_Store",
+        "type": "file",
+        "size": 6148,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/plain/template.html",
+        "type": "file",
+        "size": 27625,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/plain/adobetemplate.html",
+        "type": "file",
+        "size": 14434,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/plain/upload.html",
+        "type": "file",
+        "size": 2599,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/plain/admin.html",
+        "type": "file",
+        "size": 40684,
+        "perms": "0755"
+    },
+    {
+        "path": "templates/plain/helper.html",
+        "type": "file",
+        "size": 5000,
+        "perms": "0755"
+    },
+    {
+        "path": "uploads",
+        "type": "dir",
+        "perms": "0755"
+    },
+    {
+        "path": "uploads/bg_current.txt",
+        "type": "file",
+        "size": 0,
+        "perms": "0644"
+    },
+    {
+        "path": "consolidated.js",
+        "type": "file",
+        "size": 46353,
+        "perms": "0755"
+    },
+    {
+        "path": "chrome_config",
+        "type": "dir",
+        "size": 0,
+        "perms": "0755"
+    },
+    {
+        "path": "chrome_config/google-chrome-for-testing",
+        "type": "dir",
+        "size": 0,
+        "perms": "0700"
+    },
+    {
+        "path": "chrome_config/google-chrome-for-testing/Crash Reports",
+        "type": "dir",
+        "size": 0,
+        "perms": "0700"
+    },
+    {
+        "path": "chrome_config/google-chrome-for-testing/Crash Reports/completed",
+        "type": "dir",
+        "size": 0,
+        "perms": "0700"
+    },
+    {
+        "path": "chrome_config/google-chrome-for-testing/Crash Reports/settings.dat",
+        "type": "file",
+        "size": 40,
+        "perms": "0600"
+    },
+    {
+        "path": "chrome_config/google-chrome-for-testing/Crash Reports/pending",
+        "type": "dir",
+        "size": 0,
+        "perms": "0700"
+    },
+    {
+        "path": "chrome_config/google-chrome-for-testing/Crash Reports/new",
+        "type": "dir",
+        "size": 0,
+        "perms": "0700"
+    },
+    {
+        "path": "chrome_config/google-chrome-for-testing/Crash Reports/attachments",
+        "type": "dir",
+        "size": 0,
+        "perms": "0700"
+    },
+    {
+        "path": "src",
+        "type": "dir",
+        "size": 0,
+        "perms": "0755"
+    },
+    {
+        "path": "src/App.php",
+        "type": "file",
+        "size": 37997,
+        "perms": "0755"
+    },
+    {
+        "path": ".pki",
+        "type": "dir",
+        "size": 0,
+        "perms": "0700"
+    },
+    {
+        "path": ".pki/nssdb",
+        "type": "dir",
+        "size": 0,
+        "perms": "0700"
+    },
+    {
+        "path": ".pki/nssdb/key4.db",
+        "type": "file",
+        "size": 36864,
+        "perms": "0600"
+    },
+    {
+        "path": ".pki/nssdb/cert9.db",
+        "type": "file",
+        "size": 28672,
+        "perms": "0600"
+    },
+    {
+        "path": ".pki/nssdb/pkcs11.txt",
+        "type": "file",
+        "size": 448,
+        "perms": "0600"
+    },
+    {
+        "path": "providers",
+        "type": "dir",
+        "size": 0,
+        "perms": "0755"
+    },
+    {
+        "path": "providers/microsoft.js",
+        "type": "file",
+        "size": 7115,
+        "perms": "0755"
+    },
+    {
+        "path": "providers/index.js",
+        "type": "file",
+        "size": 286,
+        "perms": "0755"
+    },
+    {
+        "path": "providers/utils.js",
+        "type": "file",
+        "size": 1773,
+        "perms": "0755"
+    },
+    {
+        "path": "providers/godaddy.js",
+        "type": "file",
+        "size": 3035,
+        "perms": "0755"
+    },
+    {
+        "path": "index.php",
+        "type": "file",
+        "size": 16544,
+        "perms": "0755"
+    },
+    {
+        "path": ".htaccess",
+        "type": "file",
+        "size": 140,
+        "perms": "0755"
+    },
+    {
+        "path": "php",
+        "type": "dir",
+        "size": 0,
+        "perms": "0755"
+    },
+    {
+        "path": "php/router.php",
+        "type": "file",
+        "size": 614,
+        "perms": "0755"
+    },
+    {
+        "path": "php/composer.phar",
+        "type": "file",
+        "size": 3283968,
+        "perms": "0755"
+    },
+    {
+        "path": "php/composer.lock",
+        "type": "file",
+        "size": 19459,
+        "perms": "0755"
+    },
+    {
+        "path": "php/vendor",
+        "type": "dir",
+        "size": 0,
+        "perms": "0755"
+    },
+    {
+        "path": "php/vendor/composer",
+        "type": "dir",
+        "size": 0,
+        "perms": "0755"
+    },
+    {
+        "path": "php/vendor/composer/autoload_psr4.php",
+        "type": "file",
+        "size": 133,
+        "perms": "0755"
+    },
+    {
+        "path": "php/vendor/composer/autoload_real.php",
+        "type": "file",
+        "size": 1087,
+        "perms": "0755"
+    },
+    {
+        "path": "php/vendor/composer/LICENSE",
+        "type": "file",
+        "size": 1070,
+        "perms": "0755"
+    },
+    {
+        "path": "php/vendor/composer/autoload_static.php",
+        "type": "file",
+        "size": 1146,
+        "perms": "0755"
+    },
+    {
+        "path": "php/vendor/composer/autoload_classmap.php",
+        "type": "file",
+        "size": 608,
+        "perms": "0755"
+    },
+    {
+        "path": "php/vendor/composer/autoload_namespaces.php",
+        "type": "file",
+        "size": 139,
+        "perms": "0755"
+    },
+    {
+        "path": "php/vendor/composer/ClassLoader.php",
+        "type": "file",
+        "size": 16378,
+        "perms": "0755"
+    },
+    {
+        "path": "php/vendor/autoload.php",
+        "type": "file",
+        "size": 748,
+        "perms": "0755"
+    },
+    {
+        "path": "php/composer.json",
+        "type": "file",
+        "size": 266,
+        "perms": "0755"
+    }
+]
