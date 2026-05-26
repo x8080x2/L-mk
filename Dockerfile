@@ -7,8 +7,9 @@ RUN apt-get update && apt-get install -y \
     git \
     unzip \
     libzip-dev \
+    libpq-dev \
     && docker-php-ext-configure zip \
-    && docker-php-ext-install bcmath zip
+    && docker-php-ext-install bcmath zip pdo_pgsql
 
 COPY composer.json composer.lock ./
 
