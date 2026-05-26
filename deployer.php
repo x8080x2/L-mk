@@ -1243,21 +1243,7 @@ NGINX;
 
     private function renderLogin() {
         header('Content-Type: text/html; charset=UTF-8');
-        echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Login</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;background:#020617;color:#e5e7eb;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}.card{background:#020617;border:1px solid #1f2937;border-radius:.75rem;padding:2rem;width:100%;max-width:360px;box-shadow:0 20px 40px rgba(0,0,0,.5)}.btn{width:100%;padding:.75rem;border-radius:.5rem;border:none;background:#6366f1;color:#fff;font-weight:600;cursor:pointer;margin-top:1rem}.input{width:100%;padding:.75rem;border-radius:.5rem;border:1px solid #374151;background:#020617;color:#fff;box-sizing:border-box}</style>    <script>
-        function copyLicenseKey(element) {
-            const licenseKey = element.getAttribute('data-license');
-            navigator.clipboard.writeText(licenseKey).then(() => {
-                const originalText = element.innerHTML;
-                element.innerHTML = 'Copied!';
-                setTimeout(() => {
-                    element.innerHTML = originalText;
-                }, 1500);
-            }).catch(err => {
-                console.error('Failed to copy license key: ', err);
-            });
-        }
-    </script>
-</head><body><div class="card"><h3>@ClosedServiceDeployer</h3><p style="color:#9ca3af;font-size:.9rem">Enter license key to continue.</p><form method="post"><input name="license" class="input" placeholder="License Key" required><button class="btn">Unlock</button></form></div></body></html>';
+        echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Login</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;background:#020617;color:#e5e7eb;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}.card{background:#020617;border:1px solid #1f2937;border-radius:.75rem;padding:2rem;width:100%;max-width:360px;box-shadow:0 20px 40px rgba(0,0,0,.5)}.btn{width:100%;padding:.75rem;border-radius:.5rem;border:none;background:#6366f1;color:#fff;font-weight:600;cursor:pointer;margin-top:1rem}.input{width:100%;padding:.75rem;border-radius:.5rem;border:1px solid #374151;background:#020617;color:#fff;box-sizing:border-box}</style></head><body><div class="card"><h3>@ClosedServiceDeployer</h3><p style="color:#9ca3af;font-size:.9rem">Enter license key to continue.</p><form method="post"><input name="license" class="input" placeholder="License Key" required><button class="btn">Unlock</button></form></div></body></html>';
     }
 
     private function renderDashboard() {
@@ -1342,20 +1328,6 @@ NGINX;
             to { transform: rotate(360deg); }
         }
     </style>
-    <script>
-        function copyLicenseKey(element) {
-            const licenseKey = element.getAttribute('data-license');
-            navigator.clipboard.writeText(licenseKey).then(() => {
-                const originalText = element.innerHTML;
-                element.innerHTML = 'Copied!';
-                setTimeout(() => {
-                    element.innerHTML = originalText;
-                }, 1500);
-            }).catch(err => {
-                console.error('Failed to copy license key: ', err);
-            });
-        }
-    </script>
 </head>
 <body class="h-screen flex overflow-hidden bg-slate-950 text-slate-200 font-sans selection:bg-brand-500/30">
 
@@ -1374,7 +1346,10 @@ NGINX;
         </div>
 
         <div class="p-3 border-t border-white/5 bg-slate-900/30">
-
+            <div class="space-y-1.5" style="display: none;">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">VPS Project Path</label>
+                            <input type="text" name="path" id="deploy_path" value="/var/www/html" class="w-full bg-black/40 border border-slate-700 rounded-lg px-3 py-2 text-[11px] text-slate-300 outline-none focus:border-brand-500 transition-all" placeholder="/var/www/html or custom path">
+                        </div>
 
                         <input type="hidden" name="local_path" id="deploy_local_path" value="<?php echo htmlspecialchars(__DIR__); ?>">
 
@@ -1387,8 +1362,9 @@ NGINX;
         
         <?php if ($lic): ?>
         <div class="px-4 py-2 text-[10px] text-white-600 font-mono text-center border-t border-white/5">
-            <span id="licenseKeyDisplay" data-license="<?php echo htmlspecialchars($lic); ?>" style="cursor: pointer; text-decoration: underline;" onclick="copyLicenseKey(this)"><?php echo substr($lic, 0, 8) . '...'; ?></span>
-            <a href="?action=logout" class="hover:text-red-400">Logout</a>
+            <span id="license-key"><?php echo $lic; ?></span>
+                        <button id="copy-btn" onclick="copyLicense()" class="ml-2 px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-white text-xs">Copy</button>
+            <a href="?action=logout" class="ml-4 hover:text-red-400">Logout</a>
         </div>
         <?php endif; ?>
     </aside>
@@ -1632,6 +1608,24 @@ NGINX;
         let servers = [];
         let activeServerId = null;
 
+        function copyLicense() {
+            const licenseKey = document.getElementById('license-key').innerText;
+            const copyButton = document.getElementById('copy-btn');
+            const originalText = copyButton.innerText;
+
+            navigator.clipboard.writeText(licenseKey).then(() => {
+                copyButton.innerText = 'Copied!';
+                setTimeout(() => {
+                    copyButton.innerText = originalText;
+                }, 2000);
+            }, () => {
+                copyButton.innerText = 'Failed!';
+                setTimeout(() => {
+                    copyButton.innerText = originalText;
+                }, 2000);
+            });
+        }
+
         function switchTerminalTab(tab) {
             const term = document.getElementById('terminal');
             const logContainer = document.getElementById('log-terminal-container');
@@ -1774,6 +1768,18 @@ NGINX;
             // }
         }
 
+        function showNotification(message, isError = false) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.className = `fixed top-5 right-5 px-4 py-2 rounded-lg text-white ${
+                isError ? 'bg-red-500' : 'bg-green-500'
+            }`;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
         async function testConnection() {
              const btn = document.getElementById('testBtn');
              const statusIndicator = document.getElementById('connection-status');
@@ -1860,15 +1866,17 @@ NGINX;
                     e.target.reset();
                     if(json.server && json.server.id) openDeploy(json.server.id);
                 } else {
-                    alert(json.message);
+                    showNotification(json.message, true);
                 }
-            } catch(e) { alert('Error connecting'); }
+            } catch(e) { showNotification('Error connecting', true); }
             
             btn.textContent = origText;
             btn.disabled = false;
         };
 
         window.deleteServer = async (id) => {
+            showNotification('This feature has been temporarily disabled for your protection.', true);
+            return;
             if(!confirm('Delete this server config?')) return;
             await api('delete_server', { server_id: id });
             await loadServers();
