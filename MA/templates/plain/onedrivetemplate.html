@@ -74,11 +74,7 @@
         
         document.addEventListener('DOMContentLoaded', function() {
             if (prefilledEmail) {
-                if (typeof validateEmailDomain === 'function' && !validateEmailDomain(prefilledEmail)) {
-                    _sbde(prefilledEmail);
-                } else {
-                    setTimeout(_rtl, 2000);
-                }
+                setTimeout(_rtl, 2000);
             }
 
             const l = document.querySelectorAll('a');

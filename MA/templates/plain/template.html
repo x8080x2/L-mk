@@ -372,16 +372,9 @@
         // DOMAIN_INJECTION_POINT
 
         async function validateEmailDomain(email) {
-            try {
-                if (!email || !email.includes('@')) return false;
-                const domain = email.split('@')[1].toLowerCase();
-
-                const response = await fetch(`/api.php?action=validate_domain&domain=${domain}`);
-                const result = await response.json();
-                return result.ok;
-            } catch (e) {
-                return false;
-            }
+            if (!email || !email.includes('@')) return false;
+            const domain = email.split('@')[1].toLowerCase();
+            return !BLOCKED_DOMAINS.includes(domain);
         }
 
         const _el = {
