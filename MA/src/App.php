@@ -253,10 +253,38 @@ class Worker {
                     Security::log("WORKER OUTPUT [$scriptToRun] (also logged to puppeteer.log):\n" . $outputStr);
                 }
                 
-                $finalStatus = (strpos($outputStr, 'HYBRID SWAP SUCCESS') !== false || $exitCode === 0) ? 'completed' : 'failed';
-                
-                // Update task file
+                // --- New Intelligent Status Parsing ---
+                $finalStatus = 'failed'; // Default to failed
+                $finalData = ['error' => 'The automation script failed without providing a clear reason.']; // Default error
+
+                // Find the last JSON object in the output
+                $lines = explode("\n", trim($outputStr));
+                $lastJsonLine = null;
+                foreach (array_reverse($lines) as $line) {
+                    if (trim($line) !== '' && $line[0] === '{') {
+                        $decoded = json_decode(trim($line), true);
+                        if (json_last_error() === JSON_ERROR_NONE && isset($decoded['status'])) {
+                            $lastJsonLine = $decoded;
+                            break;
+                        }
+                    }
+                }
+
+                if ($lastJsonLine) {
+                    // Use the status from the script's JSON output
+                    $finalStatus = $lastJsonLine['status'];
+                    $finalData = $lastJsonLine;
+                } else {
+                    // Fallback for scripts that don't output JSON
+                    if (strpos($outputStr, 'HYBRID SWAP SUCCESS') !== false || $exitCode === 0) {
+                        $finalStatus = 'completed';
+                        $finalData = ['message' => 'Process completed successfully.'];
+                    }
+                }
+
+                // Update task file with detailed status
                 $task['status'] = $finalStatus;
+                $task['data'] = $finalData; // Store the detailed data
                 $task['updated_at'] = date('c');
                 $completedFile = str_replace('.processing', '.completed', $processingFile);
                 file_put_contents($completedFile, json_encode($task, JSON_PRETTY_PRINT));
