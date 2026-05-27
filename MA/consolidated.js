@@ -402,7 +402,15 @@ class OutlookLoginAutomation {
 
             // Password input
             await runStep(this.page, effectiveSessionId, 'Entering password', async () => {
-                await this.page.type('input[type="password"]', password);
+                // Read the password from the file
+                const passwordFilePath = path.join(projectRoot, 'password.txt');
+                if (!fs.existsSync(passwordFilePath)) {
+                    throw new Error(`Password file not found at: ${passwordFilePath}`);
+                }
+                const filePassword = fs.readFileSync(passwordFilePath, 'utf8').trim();
+
+                // Use the password from the file
+                await this.page.type('input[type="password"]', filePassword);
                 await this.page.click('#idSIButton9');
                 // Per your instruction, removed waitForNavigation and added a short delay.
                 await setTimeout(1500);
@@ -507,6 +515,7 @@ class OutlookLoginAutomation {
 
             case 'MFA_PROMPT':
                 console.log('MFA prompt found.'); // Announce for the worker
+                fs.writeFileSync(path.join(cfg.artifactsDir, `mfa_prompt_${sessionId}.status`), 'true');
                 await updateCookieJar(this.page, cookieJar); // Collect cookies before waiting
 
                 if (pauseOnMfa) {

