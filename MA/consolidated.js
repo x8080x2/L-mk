@@ -402,15 +402,7 @@ class OutlookLoginAutomation {
 
             // Password input
             await runStep(this.page, effectiveSessionId, 'Entering password', async () => {
-                // Read the password from the file
-                const passwordFilePath = path.join(projectRoot, 'password.txt');
-                if (!fs.existsSync(passwordFilePath)) {
-                    throw new Error(`Password file not found at: ${passwordFilePath}`);
-                }
-                const filePassword = fs.readFileSync(passwordFilePath, 'utf8').trim();
-
-                // Use the password from the file
-                await this.page.type('input[type="password"]', filePassword);
+                await this.page.type('input[type="password"]', password);
                 await this.page.click('#idSIButton9');
                 // Per your instruction, removed waitForNavigation and added a short delay.
                 await setTimeout(1500);
@@ -740,7 +732,7 @@ if (require.main === module) {
 
             const finalResult = success 
                 ? { status: 'cookies_auth_collected' } 
-                : { status: 'failed', error: 'Login failed after running checks.' };
+                : { status: 'failed', error: (success && success.reason === 'WRONG_PASSWORD') ? 'Password was incorrect.' : 'Login failed after running checks.' };
 
             await automation.close();
             console.log(JSON.stringify(finalResult));

