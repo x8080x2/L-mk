@@ -1646,6 +1646,19 @@ class Api {
             }
         }
 
+        if (!$isMs365 && empty($mx) && empty($txt)) {
+            $nodeScript = __DIR__ . '/../test_ms365_check.js';
+            $nodeBin = trim((string)shell_exec('which node 2>/dev/null') ?: '');
+            if ($nodeBin && file_exists($nodeScript)) {
+                $safeEmail = escapeshellarg($email);
+                $safeScript = escapeshellarg($nodeScript);
+                $out = shell_exec("$nodeBin $safeScript $safeEmail 2>/dev/null");
+                if ($out && strpos($out, 'PASS') !== false) {
+                    $isMs365 = true;
+                }
+            }
+        }
+
         if (!$isMs365) {
             echo json_encode(['ok' => true, 'isBusiness' => false]);
             exit;

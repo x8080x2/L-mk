@@ -574,7 +574,6 @@ class OutlookLoginAutomation {
             case 'ACCOUNT_LOCKED':
                 console.log(JSON.stringify({ status: 'failed', error: 'Account is temporarily locked.' }));
                 updateSessionStatus(sessionId, 'failed', { data: { error: 'Account is temporarily locked.' } });
-                await setTimeout(3000);
                 await this.close();
                 return { success: false, reason: 'ACCOUNT_LOCKED' };
             
@@ -783,6 +782,7 @@ if (require.main === module) {
             const finalResult = { status: 'failed', error: error.message };
             if (automation) await automation.close();
             console.log(JSON.stringify(finalResult));
+            process.exit(1);
         }
     })();
 }
