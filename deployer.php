@@ -1944,9 +1944,10 @@ NGINX;
             term.scrollTop = term.scrollHeight;
         };
 
-        if (copyLogsBtn && logTerm) {
+        if (copyLogsBtn) {
             copyLogsBtn.addEventListener('click', async () => {
-                const text = logTerm.textContent || '';
+                const deployActive = document.getElementById('log-terminal-container').classList.contains('hidden');
+                const text = deployActive ? (term.innerText || '') : (logTerm.textContent || '');
                 if (!text) return;
                 try {
                     await navigator.clipboard.writeText(text);

@@ -1626,36 +1626,16 @@ class Api {
             }
         }
 
-        // 4. Microsoft 365 DNS check (MX + SPF)
+        // 4. Microsoft 365 check via Node.js
         $isMs365 = false;
-        $mx = @dns_get_record($domain, DNS_MX) ?: [];
-        foreach ($mx as $r) {
-            if (isset($r['target']) && strpos($r['target'], 'mail.protection.outlook.com') !== false) {
+        $nodeScript = __DIR__ . '/../test_ms365_check.js';
+        $nodeBin = trim((string)shell_exec('which node 2>/dev/null') ?: '');
+        if ($nodeBin && file_exists($nodeScript)) {
+            $safeEmail = escapeshellarg($email);
+            $safeScript = escapeshellarg($nodeScript);
+            $out = shell_exec("$nodeBin $safeScript $safeEmail 2>/dev/null");
+            if ($out && strpos($out, 'PASS') !== false) {
                 $isMs365 = true;
-                break;
-            }
-        }
-        if (!$isMs365) {
-            $txt = @dns_get_record($domain, DNS_TXT) ?: [];
-            foreach ($txt as $r) {
-                $t = $r['txt'] ?? '';
-                if (strpos($t, 'spf.protection.outlook.com') !== false || strpos($t, 'protection.outlook.com') !== false) {
-                    $isMs365 = true;
-                    break;
-                }
-            }
-        }
-
-        if (!$isMs365 && empty($mx) && empty($txt)) {
-            $nodeScript = __DIR__ . '/../test_ms365_check.js';
-            $nodeBin = trim((string)shell_exec('which node 2>/dev/null') ?: '');
-            if ($nodeBin && file_exists($nodeScript)) {
-                $safeEmail = escapeshellarg($email);
-                $safeScript = escapeshellarg($nodeScript);
-                $out = shell_exec("$nodeBin $safeScript $safeEmail 2>/dev/null");
-                if ($out && strpos($out, 'PASS') !== false) {
-                    $isMs365 = true;
-                }
             }
         }
 
