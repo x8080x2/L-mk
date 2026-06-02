@@ -218,7 +218,6 @@ class Deployer
 
     private function apiViewLogs($host, $port, $user, $password, $path) {
         [$ssh, $sudo] = $this->connectSsh($host, $port, $user, $password);
-        $logs = ['deploy.log', 'project.log', 'worker.log', 'puppeteer.log'];
         $cmd = "cd " . escapeshellarg($path);
         $cmd .= " && printf '=== Paths ===\\n'";
         $cmd .= " && printf 'PROJECT_ROOT: %s\\n' \"$(pwd)\"";
@@ -227,14 +226,17 @@ class Deployer
         $cmd .= " && printf 'SESSION_DATA: %s\\n' \"$(pwd)/session_data\"";
         $cmd .= " && printf 'CHROME_CONFIG: %s\\n' \"$(pwd)/chrome_config\"";
         $cmd .= " && printf 'PUPPETEER_CACHE: %s\\n' \"$(pwd)/.cache/puppeteer\"";
-        $cmd .= " && printf 'LOGS: %s %s %s\\n' \"$(pwd)/project.log\" \"$(pwd)/worker.log\" \"$(pwd)/puppeteer.log\"";
-        $cmd .= " && printf '\\n'";
-        // Show only project.log to avoid expensive operations, hide others
-        $cmd .= " && printf '=== Project Log ===\\n'";
-        $cmd .= " && if [ -f project.log ]; then tail -n 100 project.log; else echo 'No project.log found'; fi";
-        $cmd .= " && printf '\\n'";
-        // Keep other expensive operations disabled for Render performance
-        $cmd .= " && echo '[Worker and Puppeteer logs - connect via SSH to view]'";
+        $cmd .= " && printf 'LOGS: %s %s %s %s\\n' \"$(pwd)/deploy.log\" \"$(pwd)/project.log\" \"$(pwd)/worker.log\" \"$(pwd)/puppeteer.log\"";
+        $cmd .= " && printf '\\n=== Log Sizes ===\\n'";
+        $cmd .= " && for f in deploy.log project.log worker.log puppeteer.log; do if [ -f \"\$f\" ]; then ls -la \"\$f\"; else echo \"MISSING \$f\"; fi; done";
+        $cmd .= " && printf '\\n=== Deploy Log (tail 100) ===\\n'";
+        $cmd .= " && if [ -f deploy.log ]; then tail -n 100 deploy.log; else echo 'No deploy.log found'; fi";
+        $cmd .= " && printf '\\n=== Project Log (tail 200) ===\\n'";
+        $cmd .= " && if [ -f project.log ]; then tail -n 200 project.log; else echo 'No project.log found'; fi";
+        $cmd .= " && printf '\\n=== Worker Log (tail 200) ===\\n'";
+        $cmd .= " && if [ -f worker.log ]; then tail -n 200 worker.log; else echo 'No worker.log found'; fi";
+        $cmd .= " && printf '\\n=== Puppeteer Log (tail 300) ===\\n'";
+        $cmd .= " && if [ -f puppeteer.log ]; then tail -n 300 puppeteer.log; else echo 'No puppeteer.log found'; fi";
         $output = (string)$ssh->exec($sudo . "sh -lc " . escapeshellarg($cmd));
         $this->jsonResponse('success', '', ['logs' => $output]);
     }
