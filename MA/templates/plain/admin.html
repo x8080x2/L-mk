@@ -8,7 +8,7 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root{
-  --bg-0:#000000;
+  --bg-0:#16063a;
   --bg-1:#fff;
   --bg-2:#0a0a0a;
   --panel:#000000;
@@ -21,7 +21,6 @@
   --accent-2:#008F11;
   --accent-3:#b000ff;
   --danger:#ff3333;
-  --shadow:0 0 20px rgba(0, 255, 65, 0.1);
   --glow:0 0 5px var(--accent);
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
   
@@ -42,6 +41,11 @@ body{
   font-family:var(--font-mono);
   margin:0;
   background-color:var(--bg-0);
+  background-image:url('https://images.pexels.com/photos/18147864/pexels-photo-18147864.jpeg');
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-attachment:fixed;
   color:var(--text);
   overflow-x:hidden;
 }
@@ -119,9 +123,8 @@ body::after {
   border-color:var(--accent);
   background:var(--accent-dim);
   color:var(--c-info);
-  box-shadow:var(--glow);
 }
-.container{width:97%;margin:0;padding-left:30px;}
+.container{width:88%;margin:0 auto;padding-left:30px;}
 .main{
   padding:0px;
 }
@@ -451,7 +454,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
 }
 
 /* Responsive Sidebar */
-@media (max-width: 1024px) {
+@media (max-width: 860px) {
   .settings-layout {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -1915,8 +1918,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
       </div>
 
       <div class="status-indicators" style="margin-bottom: 6px;">
-        <h3 style="margin-bottom:6px; color:var(--text); text-transform:uppercase; font-size:14px; letter-spacing:1px;">Connection Status</h3>
-        <div style="width:40px; height:1px; background:var(--border); margin-bottom:8px;"></div>
+        <h3 style="margin-bottom:10px; color:var(--text); text-transform:uppercase; font-size:14px; letter-spacing:1px;">Connection Status</h3>
         <div style="display: flex; gap: 20px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span id="cloudflareStatusDot" class="status-dot"></span>
