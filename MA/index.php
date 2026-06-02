@@ -605,10 +605,7 @@ if ($email) {
     );
 }
 
-// Auto-detect and inject the correct API base URL
-$scriptPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-$scriptDir = rtrim(dirname($scriptPath), '/');
-$apiBase = ($scriptDir === '' || $scriptDir === '/') ? '/api.php' : $scriptDir . '/api.php';
+$apiBase = '/api.php';
 $html = str_replace('SERVER_INJECT_API_BASE', $apiBase, $html);
 
 // Universal Domain Injection System
