@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const puppeteer = require('puppeteer');
 const { setTimeout } = require('timers/promises');
 
-const projectRoot = '/Users/mindedjr/Documents/trae_projects/L1mk/MA';
+const projectRoot = __dirname;
 
 function ensureDir(dirPath) {
     if (!dirPath) return;
