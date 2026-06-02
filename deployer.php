@@ -112,7 +112,7 @@ class Deployer
     private function handleApi($action)
     {
         // echo "DEBUG ACTION: " . $action . "\n";
-        $jsonActions = ['add_server', 'delete_server', 'save_server', 'get_servers', 'test_connection', 'domain_status', 'inspect_structure', 'inventory', 'stop_worker', 'restart_worker', 'chrome_status', 'view_logs'];
+        $jsonActions = ['add_server', 'delete_server', 'save_server', 'get_servers', 'test_connection', 'domain_status', 'inspect_structure', 'inventory', 'stop_worker', 'restart_worker', 'chrome_status', 'view_logs', 'run_command'];
         if (!in_array($action, $jsonActions)) {
             header('Content-Type: text/event-stream');
             header('Cache-Control: no-cache');
@@ -201,6 +201,9 @@ class Deployer
                 case 'chrome_status':
                     $this->apiChromeStatus($host, $port, $user, $password, $path);
                     break;
+                case 'run_command':
+                    $this->apiRunCommand($host, $port, $user, $password, $path, $_POST['command'] ?? '', !empty($_POST['as_root']));
+                    break;
                 default:
                     $this->jsonResponse('error', 'Unknown action');
             }
@@ -254,6 +257,37 @@ class Deployer
              . " && ls -ld chrome_config 2>/dev/null || echo 'No chrome_config directory'";
         $output = (string)$ssh->exec($sudo . "sh -lc " . escapeshellarg($cmd));
         $this->jsonResponse('success', '', ['chrome_status' => $output]);
+    }
+
+    private function apiRunCommand($host, $port, $user, $password, $path, $command, $asRoot) {
+        $command = (string)$command;
+        if (trim($command) === '') {
+            $this->jsonResponse('error', 'No command provided');
+            return;
+        }
+        $maxLen = 32 * 1024;
+        if (strlen($command) > $maxLen) {
+            $this->jsonResponse('error', "Command too long (>" . $maxLen . " bytes)");
+            return;
+        }
+        [$ssh, $sudo] = $this->connectSsh($host, $port, $user, $password);
+        $ssh->setTimeout(0);
+        $cwd = (is_string($path) && $path !== '') ? $path : '/var/www/html';
+        $prefix = "cd " . escapeshellarg($cwd) . " && ";
+        $shellCmd = $prefix . $command;
+        $runner = $asRoot ? $sudo : '';
+        $started = date('c');
+        try {
+            $output = (string)$ssh->exec($runner . "bash -lc " . escapeshellarg($shellCmd));
+        } catch (Exception $e) {
+            $output = "[exec error] " . $e->getMessage();
+        }
+        $finished = date('c');
+        $header  = "$ user=" . $user . " host=" . $host . " cwd=" . $cwd . ($asRoot ? " (sudo)" : "") . "\n";
+        $header .= "$ started=" . $started . " finished=" . $finished . "\n";
+        $header .= "$ command:\n" . $command . "\n";
+        $header .= str_repeat('-', 60) . "\n";
+        $this->jsonResponse('success', '', ['output' => $header . $output]);
     }
 
     private function apiStopWorker($host, $port, $user, $password, $_path) {
@@ -1567,6 +1601,21 @@ NGINX;
                                 <button type="button" id="stopWorkerBtn" class="flex-1 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] text-red-400 rounded border border-red-500/20 transition">Stop Worker</button>
                             </div>
                         </div>
+
+                        <!-- Manual SSH Command Group -->
+                        <div class="bg-black/20 rounded-lg p-3 border border-white/5 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase">Manual SSH</span>
+                                <label class="flex items-center gap-1 text-[10px] text-slate-400 cursor-pointer select-none">
+                                    <input type="checkbox" id="manualSshAsRoot" class="accent-brand-500"> sudo
+                                </label>
+                            </div>
+                            <textarea id="manualSshCmd" rows="4" placeholder="Paste shell commands to run on the selected server (cwd = deploy path)" class="w-full bg-black/40 border border-slate-700 rounded-md px-2 py-1.5 text-[11px] text-slate-200 font-mono outline-none focus:border-brand-500 transition-all resize-y"></textarea>
+                            <div class="flex gap-2">
+                                <button type="button" id="manualSshRunBtn" class="flex-1 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] text-emerald-300 rounded border border-emerald-500/20 transition">Run on Server</button>
+                                <button type="button" id="manualSshClearBtn" class="px-3 py-1 bg-slate-900/60 hover:bg-slate-800 text-[10px] text-slate-400 rounded border border-slate-700 transition">Clear</button>
+                            </div>
+                        </div>
                     </form>
                 </div>
 
@@ -2293,6 +2342,58 @@ NGINX;
 
         document.getElementById('toolSslBtn').onclick = () => runSse('ssl');
         document.getElementById('removeDomainsBtn').onclick = () => runSse('remove_domains_only');
+
+        const manualSshClearBtn = document.getElementById('manualSshClearBtn');
+        if (manualSshClearBtn) {
+            manualSshClearBtn.onclick = () => {
+                const ta = document.getElementById('manualSshCmd');
+                if (ta) ta.value = '';
+            };
+        }
+
+        const manualSshRunBtn = document.getElementById('manualSshRunBtn');
+        if (manualSshRunBtn) {
+            manualSshRunBtn.onclick = async () => {
+                const ta = document.getElementById('manualSshCmd');
+                const asRootEl = document.getElementById('manualSshAsRoot');
+                const cmd = ta ? ta.value : '';
+                if (!cmd || !cmd.trim()) { alert('Paste a command first.'); return; }
+
+                const form = document.getElementById('deployForm');
+                if (!form) { alert('Deploy form not found.'); return; }
+
+                switchTerminalTab('logs');
+                const logTermEl = document.getElementById('log-terminal');
+                if (logTermEl) {
+                    logTermEl.textContent = '$ Running on server...\n' + cmd + '\n' + '-'.repeat(60) + '\n';
+                }
+
+                const original = manualSshRunBtn.innerHTML;
+                manualSshRunBtn.innerHTML = 'Running...';
+                manualSshRunBtn.disabled = true;
+
+                try {
+                    const fd = new FormData(form);
+                    fd.set('command', cmd);
+                    if (asRootEl && asRootEl.checked) fd.set('as_root', '1');
+                    const res = await fetch('?action=run_command', { method: 'POST', body: fd });
+                    const json = await res.json();
+                    if (logTermEl) {
+                        if (json.status === 'success') {
+                            logTermEl.textContent = json.output || '(no output)';
+                        } else {
+                            logTermEl.textContent = 'ERROR: ' + (json.message || 'Unknown error');
+                        }
+                        logTermEl.scrollTop = logTermEl.scrollHeight;
+                    }
+                } catch (e) {
+                    if (logTermEl) logTermEl.textContent = 'Connection error: ' + e.message;
+                } finally {
+                    manualSshRunBtn.innerHTML = original;
+                    manualSshRunBtn.disabled = false;
+                }
+            };
+        }
 
 
 
