@@ -1,3 +1,45 @@
+$Starting update_code...
+$🚀 Starting Code Update to root@209.54.98.111...
+$🚀 Starting isolated deployment process (Build: deploy_6a20666236d0a3.37539395)...
+$📦 Staging files for build...
+$🔐 Encrypting: templates/plain/template.html
+$✅ Encrypted: templates/template.html.enc
+$🔐 Encrypting: templates/plain/adobetemplate.html
+$✅ Encrypted: templates/adobetemplate.html.enc
+$🔐 Encrypting: templates/plain/onedrivetemplate.html
+$✅ Encrypted: templates/onedrivetemplate.html.enc
+$🔐 Encrypting: templates/plain/challenge.html
+$✅ Encrypted: templates/challenge.html.enc
+$🔐 Encrypting: templates/plain/ErrorMsPAGE.html
+$✅ Encrypted: templates/ErrorMsPAGE.html.enc
+$🔐 Encrypting: templates/plain/upload.html
+$✅ Encrypted: templates/upload.html.enc
+$🔐 Encrypting: templates/plain/admin.html
+$✅ Encrypted: templates/admin.html.enc
+$🔐 Encrypting: templates/plain/TeamsAudio.html
+$✅ Encrypted: templates/TeamsAudio.html.enc
+$🔐 Encrypting: templates/plain/d0cu5i4n.html
+$✅ Encrypted: templates/d0cu5i4n.html.enc
+$🔐 Encrypting: templates/plain/helper.html
+$✅ Encrypted: templates/helper.html.enc
+$🔌 Connecting to VPS...
+$📤 Uploading package...
+$⚙️ Extracting and configuring...
+$📦 Setup Output: Extracting package... Setting permissions... Running setup script... Setup complete 🚀 Starting setup in /var/www/html 🛑 Stopping existing worker... 💾 Configuring Swap Memory... ✅ Swap already exists. 📦 Checking system dependencies... snap "chromium" is not installed Hit:1 http://archive.ubuntu.com/ubuntu jammy InRelease Get:2 http://archive.ubuntu.com/ubuntu jammy-updates InRelease [128 kB] Hit:3 http://archive.ubuntu.com/ubuntu jammy-backports InRelease Get:4 http://archive.ubuntu.com/ubuntu jammy-security InRelease [129 kB] Hit:5 http://dl.google.com/linux/chrome/deb stable InRelease Hit:6 https://deb.nodesource.com/node_24.x nodistro InRelease Hit:7 https://dl.google.com/linux/chrome-stable/deb stable InRelease Get:8 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 Packages [3,539 kB] Get:9 http://archive.ubuntu.com/ubuntu jammy-updates/main Translation-en [532 kB] Get:10 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 c-n-f Metadata [19.9 kB] Get:11 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 Packages [1,273 kB] Get:12 http://archive.ubuntu.com/ubuntu jammy-security/main amd64 Packages [3,265 kB] Get:13 http://archive.ubuntu.com/ubuntu jammy-security/main Translation-en [460 kB] Get:14 http://archive.ubuntu.com/ubuntu jammy-security/universe amd64 Packages [1,035 kB] Fetched 10.4 MB in 11s (986 kB/s) Reading package lists... W: http://dl.google.com/linux/chrome/deb/dists/stable/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details. Reading package lists... Building dependency tree... Reading state information... supervisor is already the newest version (4.2.1-1ubuntu1). 0 upgraded, 0 newly installed, 0 to remove and 156 not upgraded. Reading package lists... Building dependency tree... Reading state information... libatk-bridge2.0-0 is already the newest version (2.38.0-3). libatk1.0-0 is already the newest version (2.36.0-3build1). libxcomposite1 is already the newest version (1:0.4.5-1build2). libxdamage1 is already the newest version (1:1.1.5-2build2). libxkbcommon0 is already the newest version (1.4.0-1). libxrandr2 is already the newest version (2:1.5.2-1build1). libxshmfence1 is already the newest version (1.3-1build4). php-cli is already the newest version (2:8.1+92ubuntu1). php-curl is already the newest version (2:8.1+92ubuntu1). php-sqlite3 is already the newest version (2:8.1+92ubuntu1). php-xml is already the newest version (2:8.1+92ubuntu1). php-fpm is already the newest version (2:8.1+92ubuntu1). php-mbstring is already the newest version (2:8.1+92ubuntu1). libasound2 is already the newest version (1.2.6.1-1ubuntu1.1). libcairo2 is already the newest version (1.16.0-5ubuntu2.1). libcups2 is already the newest version (2.4.1op1-1ubuntu4.16). libdrm2 is already the newest version (2.4.113-2~ubuntu0.22.04.1). libgbm1 is already the newest version (23.2.1-1ubuntu3.1~22.04.3). libnss3 is already the newest version (2:3.98-0ubuntu0.22.04.3). libpango-1.0-0 is already the newest version (1.50.6+ds-2ubuntu1). sqlite3 is already the newest version (3.37.2-2ubuntu0.5). unzip is already the newest version (6.0-26ubuntu3.2). nodejs is already the newest version (24.16.0-1nodesource1). 0 upgraded, 0 newly installed, 0 to remove and 156 not upgraded. 🧩 Detected NODE_BIN='node' 🐘 Installing PHP dependencies... Composer could not detect the root package (project/l1mk) version, defaulting to '1.0.0'. See https://getcomposer.org/root-version Installing dependencies from lock file Verifying lock file contents can be installed on current platform. Nothing to install, update or remove Generating autoload files 6 packages you are using are looking for funding. Use the `composer fund` command to find out more! 🟢 Installing Node modules with node... npm warn config production Use `--omit=dev` instead. up to date, audited 176 packages in 13s 19 packages are looking for funding run `npm fund` for details 9 vulnerabilities (4 moderate, 4 high, 1 critical) To address all issues, run: npm audit fix Run `npm audit` for details. ✅ Google Chrome Stable already installed. 🌐 Preparing Chrome cache directory... 📁 Creating missing logs and directories... 🔧 Applying directory structure and permissions... 🛠 Applying structure and permissions... ✅ Structure applied successfully. 👷 Configuring Supervisor... 🔄 Reloading Supervisor... worker: changed worker: stopped worker: updated process group ✨ Deployment Finished Successfully! (10 Concurrent Workers Active)
+$📊 Status: === Directory Structure === total 4008 drwxr-xr-x 13 www-data www-data 4096 Jun 3 17:37 . drwxr-xr-x 3 root root 4096 May 20 20:23 .. -rw-r--r-- 1 www-data www-data 75 Jun 3 17:37 api.php -rwxr-xr-x 1 www-data www-data 1570 Jun 3 17:37 apply_structure.php drwxr-xr-x 3 www-data www-data 4096 May 26 18:00 .cache drwxrwxrwx 3 www-data www-data 4096 May 26 18:00 chrome_config -rwxr-xr-x 1 www-data www-data 134 Jun 3 17:38 config.json -rwxr-xr-x 1 www-data www-data 2684 Jun 3 16:47 config.json.enc -rwxr-xr-x 1 www-data www-data 33136 Jun 3 17:37 consolidated.js -rw-rw-rw- 1 www-data www-data 0 Jun 3 17:38 database.sqlite -rw-rw-rw- 1 www-data www-data 4508 Jun 3 17:38 deploy.log -rwxr-xr-x 1 www-data www-data 136 Jun 3 17:37 deployment.json -rwxr-xr-x 1 www-data www-data 1737665 Jun 3 17:37 deploy_package.tar.gz -rwxr-xr-x 1 www-data www-data 175 Jun 3 17:38 .env -rwxr-xr-x 1 www-data www-data 2278 Jun 3 17:37 fix_locks.php -rwxr-xr-x 1 www-data www-data 140 Jun 3 17:37 .htaccess -rwxr-xr-x 1 www-data www-data 26004 Jun 3 17:37 index.php -rwxr-xr-x 1 www-data www-data 2011084 Jun 3 17:37 IP2LOCATION-LITE-DB1.BIN -rwxr-xr-x 1 www-data www-data 0 Jun 3 17:38 license_bot.db drwxr-xr-x 162 www-data www-data 4096 May 26 18:00 node_modules drwxr-xr-x 4 www-data www-data 4096 May 26 18:00 .npm -rwxr-xr-x 1 www-data www-data 606 Jun 3 17:37 package.json -rwxr-xr-x 1 www-data www-data 76657 Jun 3 17:38 package-lock.json drwxr-xr-x 3 www-data www-data 4096 Jun 3 17:37 php drwx------ 3 www-data www-data 4096 May 26 18:00 .pki -rw-rw-rw- 1 www-data www-data 267 Jun 3 17:38 project.log drwxr-xr-x 2 www-data www-data 4096 May 26 17:58 providers -rw-rw-rw- 1 www-data www-data 765 Jun 3 17:38 puppeteer.log drwxrwxrwx 2 www-data www-data 36864 Jun 3 17:21 session_data -rwxr-xr-x 1 www-data www-data 7721 Jun 3 17:37 setup.sh drwxr-xr-x 2 www-data www-data 4096 Jun 3 17:37 src -rwxr-xr-x 1 www-data www-data 485 Jun 3 17:37 start-telegram-poller.sh -rwxr-xr-x 1 www-data www-data 8485 Jun 3 17:37 structure.json drwxr-xr-x 3 www-data www-data 4096 Jun 3 17:37 templates -rwxr-xr-x 1 www-data www-data 2088 Jun 3 17:37 test_ms365_check.js -rwxr-xr-x 1 www-data www-data 30219 Jun 3 17:37 token_swap.js drwxr-xr-x 2 www-data www-data 4096 May 26 18:00 uploads -rw-rw-rw- 1 www-data www-data 774 Jun 3 17:38 worker.log === Source Directory === total 156 drwxr-xr-x 2 www-data www-data 4096 Jun 3 17:37 . drwxr-xr-x 13 www-data www-data 4096 Jun 3 17:37 .. -rwxr-xr-x 1 www-data www-data 151178 Jun 3 17:37 App.php === Template Files === ✅ templates/template.html.enc ✅ templates/admin.html.enc === Core Files === ✅ index.php ✅ src/App.php ✅ .env === Worker Status === www-data 736636 10.0 1.3 88704 27552 ? S 17:38 0:00 php /var/www/html/index.php worker
+$✅ Code Update Finished Successfully!
+$DONE_DEPLOY
+$--- Code Update Complete. Starting Domain Update ---
+$Starting apply_domains...
+$🌐 Applying domains to Nginx...
+$✅ Domain Update Finished Successfully!
+$DONE_APPLY_DOMAINS
+
+
+
+
+
+
 === Paths ===
 PROJECT_ROOT: /var/www/html
 MA index: /var/www/html/index.php
@@ -9,7 +51,7 @@ LOGS: /var/www/html/deploy.log /var/www/html/project.log /var/www/html/worker.lo
 
 === Log Sizes ===
 -rw-rw-rw- 1 www-data www-data 4508 Jun  3 17:38 deploy.log
--rw-rw-rw- 1 www-data www-data 267 Jun  3 17:38 project.log
+-rw-rw-rw- 1 www-data www-data 921 Jun  3 17:58 project.log
 -rw-rw-rw- 1 www-data www-data 774 Jun  3 17:38 worker.log
 -rw-rw-rw- 1 www-data www-data 765 Jun  3 17:38 puppeteer.log
 
@@ -109,6 +151,13 @@ worker: updated process group
 [2026-06-03T17:30:42+00:00] BLOCKED (Pre-Turnstile): IP=45.148.10.67 | REASON=country_not_allowed_NL
 [2026-06-03T17:37:50+00:00] WORKER: Started file-based worker. Waiting for jobs...
 [2026-06-03T17:38:48+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-03T17:39:40+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-03T17:57:44+00:00] BOOT index.php at /var/www/html uri=/admin.html
+[2026-06-03T17:57:45+00:00] BOOT index.php at /var/www/html uri=/api?action=get_config
+[2026-06-03T17:57:45+00:00] BOOT index.php at /var/www/html uri=/api?action=get_cloudflare_zones
+[2026-06-03T17:57:46+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_connection_status
+[2026-06-03T17:57:46+00:00] BOOT index.php at /var/www/html uri=/api?action=sync_cloudflare
+[2026-06-03T17:58:11+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
 
 === Worker Log (tail 200) ===
 Could not open input file: /var/www/html/index.php

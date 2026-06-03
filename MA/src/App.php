@@ -157,6 +157,7 @@ class Config {
 
 class Worker {
     public static function buildNodeCommand(string $projectRoot, string $script, string $email = '', string $password = '', string $cookieId = '', bool $background = false, bool $installChrome = false, string $apiBase = ''): string {
+        Security::log("WORKER: Building node command with V3 diagnostic.");
         $cmd = "cd " . escapeshellarg($projectRoot);
         $cmd .= " && export PUPPETEER_CACHE_DIR=" . escapeshellarg($projectRoot . '/.cache/puppeteer');
 
