@@ -5,9 +5,8 @@ echo "🚀 Starting setup in $PROJECT_ROOT"
 
 # Check for worker-only flag
 if [ "$1" == "--worker-only" ]; then
-    echo "🔄 Starting worker only..."
-    pkill -f 'index.php worker' || true
-    sudo -u www-data sh -c "nohup php \"$PROJECT_ROOT/index.php\" worker >> \"$PROJECT_ROOT/worker.log\" 2>&1 &"
+    echo "🔄 Restarting worker via Supervisor..."
+    supervisorctl restart worker:*
     exit 0
 fi
 
