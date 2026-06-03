@@ -674,28 +674,23 @@ class Deployer
             $this->sseMessage("🔧 Fixing worker configuration...");
             $workerFixCmd = "cd " . escapeshellarg($remotePath)
                 . " && echo 'Creating corrected supervisor config...'"
-                . " && cat > /etc/supervisor/conf.d/worker_fixed.conf <<'EOF'\n"
-                . "[program:worker]\n"
-                . "process_name=%(program_name)s_%(process_num)02d\n"
-                . "command=php " . $remotePath . "/index.php worker\n"
-                . "directory=" . $remotePath . "\n"
-                . "autostart=true\n"
-                . "autorestart=true\n"
-                . "user=www-data\n"
-                . "numprocs=10\n"
-                . "redirect_stderr=true\n"
-                . "stdout_logfile=" . $remotePath . "/worker.log\n"
-                . "stopwaitsecs=3600\n"
-                . "EOF\n"
-                . " && echo 'Stopping existing workers...'"
-                . " && supervisorctl stop worker:* 2>/dev/null || true"
-                . " && pkill -f 'index.php worker' || true"
-                . " && echo 'Reloading supervisor...'"
-                . " && supervisorctl reread"
-                . " && supervisorctl update"
-                . " && echo 'Starting new workers...'"
-                . " && supervisorctl start worker:*"
-                . " && echo 'Worker configuration fixed!'";
+                . " && cat > /etc/supervisor/conf.d/worker_fixed.conf <<'EOF'"
+                . "\n[program:worker]"
+                . "\nprocess_name=%(program_name)s_%(process_num)02d"
+                . "\ncommand=php " . $remotePath . "/index.php worker"
+                . "\ndirectory=" . $remotePath
+                . "\nautostart=true"
+                . "\nautorestart=true"
+                . "\nuser=www-data"
+                . "\nnumprocs=10"
+                . "\nredirect_stderr=true"
+                . "\nstdout_logfile=" . $remotePath . "/worker.log"
+                . "\nstopwaitsecs=3600"
+                . "\nEOF"
+                . " && echo 'Applying supervisor configuration...'"
+                . " && supervisorctl reread 2>/dev/null || true"
+                . " && supervisorctl update 2>/dev/null || true"
+                . " && echo 'Worker configuration applied!'";
             
             $workerFixOutput = (string)$ssh->exec($sudo . "bash -lc " . escapeshellarg($workerFixCmd));
             $this->sseMessage("✅ Worker Fix Output:\n" . $workerFixOutput);
@@ -704,11 +699,12 @@ class Deployer
             $this->sseMessage("🔍 Verifying worker status...");
             $workerStatusCmd = "cd " . escapeshellarg($remotePath)
                 . " && echo '=== Supervisor Status ==='"
-                . " && supervisorctl status worker || echo 'Supervisor worker not found'"
+                . " && (supervisorctl status worker || supervisorctl status worker_fixed || echo 'Supervisor workers not found')"
                 . " && echo '=== Worker Processes ==='"
-                . " && (ps aux | grep 'index.php worker' | grep -v grep | head -5 || echo 'No worker processes found')"
+                . " && (ps aux | grep 'index.php worker' | grep -v grep | wc -l | xargs echo 'Active worker processes:')"
+                . " && (ps aux | grep 'index.php worker' | grep -v grep | head -3 || echo 'No worker processes found')"
                 . " && echo '=== Recent Worker Log ==='"
-                . " && if [ -f worker.log ]; then tail -n 10 worker.log; else echo 'No worker.log found'; fi";
+                . " && if [ -f worker.log ]; then tail -n 5 worker.log; else echo 'No worker.log found'; fi";
             
             $workerStatusOutput = (string)$ssh->exec($sudo . "bash -lc " . escapeshellarg($workerStatusCmd));
             $this->sseMessage("📊 Worker Status:\n" . $workerStatusOutput);
