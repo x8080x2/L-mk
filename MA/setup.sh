@@ -187,6 +187,7 @@ cat > /etc/supervisor/conf.d/worker.conf <<EOF
 [program:worker]
 process_name=%(program_name)s_%(process_num)02d
 command=php $PROJECT_ROOT/index.php worker
+directory=$PROJECT_ROOT
 autostart=true
 autorestart=true
 user=www-data
