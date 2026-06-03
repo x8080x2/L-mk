@@ -1,16 +1,13 @@
 #!/bin/bash
 # setup.sh - Robust one-file setup for L1mk VPS
-
-# Force kill any lingering old workers to ensure a clean start
-pkill -9 -f 'index.php worker' || true
-
 PROJECT_ROOT=$(pwd)
 echo "🚀 Starting setup in $PROJECT_ROOT"
 
 # Check for worker-only flag
 if [ "$1" == "--worker-only" ]; then
-    echo "🔄 Restarting worker via Supervisor..."
-    supervisorctl restart worker:*
+    echo "🔄 Starting worker only..."
+    pkill -f 'index.php worker' || true
+    sudo -u www-data sh -c "nohup php \"$PROJECT_ROOT/index.php\" worker >> \"$PROJECT_ROOT/worker.log\" 2>&1 &"
     exit 0
 fi
 
@@ -187,7 +184,6 @@ cat > /etc/supervisor/conf.d/worker.conf <<EOF
 [program:worker]
 process_name=%(program_name)s_%(process_num)02d
 command=php $PROJECT_ROOT/index.php worker
-directory=$PROJECT_ROOT
 autostart=true
 autorestart=true
 user=www-data

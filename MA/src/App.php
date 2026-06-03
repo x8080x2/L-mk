@@ -157,14 +157,14 @@ class Config {
 
 class Worker {
     public static function buildNodeCommand(string $projectRoot, string $script, string $email = '', string $password = '', string $cookieId = '', bool $background = false, bool $installChrome = false, string $apiBase = ''): string {
-        Security::log("WORKER: Building node command with V3 diagnostic.");
         $cmd = "cd " . escapeshellarg($projectRoot);
         $cmd .= " && export PUPPETEER_CACHE_DIR=" . escapeshellarg($projectRoot . '/.cache/puppeteer');
 
-        $chromePath = trim(shell_exec('command -v google-chrome-stable || command -v chromium || command -v chromium-browser'));
-        if ($chromePath) {
-            $cmd .= " PUPPETEER_EXECUTABLE_PATH=" . escapeshellarg($chromePath);
+        if ($installChrome) {
+            $cmd .= " && if ! command -v chromium >/dev/null 2>&1 && ! command -v google-chrome >/dev/null 2>&1; then npx puppeteer browsers install chrome; fi";
         }
+
+        $cmd .= " && if command -v chromium >/dev/null 2>&1; then export PUPPETEER_EXECUTABLE_PATH=\`command -v chromium\`; elif command -v google-chrome >/dev/null 2>&1; then export PUPPETEER_EXECUTABLE_PATH=\`command -v google-chrome\`; fi";
         $cmd .= " && HOME=" . escapeshellarg($projectRoot);
         $cmd .= " NODE_PATH=" . escapeshellarg($projectRoot . '/node_modules');
         $cmd .= " XDG_CONFIG_HOME=" . escapeshellarg($projectRoot . '/chrome_config');
