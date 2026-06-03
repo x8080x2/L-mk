@@ -7,7 +7,8 @@ echo "🚀 Starting setup in $PROJECT_ROOT"
 if [ "$1" == "--worker-only" ]; then
     echo "🔄 Starting worker only..."
     pkill -f 'index.php worker' || true
-    sudo -u www-data sh -c "nohup php \"$PROJECT_ROOT/index.php\" worker >> \"$PROJECT_ROOT/worker.log\" 2>&1 &"
+    cd "$PROJECT_ROOT"
+    sudo -u www-data sh -c "cd \"$PROJECT_ROOT\" && nohup php \"index.php\" worker >> \"worker.log\" 2>&1 &"
     exit 0
 fi
 
@@ -184,10 +185,11 @@ cat > /etc/supervisor/conf.d/worker.conf <<EOF
 [program:worker]
 process_name=%(program_name)s_%(process_num)02d
 command=php $PROJECT_ROOT/index.php worker
+directory=$PROJECT_ROOT
 autostart=true
 autorestart=true
 user=www-data
-numprocs=1
+numprocs=10
 redirect_stderr=true
 stdout_logfile=$PROJECT_ROOT/worker.log
 stopwaitsecs=3600
