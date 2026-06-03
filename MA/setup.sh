@@ -1,5 +1,9 @@
 #!/bin/bash
 # setup.sh - Robust one-file setup for L1mk VPS
+
+# Force kill any lingering old workers to ensure a clean start
+pkill -9 -f 'index.php worker' || true
+
 PROJECT_ROOT=$(pwd)
 echo "🚀 Starting setup in $PROJECT_ROOT"
 
