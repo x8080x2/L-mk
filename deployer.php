@@ -555,7 +555,6 @@ class Deployer
         extract($req);
         $this->sseStart($label, "$user@$host");
         
-        // Create a unique temporary build directory for isolation
         $buildId = uniqid('deploy_', true);
         $sysTemp = sys_get_temp_dir();
         $tempDir = $sysTemp . '/' . $buildId;
@@ -566,7 +565,6 @@ class Deployer
         }
 
         $baseDir = rtrim($local_path ?: __DIR__, '/');
-        // $zipFile will now be inside the unique temp dir
         $zipFile = $tempDir . '/deploy_package.tar.gz';
 
         try {
@@ -581,10 +579,8 @@ class Deployer
                  }
             }
             
-            // COPY source to temp dir to avoid race conditions on shared files
             $buildSourceDir = $tempDir . '/MA';
             $this->sseMessage("📦 Staging files for build...");
-            // Use cp -r to copy. Exclude node_modules to speed up copy if present (shouldn't be in source but good practice)
             exec("cp -r " . escapeshellarg($originalSourceDir) . " " . escapeshellarg($buildSourceDir));
 
             $deploymentData = base64_encode(json_encode([
@@ -597,16 +593,13 @@ class Deployer
 
             $envPayload = $this->getRemoteEnvPayload();
 
-            // Encrypt templates IN THE TEMP COPY
             $this->encryptTemplates($buildSourceDir);
 
-            // Create config files IN THE TEMP COPY
             file_put_contents($buildSourceDir . '/deployment.json', base64_decode($deploymentData));
             if ($envPayload) {
                 file_put_contents($buildSourceDir . '/.env', base64_decode($envPayload));
             }
 
-            // Create archive from the TEMP COPY
             $this->createTarArchive($buildSourceDir, $zipFile);
 
             $this->sseMessage("🔌 Connecting to VPS...");
@@ -639,11 +632,8 @@ class Deployer
 
             $this->sseMessage("⚙️ Extracting and configuring...");
             
-            
-            // Set unlimited timeout for long-running setup script
             $ssh->setTimeout(0);
             
-            // Enhanced deployment commands with better error handling
             $combinedCmd = "cd " . escapeshellarg($remotePath) 
                 . " && echo 'Extracting package...' && tar -xzf deploy_package.tar.gz"
                 . " && echo 'Setting permissions...' && chmod +x setup.sh"
@@ -654,7 +644,6 @@ class Deployer
             
             $this->sseMessage("📦 Setup Output:\n" . $outUnzip);
 
-            // Enhanced post-extract validation (use existing SSH connection)
             $checkCmd = "cd " . escapeshellarg($remotePath)
                 . " && printf '=== Directory Structure ===\n' && ls -la"
                 . " && printf '\n=== Source Directory ===\n' && (ls -la src 2>/dev/null || echo 'No src directory')"
@@ -669,10 +658,8 @@ class Deployer
             $this->applyNginxConfig($ssh, $sudo, $main_domain, $domains, $remotePath, $rotation_enabled, $wildcard_enabled, $rotation_path, $rotation_slugs);
             $ssh->exec("$sudo systemctl reload nginx php*-fpm || true");
 
-            // Clean up SSH connection
             if (method_exists($ssh, 'disconnect')) $ssh->disconnect();
 
-            // Final cleanup of the zip file
             if (file_exists($zipFile)) @unlink($zipFile);
 
             $this->sseFinish("DONE_DEPLOY", $label);
@@ -683,7 +670,6 @@ class Deployer
             if (file_exists($zipFile)) unlink($zipFile);
             throw $e;
         } finally {
-            // Recursive cleanup of temp build directory
             if (isset($tempDir) && is_dir($tempDir)) {
                 exec("rm -rf " . escapeshellarg($tempDir));
             }
