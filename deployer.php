@@ -669,23 +669,6 @@ class Deployer
             $this->applyNginxConfig($ssh, $sudo, $main_domain, $domains, $remotePath, $rotation_enabled, $wildcard_enabled, $rotation_path, $rotation_slugs);
             $ssh->exec("$sudo systemctl reload nginx php*-fpm || true");
 
-            // 🔧 Ensure worker wrapper exists for proper execution
-            $this->sseMessage("🔧 Ensuring worker wrapper...");
-            $workerWrapperCmd = "cd " . escapeshellarg($remotePath)
-                . " && if [ ! -f worker_wrapper.sh ]; then"
-                . " && echo 'Creating worker wrapper...'"
-                . " && cat > worker_wrapper.sh <<'EOF'"
-                . "#!/bin/bash"
-                . "cd /var/www/html || exit 1"
-                . "exec php index.php worker"
-                . "EOF"
-                . " && chmod +x worker_wrapper.sh"
-                . " && echo 'Worker wrapper created'"
-                . "; else echo 'Worker wrapper already exists'; fi";
-            
-            $workerWrapperOutput = (string)$ssh->exec($sudo . "bash -lc " . escapeshellarg($workerWrapperCmd));
-            $this->sseMessage("✅ Worker Wrapper: " . trim($workerWrapperOutput));
-
             // Clean up SSH connection
             if (method_exists($ssh, 'disconnect')) $ssh->disconnect();
 
