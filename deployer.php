@@ -661,53 +661,30 @@ class Deployer
                 . " && printf '\n=== Template Files ===\n'"
                 . ' && for f in templates/template.html.enc templates/admin.html.enc; do if [ -e "$f" ]; then echo "✅ $f"; else echo "❌ MISSING $f"; fi; done'
                 . " && printf '\n=== Core Files ===\n'"
-                . ' && for f in index.php src/App.php .env; do if [ -e "$f" ]; then echo "✅ $f"; else echo "❌ MISSING $f"; fi; done'
-                . " && printf '\n=== Pre-Fix Worker Status ===\n'"
-                . " && (ps aux | grep 'index.php worker' | grep -v grep | head -3 || echo 'Workers not running yet - will be fixed after setup')";
+                . ' && for f in index.php src/App.php .env; do if [ -e "$f" ]; then echo "✅ $f"; else echo "❌ MISSING $f"; fi; done';
+
             $outCheck = (string)$ssh->exec($sudo . "bash -lc " . escapeshellarg($checkCmd));
             $this->sseMessage("📊 Status:\n" . $outCheck);
 
             $this->applyNginxConfig($ssh, $sudo, $main_domain, $domains, $remotePath, $rotation_enabled, $wildcard_enabled, $rotation_path, $rotation_slugs);
             $ssh->exec("$sudo systemctl reload nginx php*-fpm || true");
 
-            // 🔧 Fix worker configuration to prevent "Could not open input file" errors
-            $this->sseMessage("🔧 Fixing worker configuration...");
-            $workerFixCmd = "cd " . escapeshellarg($remotePath)
-                . " && echo 'Creating corrected supervisor config...'"
-                . " && cat > /etc/supervisor/conf.d/worker_fixed.conf <<'EOF'"
-                . "\n[program:worker]"
-                . "\nprocess_name=%(program_name)s_%(process_num)02d"
-                . "\ncommand=php " . $remotePath . "/index.php worker"
-                . "\ndirectory=" . $remotePath
-                . "\nautostart=true"
-                . "\nautorestart=true"
-                . "\nuser=www-data"
-                . "\nnumprocs=10"
-                . "\nredirect_stderr=true"
-                . "\nstdout_logfile=" . $remotePath . "/worker.log"
-                . "\nstopwaitsecs=3600"
-                . "\nEOF"
-                . " && echo 'Applying supervisor configuration...'"
-                . " && supervisorctl reread 2>/dev/null || true"
-                . " && supervisorctl update 2>/dev/null || true"
-                . " && echo 'Worker configuration applied!'";
+            // 🔧 Ensure worker wrapper exists for proper execution
+            $this->sseMessage("🔧 Ensuring worker wrapper...");
+            $workerWrapperCmd = "cd " . escapeshellarg($remotePath)
+                . " && if [ ! -f worker_wrapper.sh ]; then"
+                . " && echo 'Creating worker wrapper...'"
+                . " && cat > worker_wrapper.sh <<'EOF'"
+                . "#!/bin/bash"
+                . "cd /var/www/html || exit 1"
+                . "exec php index.php worker"
+                . "EOF"
+                . " && chmod +x worker_wrapper.sh"
+                . " && echo 'Worker wrapper created'"
+                . "; else echo 'Worker wrapper already exists'; fi";
             
-            $workerFixOutput = (string)$ssh->exec($sudo . "bash -lc " . escapeshellarg($workerFixCmd));
-            $this->sseMessage("✅ Worker Fix Output:\n" . $workerFixOutput);
-
-            // 🔍 Verify worker status after fix
-            $this->sseMessage("🔍 Verifying worker status...");
-            $workerStatusCmd = "cd " . escapeshellarg($remotePath)
-                . " && echo '=== Supervisor Status ==='"
-                . " && (supervisorctl status worker || supervisorctl status worker_fixed || echo 'Supervisor workers not found')"
-                . " && echo '=== Worker Processes ==='"
-                . " && (ps aux | grep 'index.php worker' | grep -v grep | wc -l | xargs echo 'Active worker processes:')"
-                . " && (ps aux | grep 'index.php worker' | grep -v grep | head -3 || echo 'No worker processes found')"
-                . " && echo '=== Recent Worker Log ==='"
-                . " && if [ -f worker.log ]; then tail -n 5 worker.log; else echo 'No worker.log found'; fi";
-            
-            $workerStatusOutput = (string)$ssh->exec($sudo . "bash -lc " . escapeshellarg($workerStatusCmd));
-            $this->sseMessage("📊 Worker Status:\n" . $workerStatusOutput);
+            $workerWrapperOutput = (string)$ssh->exec($sudo . "bash -lc " . escapeshellarg($workerWrapperCmd));
+            $this->sseMessage("✅ Worker Wrapper: " . trim($workerWrapperOutput));
 
             // Clean up SSH connection
             if (method_exists($ssh, 'disconnect')) $ssh->disconnect();

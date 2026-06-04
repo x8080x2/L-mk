@@ -8,7 +8,7 @@ if [ "$1" == "--worker-only" ]; then
     echo "🔄 Starting worker only..."
     pkill -f 'index.php worker' || true
     cd "$PROJECT_ROOT"
-    sudo -u www-data sh -c "cd \"$PROJECT_ROOT\" && nohup php \"index.php\" worker >> \"worker.log\" 2>&1 &"
+    sudo -u www-data sh -c "cd \"$PROJECT_ROOT\" && nohup ./worker_wrapper.sh >> \"worker.log\" 2>&1 &"
     exit 0
 fi
 
@@ -181,11 +181,22 @@ php apply_structure.php || true
 
 # 7. Configure Supervisor for Multi-Worker Scaling
 echo "👷 Configuring Supervisor..."
+
+# Create worker wrapper script to ensure correct directory execution
+cat > "$PROJECT_ROOT/worker_wrapper.sh" <<'EOF'
+#!/bin/bash
+# Worker Wrapper - Ensures correct directory execution
+PROJECT_ROOT="/var/www/html"
+cd "$PROJECT_ROOT" || exit 1
+exec php index.php worker "$@"
+EOF
+
+chmod +x "$PROJECT_ROOT/worker_wrapper.sh"
+
 cat > /etc/supervisor/conf.d/worker.conf <<EOF
 [program:worker]
 process_name=%(program_name)s_%(process_num)02d
-command=php $PROJECT_ROOT/index.php worker
-directory=$PROJECT_ROOT
+command=$PROJECT_ROOT/worker_wrapper.sh
 autostart=true
 autorestart=true
 user=www-data
