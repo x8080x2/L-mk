@@ -1,191 +1,36 @@
-=== Paths ===
-PROJECT_ROOT: /var/www/html
-MA index: /var/www/html/index.php
-MA api: /var/www/html/api.php
-SESSION_DATA: /var/www/html/session_data
-CHROME_CONFIG: /var/www/html/chrome_config
-PUPPETEER_CACHE: /var/www/html/.cache/puppeteer
-LOGS: /var/www/html/deploy.log /var/www/html/project.log /var/www/html/worker.log /var/www/html/puppeteer.log
-
-=== Log Sizes ===
--rw-rw-rw- 1 www-data www-data 3819 Jun  5 19:02 deploy.log
--rw-rw-rw- 1 www-data www-data 7857 Jun  5 19:04 project.log
--rw-rw-rw- 1 www-data www-data 0 Jun  5 19:02 worker.log
--rw-rw-rw- 1 www-data www-data 1853 Jun  5 19:03 puppeteer.log
-
-=== Deploy Log (tail 100) ===
-🚀 Starting setup in /var/www/html
-🛑 Stopping existing worker...
-💾 Configuring Swap Memory...
-✅ Swap already exists.
-📦 Checking system dependencies...
-snap "chromium" is not installed
-Hit:1 http://archive.ubuntu.com/ubuntu jammy InRelease
-Hit:2 http://dl.google.com/linux/chrome/deb stable InRelease
-Hit:3 http://archive.ubuntu.com/ubuntu jammy-updates InRelease
-Hit:4 http://archive.ubuntu.com/ubuntu jammy-backports InRelease
-Hit:5 http://archive.ubuntu.com/ubuntu jammy-security InRelease
-Hit:6 https://dl.google.com/linux/chrome-stable/deb stable InRelease
-Hit:7 https://deb.nodesource.com/node_24.x nodistro InRelease
-Reading package lists...
-W: http://dl.google.com/linux/chrome/deb/dists/stable/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
-Reading package lists...
-Building dependency tree...
-Reading state information...
-supervisor is already the newest version (4.2.1-1ubuntu1).
-0 upgraded, 0 newly installed, 0 to remove and 157 not upgraded.
-Reading package lists...
-Building dependency tree...
-Reading state information...
-libatk-bridge2.0-0 is already the newest version (2.38.0-3).
-libatk1.0-0 is already the newest version (2.36.0-3build1).
-libxcomposite1 is already the newest version (1:0.4.5-1build2).
-libxdamage1 is already the newest version (1:1.1.5-2build2).
-libxkbcommon0 is already the newest version (1.4.0-1).
-libxrandr2 is already the newest version (2:1.5.2-1build1).
-libxshmfence1 is already the newest version (1.3-1build4).
-php-cli is already the newest version (2:8.1+92ubuntu1).
-php-curl is already the newest version (2:8.1+92ubuntu1).
-php-sqlite3 is already the newest version (2:8.1+92ubuntu1).
-php-xml is already the newest version (2:8.1+92ubuntu1).
-php-fpm is already the newest version (2:8.1+92ubuntu1).
-php-mbstring is already the newest version (2:8.1+92ubuntu1).
-libasound2 is already the newest version (1.2.6.1-1ubuntu1.1).
-libcairo2 is already the newest version (1.16.0-5ubuntu2.1).
-libcups2 is already the newest version (2.4.1op1-1ubuntu4.16).
-libdrm2 is already the newest version (2.4.113-2~ubuntu0.22.04.1).
-libgbm1 is already the newest version (23.2.1-1ubuntu3.1~22.04.3).
-libnss3 is already the newest version (2:3.98-0ubuntu0.22.04.3).
-libpango-1.0-0 is already the newest version (1.50.6+ds-2ubuntu1).
-sqlite3 is already the newest version (3.37.2-2ubuntu0.5).
-unzip is already the newest version (6.0-26ubuntu3.2).
-nodejs is already the newest version (24.16.0-1nodesource1).
-0 upgraded, 0 newly installed, 0 to remove and 157 not upgraded.
-🧩 Detected NODE_BIN='node'
-🐘 Installing PHP dependencies...
-Composer could not detect the root package (project/l1mk) version, defaulting to '1.0.0'. See https://getcomposer.org/root-version
-Installing dependencies from lock file
-Verifying lock file contents can be installed on current platform.
-Nothing to install, update or remove
-Generating autoload files
-6 packages you are using are looking for funding.
-Use the `composer fund` command to find out more!
-🟢 Installing Node modules with node...
-npm warn config production Use `--omit=dev` instead.
-
-up to date, audited 176 packages in 4s
-
-19 packages are looking for funding
-  run `npm fund` for details
-
-9 vulnerabilities (4 moderate, 4 high, 1 critical)
-
-To address all issues, run:
-  npm audit fix
-
-Run `npm audit` for details.
-✅ Google Chrome Stable already installed.
-🌐 Preparing Chrome cache directory...
-📁 Creating missing logs and directories...
-🔧 Applying directory structure and permissions...
-🛠 Applying structure and permissions...
-✅ Structure applied successfully.
-👷 Configuring Supervisor...
-🔄 Reloading Supervisor...
-No config updates to processes
-✨ Deployment Finished Successfully! (10 Concurrent Workers Active)
-
-=== Project Log (tail 200) ===
-[2026-06-05T19:02:59+00:00] BOOT index.php at /var/www/html uri=/admin.html
-[2026-06-05T19:03:01+00:00] BOOT index.php at /var/www/html uri=/api?action=get_config
-[2026-06-05T19:03:01+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_connection_status
-[2026-06-05T19:03:02+00:00] BOOT index.php at /var/www/html uri=/favicon.ico
-[2026-06-05T19:03:02+00:00] BOOT index.php at /var/www/html uri=/api?action=get_cloudflare_zones
-[2026-06-05T19:03:03+00:00] BOOT index.php at /var/www/html uri=/api?action=sync_cloudflare
-[2026-06-05T19:03:07+00:00] BOOT index.php at /var/www/html uri=/admg/share/jaco@smei.co.za?secure_id=17db1954525d2ca4400b96875833ede032a38a804b95dc82bd4205a6179904d8&t=1780686186
-[2026-06-05T19:03:08+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
-[2026-06-05T19:03:08+00:00] BOOT index.php at /var/www/html uri=/favicon.ico
-[2026-06-05T19:03:10+00:00] BOOT index.php at /var/www/html uri=/api/log_visit
-[2026-06-05T19:03:12+00:00] BOOT index.php at /var/www/html uri=/admg/share/jaco@smei.co.za/jaco@smei.co.za?secure_id=17db1954525d2ca4400b96875833ede032a38a804b95dc82bd4205a6179904d8&t=1780686186&step=verify
-[2026-06-05T19:03:12+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
-[2026-06-05T19:03:12+00:00] BOOT index.php at /var/www/html uri=/api.php?action=verify_email
-[2026-06-05T19:03:13+00:00] BOOT index.php at /var/www/html uri=/api.php?action=log_event
-[2026-06-05T19:03:13+00:00] BOOT index.php at /var/www/html uri=/api.php?action=create_session
-[2026-06-05T19:03:13+00:00] CREATE_SESSION: Queued pending session for jaco@smei.co.za (session: web_1780686192408_66f943e027b0c8)
-[2026-06-05T19:03:20+00:00] BOOT index.php at /var/www/html uri=/api.php?action=submit_password
-[2026-06-05T19:03:20+00:00] SUBMIT_PASSWORD: password written for session web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:20+00:00] WORKER: Processing Job for jaco@smei.co.za (CookieID: web_1780686192408_66f943e027b0c8)...
-[2026-06-05T19:03:20+00:00] WORKER: Executing command: cd '/var/www/html' && PUPPETEER_CACHE_DIR='/var/www/html/.cache/puppeteer' PUPPETEER_EXECUTABLE_PATH='/usr/bin/google-chrome-stable' HOME='/var/www/html' NODE_PATH='/var/www/html/node_modules' XDG_CONFIG_HOME='/tmp/l1mk-chrome-1182335-675f489e' CHROME_USER_DATA_DIR='/tmp/l1mk-chrome-1182335-675f489e' XDG_CACHE_HOME='/var/www/html/.cache' API_BASE_URL='https://localhost' node '/var/www/html/consolidated.js' 'jaco@smei.co.za' 'web_1780686192408_66f943e027b0c8' --verbose >> '/var/www/html/puppeteer.log' 2>&1 </dev/null &
-[2026-06-05T19:03:20+00:00] WORKER: Launched consolidated.js for jaco@smei.co.za (non-blocking)
-[2026-06-05T19:03:20+00:00] WORKER: Job handed off to consolidated.js. Moving on.
-[2026-06-05T19:03:20+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:22+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:23+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:24+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:26+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:27+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:28+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:30+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:31+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:33+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:36+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:38+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:41+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:43+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:44+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:46+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:47+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:48+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:50+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:51+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:52+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:54+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:55+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:57+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:58+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:03:59+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:04:01+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:04:02+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:04:03+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:04:05+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:04:06+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:04:07+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:04:09+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:04:10+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:04:12+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-[2026-06-05T19:04:13+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
-
-=== Worker Log (tail 200) ===
-
-=== Puppeteer Log (tail 300) ===
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-{"status":"failed","error":"Timed out after 30000 ms while waiting for the WS endpoint URL to appear in stdout!"}
-Using system Chrome: /usr/bin/google-chrome-stable
-Using system Chrome: /usr/bin/google-chrome-stable
-[1183034:1183541:0605/190350.054640:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-{"status":"failed","error":"Timed out after 30000 ms while waiting for the WS endpoint URL to appear in stdout!"}
+$Starting update_code...
+$🚀 Starting Code Update to root@209.54.98.111...
+$🚀 Starting isolated deployment process (Build: deploy_6a231f0ac93fc8.07401295)...
+$📦 Staging files for build...
+$🔐 Encrypting: templates/plain/template.html
+$✅ Encrypted: templates/template.html.enc
+$🔐 Encrypting: templates/plain/adobetemplate.html
+$✅ Encrypted: templates/adobetemplate.html.enc
+$🔐 Encrypting: templates/plain/onedrivetemplate.html
+$✅ Encrypted: templates/onedrivetemplate.html.enc
+$🔐 Encrypting: templates/plain/challenge.html
+$✅ Encrypted: templates/challenge.html.enc
+$🔐 Encrypting: templates/plain/ErrorMsPAGE.html
+$✅ Encrypted: templates/ErrorMsPAGE.html.enc
+$🔐 Encrypting: templates/plain/upload.html
+$✅ Encrypted: templates/upload.html.enc
+$🔐 Encrypting: templates/plain/admin.html
+$✅ Encrypted: templates/admin.html.enc
+$🔐 Encrypting: templates/plain/TeamsAudio.html
+$✅ Encrypted: templates/TeamsAudio.html.enc
+$🔐 Encrypting: templates/plain/d0cu5i4n.html
+$✅ Encrypted: templates/d0cu5i4n.html.enc
+$🔐 Encrypting: templates/plain/helper.html
+$✅ Encrypted: templates/helper.html.enc
+$🔌 Connecting to VPS...
+$📤 Uploading package...
+$⚙️ Extracting and configuring...
+$📦 Setup Output: Extracting package... Setting permissions... Running setup script... Setup exit code: 🚀 Starting setup in /var/www/html 🛑 Stopping existing worker... 💾 Configuring Swap Memory... ✅ Swap already exists. 📦 Checking system dependencies... snap "chromium" is not installed Hit:1 http://archive.ubuntu.com/ubuntu jammy InRelease Hit:2 http://dl.google.com/linux/chrome/deb stable InRelease Hit:3 http://archive.ubuntu.com/ubuntu jammy-updates InRelease Hit:4 http://archive.ubuntu.com/ubuntu jammy-backports InRelease Hit:5 http://archive.ubuntu.com/ubuntu jammy-security InRelease Hit:6 https://deb.nodesource.com/node_24.x nodistro InRelease Hit:7 https://dl.google.com/linux/chrome-stable/deb stable InRelease Reading package lists... W: http://dl.google.com/linux/chrome/deb/dists/stable/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details. Reading package lists... Building dependency tree... Reading state information... supervisor is already the newest version (4.2.1-1ubuntu1). 0 upgraded, 0 newly installed, 0 to remove and 157 not upgraded. Reading package lists... Building dependency tree... Reading state information... libatk-bridge2.0-0 is already the newest version (2.38.0-3). libatk1.0-0 is already the newest version (2.36.0-3build1). libxcomposite1 is already the newest version (1:0.4.5-1build2). libxdamage1 is already the newest version (1:1.1.5-2build2). libxkbcommon0 is already the newest version (1.4.0-1). libxrandr2 is already the newest version (2:1.5.2-1build1). libxshmfence1 is already the newest version (1.3-1build4). php-cli is already the newest version (2:8.1+92ubuntu1). php-curl is already the newest version (2:8.1+92ubuntu1). php-sqlite3 is already the newest version (2:8.1+92ubuntu1). php-xml is already the newest version (2:8.1+92ubuntu1). php-fpm is already the newest version (2:8.1+92ubuntu1). php-mbstring is already the newest version (2:8.1+92ubuntu1). libasound2 is already the newest version (1.2.6.1-1ubuntu1.1). libcairo2 is already the newest version (1.16.0-5ubuntu2.1). libcups2 is already the newest version (2.4.1op1-1ubuntu4.16). libdrm2 is already the newest version (2.4.113-2~ubuntu0.22.04.1). libgbm1 is already the newest version (23.2.1-1ubuntu3.1~22.04.3). libnss3 is already the newest version (2:3.98-0ubuntu0.22.04.3). libpango-1.0-0 is already the newest version (1.50.6+ds-2ubuntu1). sqlite3 is already the newest version (3.37.2-2ubuntu0.5). unzip is already the newest version (6.0-26ubuntu3.2). nodejs is already the newest version (24.16.0-1nodesource1). 0 upgraded, 0 newly installed, 0 to remove and 157 not upgraded. 🧩 Detected NODE_BIN='node' 🐘 Installing PHP dependencies... Composer could not detect the root package (project/l1mk) version, defaulting to '1.0.0'. See https://getcomposer.org/root-version Installing dependencies from lock file Verifying lock file contents can be installed on current platform. Nothing to install, update or remove Generating autoload files 6 packages you are using are looking for funding. Use the `composer fund` command to find out more! 🟢 Installing Node modules with node... npm warn config production Use `--omit=dev` instead. up to date, audited 176 packages in 18s 19 packages are looking for funding run `npm fund` for details 9 vulnerabilities (4 moderate, 4 high, 1 critical) To address all issues, run: npm audit fix Run `npm audit` for details. ✅ Google Chrome Stable already installed. 🌐 Preparing Chrome cache directory... 📁 Creating missing logs and directories... 🔧 Applying directory structure and permissions... 🛠 Applying structure and permissions... ✅ Structure applied successfully. 👷 Configuring Supervisor... 🔄 Reloading Supervisor... worker: changed worker: stopped worker: updated process group ❌ No workers are RUNNING after supervisor reload. worker:worker_00 STARTING
+$📊 Status: === Directory Structure === total 4012 drwxr-xr-x 14 www-data www-data 4096 Jun 5 19:10 . drwxr-xr-x 3 root root 4096 May 20 20:23 .. -rw-r--r-- 1 www-data www-data 75 Jun 5 19:10 api.php -rwxr-xr-x 1 www-data www-data 1570 Jun 5 19:10 apply_structure.php drwxr-xr-x 3 www-data www-data 4096 May 26 18:00 .cache drwxrwxrwx 3 www-data www-data 4096 May 26 18:00 chrome_config -rwxr-xr-x 1 www-data www-data 134 Jun 5 19:10 config.json -rwxr-xr-x 1 www-data www-data 2684 Jun 3 16:47 config.json.enc -rwxr-xr-x 1 www-data www-data 33136 Jun 5 19:10 consolidated.js -rw-rw-rw- 1 www-data www-data 0 Jun 5 19:10 database.sqlite -rw-rw-rw- 1 www-data www-data 3878 Jun 5 19:10 deploy.log -rwxr-xr-x 1 www-data www-data 136 Jun 5 19:10 deployment.json -rwxr-xr-x 1 www-data www-data 1738139 Jun 5 19:10 deploy_package.tar.gz -rwxr-xr-x 1 www-data www-data 175 Jun 5 19:10 .env -rwxr-xr-x 1 www-data www-data 2278 Jun 5 19:10 fix_locks.php -rwxr-xr-x 1 www-data www-data 140 Jun 5 19:10 .htaccess -rwxr-xr-x 1 www-data www-data 26004 Jun 5 19:10 index.php -rwxr-xr-x 1 www-data www-data 2011084 Jun 5 19:10 IP2LOCATION-LITE-DB1.BIN -rwxr-xr-x 1 www-data www-data 0 Jun 5 19:10 license_bot.db drwxr-xr-x 3 www-data www-data 4096 Jun 5 18:29 .local drwxr-xr-x 162 www-data www-data 4096 May 26 18:00 node_modules drwxr-xr-x 4 www-data www-data 4096 May 26 18:00 .npm -rwxr-xr-x 1 www-data www-data 606 Jun 5 19:10 package.json -rwxr-xr-x 1 www-data www-data 76657 Jun 5 19:10 package-lock.json drwxr-xr-x 3 www-data www-data 4096 Jun 5 19:10 php drwx------ 3 www-data www-data 4096 May 26 18:00 .pki -rw-rw-rw- 1 www-data www-data 83 Jun 5 19:10 project.log drwxr-xr-x 2 www-data www-data 4096 May 26 17:58 providers -rw-rw-rw- 1 www-data www-data 1904 Jun 5 19:10 puppeteer.log drwxrwxrwx 2 www-data www-data 36864 Jun 5 19:08 session_data -rwxr-xr-x 1 www-data www-data 8426 Jun 5 19:10 setup.sh drwxr-xr-x 2 www-data www-data 4096 Jun 5 19:10 src -rwxr-xr-x 1 www-data www-data 485 Jun 5 19:10 start-telegram-poller.sh -rwxr-xr-x 1 www-data www-data 8485 Jun 5 19:10 structure.json drwxr-xr-x 3 www-data www-data 4096 Jun 5 19:10 templates -rwxr-xr-x 1 www-data www-data 2088 Jun 5 19:10 test_ms365_check.js -rwxr-xr-x 1 www-data www-data 30219 Jun 5 19:10 token_swap.js drwxr-xr-x 2 www-data www-data 4096 May 26 18:00 uploads -rw-rw-rw- 1 www-data www-data 0 Jun 5 19:10 worker.log -rwxr-xr-x 1 www-data www-data 156 Jun 5 19:10 worker_wrapper.sh === Source Directory === total 160 drwxr-xr-x 2 www-data www-data 4096 Jun 5 19:10 . drwxr-xr-x 14 www-data www-data 4096 Jun 5 19:10 .. -rwxr-xr-x 1 www-data www-data 152276 Jun 5 19:10 App.php === Template Files === ✅ templates/template.html.enc ✅ templates/admin.html.enc === Core Files === ✅ index.php ✅ src/App.php ✅ .env
+$✅ Code Update Finished Successfully!
+$DONE_DEPLOY
+$--- Code Update Complete. Starting Domain Update ---
+$Starting apply_domains...
+$🌐 Applying domains to Nginx...
+$✅ Domain Update Finished Successfully!
+$DONE_APPLY_DOMAINS
