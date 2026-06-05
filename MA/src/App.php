@@ -169,7 +169,8 @@ class Worker {
             $cmd .= " && npx puppeteer browsers install chrome";
         }
 
-        $cmd .= " && PUPPETEER_CACHE_DIR=" . escapeshellarg($projectRoot . '/.cache/puppeteer');
+        $cmd .= " && DBUS_SESSION_BUS_ADDRESS=disabled:";
+        $cmd .= " PUPPETEER_CACHE_DIR=" . escapeshellarg($projectRoot . '/.cache/puppeteer');
         if ($chromePath !== '') {
             $cmd .= " PUPPETEER_EXECUTABLE_PATH=" . escapeshellarg($chromePath);
         }
@@ -219,7 +220,13 @@ class Worker {
                     $lastProfileSweep = time();
                 }
 
+                // Single-worker mode: pick the oldest pending session for FIFO fairness.
                 $files = glob($storageDir . '/session_*.json');
+                if (!empty($files)) {
+                    usort($files, function($a, $b) {
+                        return filemtime($a) <=> filemtime($b);
+                    });
+                }
 
                 $sessionFile = null;
                 $task = null;
@@ -240,21 +247,10 @@ class Worker {
                         continue;
                     }
 
-                    // Atomic claim: rename is the only POSIX-atomic primitive.
-                    // Only one of N concurrent workers can succeed in renaming the file.
-                    $claimed = $f . '.claim-' . getmypid();
-                    if (!@rename($f, $claimed)) {
-                        continue; // another worker won the race
-                    }
-                    $data = json_decode(@file_get_contents($claimed), true);
-                    if (!is_array($data) || ($data['status'] ?? '') !== 'pending') {
-                        @rename($claimed, $f);
-                        continue;
-                    }
+                    // Single worker: claim by simple status flip (no race possible).
                     $data['status'] = 'processing';
                     $data['updated_at'] = date('c');
-                    file_put_contents($claimed, json_encode($data, JSON_PRETTY_PRINT));
-                    @rename($claimed, $f); // restore canonical name so downstream reads still work
+                    file_put_contents($f, json_encode($data, JSON_PRETTY_PRINT));
 
                     $sessionFile = $f;
                     $task = $data;

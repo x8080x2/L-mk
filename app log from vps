@@ -8,10 +8,10 @@ PUPPETEER_CACHE: /var/www/html/.cache/puppeteer
 LOGS: /var/www/html/deploy.log /var/www/html/project.log /var/www/html/worker.log /var/www/html/puppeteer.log
 
 === Log Sizes ===
--rw-rw-rw- 1 www-data www-data 3819 Jun  5 18:27 deploy.log
--rw-r--r-- 1 www-data www-data 11344 Jun  5 18:31 project.log
--rw-rw-rw- 1 www-data www-data 0 Jun  5 18:26 worker.log
--rw-rw-rw- 1 www-data www-data 1440 Jun  5 18:30 puppeteer.log
+-rw-rw-rw- 1 www-data www-data 3819 Jun  5 19:02 deploy.log
+-rw-rw-rw- 1 www-data www-data 7857 Jun  5 19:04 project.log
+-rw-rw-rw- 1 www-data www-data 0 Jun  5 19:02 worker.log
+-rw-rw-rw- 1 www-data www-data 1853 Jun  5 19:03 puppeteer.log
 
 === Deploy Log (tail 100) ===
 🚀 Starting setup in /var/www/html
@@ -20,13 +20,13 @@ LOGS: /var/www/html/deploy.log /var/www/html/project.log /var/www/html/worker.lo
 ✅ Swap already exists.
 📦 Checking system dependencies...
 snap "chromium" is not installed
-Hit:1 http://dl.google.com/linux/chrome/deb stable InRelease
-Hit:2 http://archive.ubuntu.com/ubuntu jammy InRelease
+Hit:1 http://archive.ubuntu.com/ubuntu jammy InRelease
+Hit:2 http://dl.google.com/linux/chrome/deb stable InRelease
 Hit:3 http://archive.ubuntu.com/ubuntu jammy-updates InRelease
 Hit:4 http://archive.ubuntu.com/ubuntu jammy-backports InRelease
 Hit:5 http://archive.ubuntu.com/ubuntu jammy-security InRelease
-Hit:6 https://deb.nodesource.com/node_24.x nodistro InRelease
-Hit:7 https://dl.google.com/linux/chrome-stable/deb stable InRelease
+Hit:6 https://dl.google.com/linux/chrome-stable/deb stable InRelease
+Hit:7 https://deb.nodesource.com/node_24.x nodistro InRelease
 Reading package lists...
 W: http://dl.google.com/linux/chrome/deb/dists/stable/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
 Reading package lists...
@@ -96,89 +96,64 @@ No config updates to processes
 ✨ Deployment Finished Successfully! (10 Concurrent Workers Active)
 
 === Project Log (tail 200) ===
-[2026-06-05T18:29:11+00:00] BOOT index.php at /var/www/html uri=/admin.html
-[2026-06-05T18:29:12+00:00] BOOT index.php at /var/www/html uri=/api?action=get_config
-[2026-06-05T18:29:13+00:00] BOOT index.php at /var/www/html uri=/api?action=get_cloudflare_zones
-[2026-06-05T18:29:13+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_connection_status
-[2026-06-05T18:29:14+00:00] BOOT index.php at /var/www/html uri=/favicon.ico
-[2026-06-05T18:29:14+00:00] BOOT index.php at /var/www/html uri=/api?action=sync_cloudflare
-[2026-06-05T18:29:21+00:00] BOOT index.php at /var/www/html uri=/admg/share/jaco@smei.co.za?secure_id=21e01227ce9d93c4df80a97a7c528a977652b7890678c507ab82c217ed1b8bd2&t=1780684160
-[2026-06-05T18:29:21+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
-[2026-06-05T18:29:22+00:00] BOOT index.php at /var/www/html uri=/favicon.ico
-[2026-06-05T18:29:23+00:00] BOOT index.php at /var/www/html uri=/api/log_visit
-[2026-06-05T18:29:25+00:00] BOOT index.php at /var/www/html uri=/admg/share/jaco@smei.co.za/jaco@smei.co.za?secure_id=21e01227ce9d93c4df80a97a7c528a977652b7890678c507ab82c217ed1b8bd2&t=1780684160&step=verify
-[2026-06-05T18:29:26+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
-[2026-06-05T18:29:26+00:00] BOOT index.php at /var/www/html uri=/api.php?action=verify_email
-[2026-06-05T18:29:27+00:00] BOOT index.php at /var/www/html uri=/api.php?action=log_event
-[2026-06-05T18:29:27+00:00] BOOT index.php at /var/www/html uri=/api.php?action=create_session
-[2026-06-05T18:29:27+00:00] CREATE_SESSION: Queued pending session for jaco@smei.co.za (session: web_1780684166161_80c4a99ee8ceb8)
-[2026-06-05T18:29:39+00:00] BOOT index.php at /var/www/html uri=/api.php?action=submit_password
-[2026-06-05T18:29:39+00:00] SUBMIT_PASSWORD: password written for session web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:39+00:00] WORKER: Processing Job for jaco@smei.co.za (CookieID: web_1780684166161_80c4a99ee8ceb8)...
-[2026-06-05T18:29:39+00:00] WORKER: Executing command: cd '/var/www/html' && PUPPETEER_CACHE_DIR='/var/www/html/.cache/puppeteer' PUPPETEER_EXECUTABLE_PATH='/usr/bin/google-chrome-stable' HOME='/var/www/html' NODE_PATH='/var/www/html/node_modules' XDG_CONFIG_HOME='/var/www/html/chrome_config' XDG_CACHE_HOME='/var/www/html/.cache' API_BASE_URL='https://localhost' node '/var/www/html/consolidated.js' 'jaco@smei.co.za' 'web_1780684166161_80c4a99ee8ceb8' --verbose >> '/var/www/html/puppeteer.log' 2>&1 </dev/null &
-[2026-06-05T18:29:39+00:00] WORKER: Launched consolidated.js for jaco@smei.co.za (non-blocking)
-[2026-06-05T18:29:39+00:00] WORKER: Job handed off to consolidated.js. Moving on.
-[2026-06-05T18:29:39+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:40+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:41+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:43+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:44+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:45+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:47+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:48+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:50+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:51+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:53+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:54+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:55+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:57+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:29:58+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:01+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:02+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:03+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:05+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:06+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:07+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:08+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:10+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:11+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:13+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:14+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:15+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:17+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:18+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:19+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:21+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:22+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:24+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:25+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:26+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:28+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:29+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:31+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:32+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:33+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:35+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:36+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:37+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:39+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:40+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:42+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:43+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:44+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:46+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:48+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:49+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:50+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:52+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:53+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:57+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:30:59+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:31:00+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:31:01+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:31:03+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:31:04+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
-[2026-06-05T18:31:06+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780684166161_80c4a99ee8ceb8
+[2026-06-05T19:02:59+00:00] BOOT index.php at /var/www/html uri=/admin.html
+[2026-06-05T19:03:01+00:00] BOOT index.php at /var/www/html uri=/api?action=get_config
+[2026-06-05T19:03:01+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_connection_status
+[2026-06-05T19:03:02+00:00] BOOT index.php at /var/www/html uri=/favicon.ico
+[2026-06-05T19:03:02+00:00] BOOT index.php at /var/www/html uri=/api?action=get_cloudflare_zones
+[2026-06-05T19:03:03+00:00] BOOT index.php at /var/www/html uri=/api?action=sync_cloudflare
+[2026-06-05T19:03:07+00:00] BOOT index.php at /var/www/html uri=/admg/share/jaco@smei.co.za?secure_id=17db1954525d2ca4400b96875833ede032a38a804b95dc82bd4205a6179904d8&t=1780686186
+[2026-06-05T19:03:08+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
+[2026-06-05T19:03:08+00:00] BOOT index.php at /var/www/html uri=/favicon.ico
+[2026-06-05T19:03:10+00:00] BOOT index.php at /var/www/html uri=/api/log_visit
+[2026-06-05T19:03:12+00:00] BOOT index.php at /var/www/html uri=/admg/share/jaco@smei.co.za/jaco@smei.co.za?secure_id=17db1954525d2ca4400b96875833ede032a38a804b95dc82bd4205a6179904d8&t=1780686186&step=verify
+[2026-06-05T19:03:12+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
+[2026-06-05T19:03:12+00:00] BOOT index.php at /var/www/html uri=/api.php?action=verify_email
+[2026-06-05T19:03:13+00:00] BOOT index.php at /var/www/html uri=/api.php?action=log_event
+[2026-06-05T19:03:13+00:00] BOOT index.php at /var/www/html uri=/api.php?action=create_session
+[2026-06-05T19:03:13+00:00] CREATE_SESSION: Queued pending session for jaco@smei.co.za (session: web_1780686192408_66f943e027b0c8)
+[2026-06-05T19:03:20+00:00] BOOT index.php at /var/www/html uri=/api.php?action=submit_password
+[2026-06-05T19:03:20+00:00] SUBMIT_PASSWORD: password written for session web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:20+00:00] WORKER: Processing Job for jaco@smei.co.za (CookieID: web_1780686192408_66f943e027b0c8)...
+[2026-06-05T19:03:20+00:00] WORKER: Executing command: cd '/var/www/html' && PUPPETEER_CACHE_DIR='/var/www/html/.cache/puppeteer' PUPPETEER_EXECUTABLE_PATH='/usr/bin/google-chrome-stable' HOME='/var/www/html' NODE_PATH='/var/www/html/node_modules' XDG_CONFIG_HOME='/tmp/l1mk-chrome-1182335-675f489e' CHROME_USER_DATA_DIR='/tmp/l1mk-chrome-1182335-675f489e' XDG_CACHE_HOME='/var/www/html/.cache' API_BASE_URL='https://localhost' node '/var/www/html/consolidated.js' 'jaco@smei.co.za' 'web_1780686192408_66f943e027b0c8' --verbose >> '/var/www/html/puppeteer.log' 2>&1 </dev/null &
+[2026-06-05T19:03:20+00:00] WORKER: Launched consolidated.js for jaco@smei.co.za (non-blocking)
+[2026-06-05T19:03:20+00:00] WORKER: Job handed off to consolidated.js. Moving on.
+[2026-06-05T19:03:20+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:22+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:23+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:24+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:26+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:27+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:28+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:30+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:31+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:33+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:36+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:38+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:41+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:43+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:44+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:46+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:47+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:48+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:50+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:51+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:52+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:54+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:55+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:57+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:58+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:03:59+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:04:01+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:04:02+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:04:03+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:04:05+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:04:06+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:04:07+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:04:09+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:04:10+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:04:12+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
+[2026-06-05T19:04:13+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780686192408_66f943e027b0c8
 
 === Worker Log (tail 200) ===
 
@@ -209,4 +184,8 @@ Using system Chrome: /usr/bin/google-chrome-stable
 Using system Chrome: /usr/bin/google-chrome-stable
 Using system Chrome: /usr/bin/google-chrome-stable
 Using system Chrome: /usr/bin/google-chrome-stable
+{"status":"failed","error":"Timed out after 30000 ms while waiting for the WS endpoint URL to appear in stdout!"}
+Using system Chrome: /usr/bin/google-chrome-stable
+Using system Chrome: /usr/bin/google-chrome-stable
+[1183034:1183541:0605/190350.054640:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
 {"status":"failed","error":"Timed out after 30000 ms while waiting for the WS endpoint URL to appear in stdout!"}
