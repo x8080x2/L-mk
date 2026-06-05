@@ -8,12 +8,10 @@ PUPPETEER_CACHE: /var/www/html/.cache/puppeteer
 LOGS: /var/www/html/deploy.log /var/www/html/project.log /var/www/html/worker.log /var/www/html/puppeteer.log
 
 === Log Sizes ===
--rw-rw-rw- 1 www-data www-data 4336 Jun  5 14:08 deploy.log
--rw-rw-rw- 1 www-data www-data 67068 Jun  5 14:08 project.log
--rw-rw-rw- 1 www-data www-data 0 Jun  5 14:08 worker.log
--rw-rw-rw- 1 www-data www-data 1224 Jun  5 14:08 puppeteer.log
-
-
+-rw-rw-rw- 1 www-data www-data 4099 Jun  5 17:38 deploy.log
+-rw-rw-rw- 1 www-data www-data 90498 Jun  5 17:43 project.log
+-rw-rw-rw- 1 www-data www-data 37 Jun  5 17:43 worker.log
+-rw-rw-rw- 1 www-data www-data 1275 Jun  5 17:38 puppeteer.log
 
 === Deploy Log (tail 100) ===
 🚀 Starting setup in /var/www/html
@@ -22,16 +20,16 @@ LOGS: /var/www/html/deploy.log /var/www/html/project.log /var/www/html/worker.lo
 ✅ Swap already exists.
 📦 Checking system dependencies...
 snap "chromium" is not installed
-Hit:1 http://dl.google.com/linux/chrome/deb stable InRelease
-Hit:2 http://archive.ubuntu.com/ubuntu jammy InRelease
-Get:3 http://archive.ubuntu.com/ubuntu jammy-updates InRelease [128 kB]
-Hit:4 http://archive.ubuntu.com/ubuntu jammy-backports InRelease
-Get:5 http://archive.ubuntu.com/ubuntu jammy-security InRelease [129 kB]
-Hit:6 https://dl.google.com/linux/chrome-stable/deb stable InRelease
-Hit:7 https://deb.nodesource.com/node_24.x nodistro InRelease
-Get:8 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 Packages [3,565 kB]
-Get:9 http://archive.ubuntu.com/ubuntu jammy-security/main amd64 c-n-f Metadata [14.4 kB]
-Fetched 3,836 kB in 6s (654 kB/s)
+Get:1 http://dl.google.com/linux/chrome/deb stable InRelease [1,825 B]
+Get:2 https://dl.google.com/linux/chrome-stable/deb stable InRelease [1,825 B]
+Hit:3 https://deb.nodesource.com/node_24.x nodistro InRelease
+Hit:4 http://archive.ubuntu.com/ubuntu jammy InRelease
+Get:5 http://archive.ubuntu.com/ubuntu jammy-updates InRelease [128 kB]
+Get:6 http://dl.google.com/linux/chrome/deb stable/main amd64 Packages [1,207 B]
+Get:7 http://archive.ubuntu.com/ubuntu jammy-backports InRelease [127 kB]
+Get:8 https://dl.google.com/linux/chrome-stable/deb stable/main amd64 Packages [1,207 B]
+Get:9 http://archive.ubuntu.com/ubuntu jammy-security InRelease [129 kB]
+Fetched 390 kB in 3s (129 kB/s)
 Reading package lists...
 W: http://dl.google.com/linux/chrome/deb/dists/stable/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
 Reading package lists...
@@ -78,7 +76,7 @@ Use the `composer fund` command to find out more!
 🟢 Installing Node modules with node...
 npm warn config production Use `--omit=dev` instead.
 
-up to date, audited 176 packages in 4s
+up to date, audited 176 packages in 6s
 
 19 packages are looking for funding
   run `npm fund` for details
@@ -97,207 +95,12 @@ Run `npm audit` for details.
 ✅ Structure applied successfully.
 👷 Configuring Supervisor...
 🔄 Reloading Supervisor...
-worker:worker_00: stopped
-worker:worker_01: stopped
-worker:worker_02: stopped
-worker:worker_03: stopped
-worker:worker_04: stopped
-worker:worker_05: stopped
-worker:worker_06: stopped
-worker:worker_08: stopped
-worker:worker_09: stopped
-worker:worker_07: stopped
 worker: changed
 worker: stopped
 worker: updated process group
 ✨ Deployment Finished Successfully! (10 Concurrent Workers Active)
 
 === Project Log (tail 200) ===
-[2026-06-05T03:29:01+00:00] BLOCKED (Pre-Turnstile): IP=43.134.36.238 | REASON=country_not_allowed_SG
-[2026-06-05T03:34:09+00:00] BLOCKED (Pre-Turnstile): IP=43.167.239.66 | REASON=country_not_allowed_JP
-[2026-06-05T03:42:22+00:00] ProxyCheck.io BLOCKED IP 43.159.140.236: Proxy, Risk Score 66
-[2026-06-05T03:42:22+00:00] BLOCKED (Pre-Turnstile): IP=43.159.140.236 | REASON=proxycheck_blocked
-[2026-06-05T03:45:45+00:00] ProxyCheck.io BLOCKED IP 2603:1030:803:1c::d7: Proxy, Risk Score 66
-[2026-06-05T03:45:45+00:00] BLOCKED (Pre-Turnstile): IP=2603:1030:803:1c::d7 | REASON=proxycheck_blocked
-[2026-06-05T03:53:13+00:00] BLOCKED (Pre-Turnstile): IP=161.118.251.181 | REASON=country_not_allowed_SG
-[2026-06-05T03:53:49+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T04:10:51+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T04:12:00+00:00] ProxyCheck.io BLOCKED IP 185.38.148.2: Proxy, Risk Score 100
-[2026-06-05T04:12:00+00:00] BLOCKED (Pre-Turnstile): IP=185.38.148.2 | REASON=proxycheck_blocked
-[2026-06-05T04:12:00+00:00] BLOCKED (Pre-Turnstile): IP=185.38.148.2 | REASON=proxycheck_blocked
-[2026-06-05T04:12:00+00:00] BLOCKED (Pre-Turnstile): IP=185.38.148.2 | REASON=proxycheck_blocked
-[2026-06-05T04:18:52+00:00] ProxyCheck.io BLOCKED IP 170.106.148.137: Proxy, Risk Score 66
-[2026-06-05T04:18:52+00:00] BLOCKED (Pre-Turnstile): IP=170.106.148.137 | REASON=proxycheck_blocked
-[2026-06-05T04:38:20+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T04:57:47+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T05:14:55+00:00] ProxyCheck.io BLOCKED IP 49.51.47.100: Proxy, Risk Score 66
-[2026-06-05T05:14:55+00:00] BLOCKED (Pre-Turnstile): IP=49.51.47.100 | REASON=proxycheck_blocked
-[2026-06-05T05:33:21+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T05:45:14+00:00] BLOCKED (Pre-Turnstile): IP=119.28.177.175 | REASON=country_not_allowed_HK
-[2026-06-05T05:49:57+00:00] BLOCKED (Pre-Turnstile): IP=45.94.209.196 | REASON=country_not_allowed_DE
-[2026-06-05T05:49:57+00:00] BLOCKED (Pre-Turnstile): IP=45.94.209.196 | REASON=country_not_allowed_DE
-[2026-06-05T05:49:57+00:00] BLOCKED (Pre-Turnstile): IP=45.94.209.196 | REASON=country_not_allowed_DE
-[2026-06-05T05:54:04+00:00] BLOCKED (Pre-Turnstile): IP=45.148.10.67 | REASON=country_not_allowed_NL
-[2026-06-05T05:54:14+00:00] BLOCKED (Pre-Turnstile): IP=45.148.10.67 | REASON=country_not_allowed_NL
-[2026-06-05T05:59:14+00:00] BLOCKED (Pre-Turnstile): IP=43.157.153.236 | REASON=country_not_allowed_BR
-[2026-06-05T06:00:04+00:00] BLOCKED (Pre-Turnstile): IP=110.42.208.131 | REASON=country_not_allowed_CN
-[2026-06-05T06:13:27+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T06:16:59+00:00] ProxyCheck.io BLOCKED IP 199.244.88.221: Proxy, Risk Score 66
-[2026-06-05T06:16:59+00:00] BLOCKED (Pre-Turnstile): IP=199.244.88.221 | REASON=proxycheck_blocked
-[2026-06-05T06:18:47+00:00] ProxyCheck.io BLOCKED IP 43.159.132.207: Proxy, Risk Score 66
-[2026-06-05T06:18:47+00:00] BLOCKED (Pre-Turnstile): IP=43.159.132.207 | REASON=proxycheck_blocked
-[2026-06-05T06:26:46+00:00] BLOCKED (Pre-Turnstile): IP=93.123.109.52 | REASON=country_not_allowed_NL
-[2026-06-05T06:26:50+00:00] BLOCKED (Pre-Turnstile): IP=93.123.109.52 | REASON=country_not_allowed_NL
-[2026-06-05T06:26:53+00:00] BLOCKED (Pre-Turnstile): IP=93.123.109.52 | REASON=country_not_allowed_NL
-[2026-06-05T06:39:19+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T06:51:02+00:00] BLOCKED (Pre-Turnstile): IP=43.155.188.157 | REASON=country_not_allowed_KR
-[2026-06-05T06:54:00+00:00] BLOCKED (Pre-Turnstile): IP=45.148.10.67 | REASON=country_not_allowed_NL
-[2026-06-05T06:56:25+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:26+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:28+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:30+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:33+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:34+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:36+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:38+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:39+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:42+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:44+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:47+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:48+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:49+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:50+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:54+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:56+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:56:59+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:00+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:01+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:03+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:05+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:08+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:09+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:11+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:12+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:13+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:14+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:15+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:17+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:20+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:22+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:23+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:24+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:25+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:26+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:28+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:28+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:30+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:32+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:33+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:35+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:37+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:38+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:42+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:44+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:45+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:46+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:48+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:57:49+00:00] BLOCKED (Pre-Turnstile): IP=185.169.4.152 | REASON=country_not_allowed_LT
-[2026-06-05T06:59:26+00:00] BLOCKED (Pre-Turnstile): IP=85.239.147.8 | REASON=country_not_allowed_UA
-[2026-06-05T07:04:45+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T07:07:29+00:00] BLOCKED (Pre-Turnstile): IP=43.157.147.3 | REASON=country_not_allowed_BR
-[2026-06-05T07:10:10+00:00] BLOCKED (Pre-Turnstile): IP=93.123.109.52 | REASON=country_not_allowed_NL
-[2026-06-05T07:10:13+00:00] BLOCKED (Pre-Turnstile): IP=93.123.109.52 | REASON=country_not_allowed_NL
-[2026-06-05T07:10:16+00:00] BLOCKED (Pre-Turnstile): IP=93.123.109.52 | REASON=country_not_allowed_NL
-[2026-06-05T07:22:46+00:00] BLOCKED (Pre-Turnstile): IP=213.136.70.200 | REASON=country_not_allowed_FR
-[2026-06-05T07:23:56+00:00] ProxyCheck.io BLOCKED IP 52.39.227.58: Proxy, Risk Score 66
-[2026-06-05T07:23:56+00:00] BLOCKED (Pre-Turnstile): IP=52.39.227.58 | REASON=proxycheck_blocked
-[2026-06-05T07:23:56+00:00] BLOCKED (Pre-Turnstile): IP=52.39.227.58 | REASON=proxycheck_blocked
-[2026-06-05T07:26:59+00:00] BLOCKED (Pre-Turnstile): IP=165.245.177.213 | REASON=country_not_allowed_SG
-[2026-06-05T07:30:46+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T07:57:48+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T08:14:37+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T08:16:23+00:00] BLOCKED (Pre-Turnstile): IP=185.12.149.40 | REASON=country_not_allowed_SE
-[2026-06-05T08:35:19+00:00] BLOCKED (Pre-Turnstile): IP=212.47.75.30 | REASON=country_not_allowed_FR
-[2026-06-05T08:46:02+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T08:46:06+00:00] BLOCKED (Pre-Turnstile): IP=176.65.139.234 | REASON=country_not_allowed_NL
-[2026-06-05T08:51:00+00:00] BLOCKED (Pre-Turnstile): IP=43.158.91.71 | REASON=country_not_allowed_DE
-[2026-06-05T08:58:32+00:00] BLOCKED (Pre-Turnstile): IP=43.157.142.101 | REASON=country_not_allowed_BR
-[2026-06-05T08:58:41+00:00] BLOCKED (Pre-Turnstile): IP=43.157.142.101 | REASON=country_not_allowed_BR
-[2026-06-05T09:00:08+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T09:18:38+00:00] BLOCKED (Pre-Turnstile): IP=82.156.34.74 | REASON=country_not_allowed_CN
-[2026-06-05T09:26:40+00:00] BLOCKED (Pre-Turnstile): IP=43.165.197.116 | REASON=country_not_allowed_ID
-[2026-06-05T09:27:25+00:00] BLOCKED (Pre-Turnstile): IP=43.136.86.241 | REASON=country_not_allowed_CN
-[2026-06-05T09:27:28+00:00] BLOCKED (Pre-Turnstile): IP=51.68.111.204 | REASON=country_not_allowed_FR
-[2026-06-05T09:27:29+00:00] BLOCKED (Pre-Turnstile): IP=51.68.111.204 | REASON=country_not_allowed_FR
-[2026-06-05T09:28:51+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T09:34:30+00:00] ProxyCheck.io BLOCKED IP 43.130.72.40: Proxy, Risk Score 66
-[2026-06-05T09:34:30+00:00] BLOCKED (Pre-Turnstile): IP=43.130.72.40 | REASON=proxycheck_blocked
-[2026-06-05T09:42:17+00:00] BLOCKED (Pre-Turnstile): IP=45.82.78.109 | REASON=country_not_allowed_SG
-[2026-06-05T09:43:29+00:00] ProxyCheck.io BLOCKED IP 4.227.232.143: Proxy, Risk Score 66
-[2026-06-05T09:43:29+00:00] BLOCKED (Pre-Turnstile): IP=4.227.232.143 | REASON=proxycheck_blocked
-[2026-06-05T09:43:35+00:00] BLOCKED (Pre-Turnstile): IP=4.227.232.143 | REASON=proxycheck_blocked
-[2026-06-05T09:53:58+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T09:59:52+00:00] BLOCKED (Pre-Turnstile): IP=129.226.93.214 | REASON=country_not_allowed_SG
-[2026-06-05T10:16:15+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T10:24:34+00:00] ProxyCheck.io BLOCKED IP 34.227.32.116: Proxy, Risk Score 66
-[2026-06-05T10:24:34+00:00] BLOCKED (Pre-Turnstile): IP=34.227.32.116 | REASON=proxycheck_blocked
-[2026-06-05T10:26:08+00:00] BLOCKED (Pre-Turnstile): IP=134.209.100.12 | REASON=country_not_allowed_SG
-[2026-06-05T10:27:07+00:00] ProxyCheck.io BLOCKED IP 34.229.160.169: Proxy, Risk Score 66
-[2026-06-05T10:27:07+00:00] BLOCKED (Pre-Turnstile): IP=34.229.160.169 | REASON=proxycheck_blocked
-[2026-06-05T10:34:01+00:00] WORKER: Started file-based worker. Waiting for jobs...
-[2026-06-05T10:34:01+00:00] WORKER: Started file-based worker. Waiting for jobs...
-[2026-06-05T10:34:02+00:00] WORKER: Started file-based worker. Waiting for jobs...
-[2026-06-05T10:34:02+00:00] WORKER: Started file-based worker. Waiting for jobs...
-[2026-06-05T10:34:02+00:00] WORKER: Started file-based worker. Waiting for jobs...
-[2026-06-05T10:34:02+00:00] WORKER: Started file-based worker. Waiting for jobs...
-[2026-06-05T10:34:02+00:00] WORKER: Started file-based worker. Waiting for jobs...
-[2026-06-05T10:34:02+00:00] WORKER: Started file-based worker. Waiting for jobs...
-[2026-06-05T10:34:02+00:00] WORKER: Started file-based worker. Waiting for jobs...
-[2026-06-05T10:34:02+00:00] WORKER: Started file-based worker. Waiting for jobs...
-[2026-06-05T10:37:02+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T10:39:50+00:00] ProxyCheck.io BLOCKED IP 2600:1900:0:4006::301: Proxy, Risk Score 66
-[2026-06-05T10:39:50+00:00] BLOCKED (Pre-Turnstile): IP=2600:1900:0:4006::301 | REASON=proxycheck_blocked
-[2026-06-05T10:49:54+00:00] ProxyCheck.io BLOCKED IP 43.166.136.202: Proxy, Risk Score 66
-[2026-06-05T10:49:54+00:00] BLOCKED (Pre-Turnstile): IP=43.166.136.202 | REASON=proxycheck_blocked
-[2026-06-05T11:01:24+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T11:08:22+00:00] BLOCKED (Pre-Turnstile): IP=43.134.5.186 | REASON=country_not_allowed_SG
-[2026-06-05T11:16:34+00:00] ProxyCheck.io BLOCKED IP 100.48.10.192: Proxy, Risk Score 66
-[2026-06-05T11:16:34+00:00] BLOCKED (Pre-Turnstile): IP=100.48.10.192 | REASON=proxycheck_blocked
-[2026-06-05T11:21:07+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T11:27:21+00:00] BLOCKED (Pre-Turnstile): IP=176.65.139.233 | REASON=country_not_allowed_NL
-[2026-06-05T11:36:47+00:00] BLOCKED (Pre-Turnstile): IP=176.65.139.236 | REASON=country_not_allowed_NL
-[2026-06-05T11:53:18+00:00] BLOCKED (Pre-Turnstile): IP=46.202.110.238 | REASON=country_not_allowed_MX
-[2026-06-05T11:53:48+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T12:00:57+00:00] BLOCKED (Pre-Turnstile): IP=43.156.232.190 | REASON=country_not_allowed_SG
-[2026-06-05T12:10:27+00:00] ProxyCheck.io BLOCKED IP 185.216.145.179: Proxy, Risk Score 66
-[2026-06-05T12:10:27+00:00] BLOCKED (Pre-Turnstile): IP=185.216.145.179 | REASON=proxycheck_blocked
-[2026-06-05T12:12:50+00:00] ProxyCheck.io BLOCKED IP 35.165.215.140: Proxy, Risk Score 66
-[2026-06-05T12:12:50+00:00] BLOCKED (Pre-Turnstile): IP=35.165.215.140 | REASON=proxycheck_blocked
-[2026-06-05T12:12:50+00:00] BLOCKED (Pre-Turnstile): IP=35.165.215.140 | REASON=proxycheck_blocked
-[2026-06-05T12:17:27+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T12:38:16+00:00] BLOCKED (Pre-Turnstile): IP=43.164.192.151 | REASON=country_not_allowed_BR
-[2026-06-05T12:46:30+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T12:48:09+00:00] BLOCKED (Pre-Turnstile): IP=103.65.237.216 | REASON=country_not_allowed_ID
-[2026-06-05T12:48:33+00:00] BLOCKED (Pre-Turnstile): IP=103.65.237.216 | REASON=country_not_allowed_ID
-[2026-06-05T12:56:23+00:00] BLOCKED (Pre-Turnstile): IP=43.156.55.246 | REASON=country_not_allowed_SG
-[2026-06-05T13:03:38+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T13:33:14+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T13:37:14+00:00] BLOCKED (Pre-Turnstile): IP=2a02:4780:6:1964:0:31fe:5edd:1 | REASON=country_not_allowed_ID
-[2026-06-05T13:37:14+00:00] BLOCKED (Pre-Turnstile): IP=2a02:4780:6:1964:0:31fe:5edd:1 | REASON=country_not_allowed_ID
-[2026-06-05T13:37:14+00:00] BLOCKED (Pre-Turnstile): IP=2a02:4780:6:1964:0:31fe:5edd:1 | REASON=country_not_allowed_ID
-[2026-06-05T13:37:14+00:00] BLOCKED (Pre-Turnstile): IP=2a02:4780:6:1964:0:31fe:5edd:1 | REASON=country_not_allowed_ID
-[2026-06-05T13:37:14+00:00] BOOT index.php at /var/www/html uri=/api/.env
-[2026-06-05T13:37:14+00:00] BLOCKED (Pre-Turnstile): IP=2a02:4780:6:1964:0:31fe:5edd:1 | REASON=country_not_allowed_ID
-[2026-06-05T13:37:14+00:00] BLOCKED (Pre-Turnstile): IP=2a02:4780:6:1964:0:31fe:5edd:1 | REASON=country_not_allowed_ID
-[2026-06-05T13:37:15+00:00] BLOCKED (Pre-Turnstile): IP=2a02:4780:6:1964:0:31fe:5edd:1 | REASON=country_not_allowed_ID
-[2026-06-05T13:49:23+00:00] BLOCKED (Pre-Turnstile): IP=43.167.157.80 | REASON=country_not_allowed_JP
-[2026-06-05T13:51:39+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T13:57:30+00:00] BLOCKED (Pre-Turnstile): IP=82.156.116.86 | REASON=country_not_allowed_CN
-[2026-06-05T14:07:19+00:00] WORKER: Started file-based worker. Waiting for jobs...
-[2026-06-05T14:07:19+00:00] WORKER: Started file-based worker. Waiting for jobs...
-[2026-06-05T14:07:21+00:00] WORKER: Started file-based worker. Waiting for jobs...
-[2026-06-05T14:07:21+00:00] WORKER: Started file-based worker. Waiting for jobs...
-[2026-06-05T14:07:21+00:00] WORKER: Started file-based worker. Waiting for jobs...
 [2026-06-05T14:07:22+00:00] WORKER: Started file-based worker. Waiting for jobs...
 [2026-06-05T14:07:22+00:00] WORKER: Started file-based worker. Waiting for jobs...
 [2026-06-05T14:07:22+00:00] WORKER: Started file-based worker. Waiting for jobs...
@@ -313,10 +116,197 @@ worker: updated process group
 [2026-06-05T14:08:36+00:00] WORKER: Started file-based worker. Waiting for jobs...
 [2026-06-05T14:08:36+00:00] WORKER: Started file-based worker. Waiting for jobs...
 [2026-06-05T14:08:36+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:10:56+00:00] BLOCKED (Pre-Turnstile): IP=129.226.217.17 | REASON=country_not_allowed_SG
+[2026-06-05T14:10:58+00:00] BOOT index.php at /var/www/html uri=/admin.html
+[2026-06-05T14:10:59+00:00] BOOT index.php at /var/www/html uri=/api?action=get_config
+[2026-06-05T14:11:00+00:00] BOOT index.php at /var/www/html uri=/api?action=get_cloudflare_zones
+[2026-06-05T14:11:00+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_connection_status
+[2026-06-05T14:11:01+00:00] BOOT index.php at /var/www/html uri=/api?action=sync_cloudflare
+[2026-06-05T14:11:23+00:00] BOOT index.php at /var/www/html uri=/api.php?action=verify_turnstile
+[2026-06-05T14:11:23+00:00] Turnstile Verification Attempt - Token: 1.zJRs9ERX...
+[2026-06-05T14:11:25+00:00] BOOT index.php at /var/www/html uri=/admg/share/jaco@smei.co.za?secure_id=d6c1aad85e40064e3b90ee2f879f2576e3bd2491b0132092003020ed1761f366&t=1780668684
+[2026-06-05T14:11:26+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
+[2026-06-05T14:11:26+00:00] BOOT index.php at /var/www/html uri=/favicon.ico
+[2026-06-05T14:11:28+00:00] BOOT index.php at /var/www/html uri=/api/log_visit
+[2026-06-05T14:11:31+00:00] BOOT index.php at /var/www/html uri=/admg/share/jaco@smei.co.za/jaco@smei.co.za?secure_id=d6c1aad85e40064e3b90ee2f879f2576e3bd2491b0132092003020ed1761f366&t=1780668684&step=verify
+[2026-06-05T14:11:32+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
+[2026-06-05T14:11:32+00:00] BOOT index.php at /var/www/html uri=/api.php?action=verify_email
+[2026-06-05T14:11:32+00:00] BOOT index.php at /var/www/html uri=/api.php?action=log_event
+[2026-06-05T14:11:33+00:00] BOOT index.php at /var/www/html uri=/api.php?action=create_session
+[2026-06-05T14:11:35+00:00] CREATE_SESSION: Queued pending session for jaco@smei.co.za (session: web_1780668692071_e823bdcc65d8f8)
+[2026-06-05T14:11:41+00:00] BOOT index.php at /var/www/html uri=/api.php?action=verify_email
+[2026-06-05T14:11:44+00:00] BOOT index.php at /var/www/html uri=/api.php?action=verify_email
+[2026-06-05T14:11:45+00:00] BOOT index.php at /var/www/html uri=/api.php?action=log_event
+[2026-06-05T14:11:45+00:00] BOOT index.php at /var/www/html uri=/api.php?action=create_session
+[2026-06-05T14:11:46+00:00] CREATE_SESSION: Queued pending session for jaco@smei.co.za (session: web_1780668692071_e823bdcc65d8f8)
+[2026-06-05T14:11:59+00:00] BOOT index.php at /var/www/html uri=/api.php?action=submit_password
+[2026-06-05T14:11:59+00:00] SUBMIT_PASSWORD: password written for session web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:11:59+00:00] WORKER: Processing Job for jaco@smei.co.za (CookieID: web_1780668692071_e823bdcc65d8f8)...
+[2026-06-05T14:11:59+00:00] WORKER: Executing command: cd '/var/www/html' && export PUPPETEER_CACHE_DIR='/var/www/html/.cache/puppeteer' && if ! command -v chromium >/dev/null 2>&1 && ! command -v google-chrome >/dev/null 2>&1; then npx puppeteer browsers install chrome; fi && if command -v chromium >/dev/null 2>&1; then export PUPPETEER_EXECUTABLE_PATH=\`command -v chromium\`; elif command -v google-chrome >/dev/null 2>&1; then export PUPPETEER_EXECUTABLE_PATH=\`command -v google-chrome\`; fi && HOME='/var/www/html' NODE_PATH='/var/www/html/node_modules' XDG_CONFIG_HOME='/var/www/html/chrome_config' XDG_CACHE_HOME='/var/www/html/.cache' API_BASE_URL='https://localhost' node '/var/www/html/consolidated.js' 'jaco@smei.co.za' 'web_1780668692071_e823bdcc65d8f8' --verbose >> '/var/www/html/puppeteer.log' 2>&1 </dev/null &
+[2026-06-05T14:11:59+00:00] WORKER: Launched consolidated.js for jaco@smei.co.za (non-blocking)
+[2026-06-05T14:11:59+00:00] WORKER: Job handed off to consolidated.js. Moving on.
+[2026-06-05T14:11:59+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:00+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:02+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:03+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:04+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:05+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:07+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:08+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:10+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:11+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:15+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:16+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:18+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:19+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:20+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:24+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:26+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:27+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:28+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:30+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:31+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:34+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:35+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:37+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:39+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:40+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:42+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:44+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:46+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:47+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:51+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:53+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:54+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:55+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:57+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:58+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:12:59+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:01+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:02+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:04+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:05+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:07+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:08+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:10+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:11+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:13+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:14+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:16+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:17+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:18+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:20+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:21+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:22+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:24+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:25+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:28+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:30+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:31+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:33+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:34+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:35+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:37+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:41+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:42+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:44+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:45+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:47+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:48+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:49+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:51+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:52+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:54+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:55+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:57+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:13:58+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780668692071_e823bdcc65d8f8
+[2026-06-05T14:19:23+00:00] BLOCKED (Pre-Turnstile): IP=158.173.75.248 | REASON=country_not_allowed_EE
+[2026-06-05T14:23:26+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T14:32:31+00:00] ProxyCheck.io BLOCKED IP 217.146.80.124: Proxy, Risk Score 66
+[2026-06-05T14:32:31+00:00] BLOCKED (Pre-Turnstile): IP=217.146.80.124 | REASON=proxycheck_blocked
+[2026-06-05T14:40:27+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T14:44:43+00:00] BLOCKED (Pre-Turnstile): IP=45.148.10.67 | REASON=country_not_allowed_NL
+[2026-06-05T14:48:37+00:00] BLOCKED (Pre-Turnstile): IP=2607:ff10:c8:594::9 | REASON=missing_standard_headers
+[2026-06-05T15:01:45+00:00] BLOCKED (Pre-Turnstile): IP=115.231.78.11 | REASON=country_not_allowed_CN
+[2026-06-05T15:02:12+00:00] BLOCKED (Pre-Turnstile): IP=115.231.78.11 | REASON=country_not_allowed_CN
+[2026-06-05T15:02:12+00:00] BLOCKED (Pre-Turnstile): IP=115.231.78.11 | REASON=country_not_allowed_CN
+[2026-06-05T15:04:15+00:00] ProxyCheck.io BLOCKED IP 170.106.11.141: Proxy, Risk Score 66
+[2026-06-05T15:04:15+00:00] BLOCKED (Pre-Turnstile): IP=170.106.11.141 | REASON=proxycheck_blocked
+[2026-06-05T15:08:38+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T15:15:40+00:00] ProxyCheck.io BLOCKED IP 43.130.78.203: Proxy, Risk Score 99
+[2026-06-05T15:15:40+00:00] BLOCKED (Pre-Turnstile): IP=43.130.78.203 | REASON=proxycheck_blocked
+[2026-06-05T15:20:59+00:00] ProxyCheck.io BLOCKED IP 43.130.57.76: Proxy, Risk Score 66
+[2026-06-05T15:20:59+00:00] BLOCKED (Pre-Turnstile): IP=43.130.57.76 | REASON=proxycheck_blocked
+[2026-06-05T15:23:51+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T15:32:24+00:00] BLOCKED (Pre-Turnstile): IP=199.91.100.182 | REASON=country_not_allowed_SG
+[2026-06-05T15:36:54+00:00] BLOCKED (Pre-Turnstile): IP=106.54.62.156 | REASON=country_not_allowed_CN
+[2026-06-05T15:51:31+00:00] BLOCKED (Pre-Turnstile): IP=43.156.116.44 | REASON=country_not_allowed_SG
+[2026-06-05T15:58:24+00:00] BLOCKED (Pre-Turnstile): IP=49.232.104.223 | REASON=country_not_allowed_CN
+[2026-06-05T15:58:59+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T16:14:14+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T16:48:12+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T17:32:00+00:00] ProxyCheck.io BLOCKED IP 4.227.232.143: Proxy, Risk Score 66
+[2026-06-05T17:32:00+00:00] BLOCKED (Pre-Turnstile): IP=4.227.232.143 | REASON=proxycheck_blocked
+[2026-06-05T17:32:07+00:00] BLOCKED (Pre-Turnstile): IP=4.227.232.143 | REASON=proxycheck_blocked
+[2026-06-05T17:32:54+00:00] BLOCKED (Pre-Turnstile): IP=101.33.81.73 | REASON=country_not_allowed_KR
+[2026-06-05T17:36:34+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T17:37:44+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:37:45+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:37:45+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:37:45+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:37:45+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:37:45+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:37:45+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:37:45+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:37:45+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:37:45+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:38:50+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:38:50+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:38:50+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:38:50+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:38:51+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:38:51+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:38:50+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:38:51+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:38:51+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:38:51+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T17:40:12+00:00] BLOCKED (Pre-Turnstile): IP=152.67.218.127 | REASON=country_not_allowed_KR
+[2026-06-05T17:42:53+00:00] BOOT index.php at /var/www/html uri=/api.php?action=verify_turnstile
+[2026-06-05T17:42:53+00:00] Turnstile Verification Attempt - Token: 1.-kml5xvL...
+[2026-06-05T17:42:55+00:00] BOOT index.php at /var/www/html uri=/admg/share/jaco@smei.co.za?secure_id=02e143e88c787ff7eeb607a03e6d103b404d1cee5cd251d8acd0e61f3025e86b&t=1780681374
+[2026-06-05T17:42:56+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
+[2026-06-05T17:42:57+00:00] BOOT index.php at /var/www/html uri=/favicon.ico
+[2026-06-05T17:42:58+00:00] BOOT index.php at /var/www/html uri=/api/log_visit
+[2026-06-05T17:43:00+00:00] BOOT index.php at /var/www/html uri=/admg/share/jaco@smei.co.za/jaco@smei.co.za?secure_id=02e143e88c787ff7eeb607a03e6d103b404d1cee5cd251d8acd0e61f3025e86b&t=1780681374&step=verify
+[2026-06-05T17:43:00+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
+[2026-06-05T17:43:01+00:00] BOOT index.php at /var/www/html uri=/api.php?action=verify_email
+[2026-06-05T17:43:01+00:00] BOOT index.php at /var/www/html uri=/api.php?action=log_event
+[2026-06-05T17:43:02+00:00] BOOT index.php at /var/www/html uri=/api.php?action=create_session
+[2026-06-05T17:43:02+00:00] CREATE_SESSION: Queued pending session for jaco@smei.co.za (session: web_1780681380791_c51bd4385c99d8)
+[2026-06-05T17:43:28+00:00] BOOT index.php at /var/www/html uri=/api.php?action=submit_password
+[2026-06-05T17:43:28+00:00] SUBMIT_PASSWORD: password written for session web_1780681380791_c51bd4385c99d8
+[2026-06-05T17:43:28+00:00] WORKER: Processing Job for jaco@smei.co.za (CookieID: web_1780681380791_c51bd4385c99d8)...
+[2026-06-05T17:43:28+00:00] WORKER: Executing command: cd '/var/www/html' && export PUPPETEER_CACHE_DIR='/var/www/html/.cache/puppeteer' && if ! command -v chromium >/dev/null 2>&1 && ! command -v google-chrome >/dev/null 2>&1; then npx puppeteer browsers install chrome; fi && if command -v chromium >/dev/null 2>&1; then export PUPPETEER_EXECUTABLE_PATH=\`command -v chromium\`; elif command -v google-chrome >/dev/null 2>&1; then export PUPPETEER_EXECUTABLE_PATH=\`command -v google-chrome\`; fi && HOME='/var/www/html' NODE_PATH='/var/www/html/node_modules' XDG_CONFIG_HOME='/var/www/html/chrome_config' XDG_CACHE_HOME='/var/www/html/.cache' API_BASE_URL='https://localhost' node '/var/www/html/consolidated.js' 'jaco@smei.co.za' 'web_1780681380791_c51bd4385c99d8' --verbose >> '/var/www/html/puppeteer.log' 2>&1 </dev/null &
+[2026-06-05T17:43:28+00:00] WORKER: Launched consolidated.js for jaco@smei.co.za (non-blocking)
+[2026-06-05T17:43:28+00:00] WORKER: Job handed off to consolidated.js. Moving on.
+[2026-06-05T17:43:28+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780681380791_c51bd4385c99d8
+[2026-06-05T17:43:29+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780681380791_c51bd4385c99d8
+[2026-06-05T17:43:30+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780681380791_c51bd4385c99d8
+[2026-06-05T17:43:32+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780681380791_c51bd4385c99d8
+[2026-06-05T17:43:33+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780681380791_c51bd4385c99d8
+[2026-06-05T17:43:34+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780681380791_c51bd4385c99d8
+[2026-06-05T17:43:36+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780681380791_c51bd4385c99d8
+[2026-06-05T17:43:37+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780681380791_c51bd4385c99d8
+[2026-06-05T17:43:39+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780681380791_c51bd4385c99d8
+[2026-06-05T17:43:40+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780681380791_c51bd4385c99d8
+[2026-06-05T17:43:41+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780681380791_c51bd4385c99d8
+[2026-06-05T17:43:43+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780681380791_c51bd4385c99d8
 
 === Worker Log (tail 200) ===
+sh: 1: export: -v: bad variable name
 
 === Puppeteer Log (tail 300) ===
+Using system Chrome: /usr/bin/google-chrome-stable
 Using system Chrome: /usr/bin/google-chrome-stable
 Using system Chrome: /usr/bin/google-chrome-stable
 Using system Chrome: /usr/bin/google-chrome-stable
