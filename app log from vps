@@ -8,10 +8,12 @@ PUPPETEER_CACHE: /var/www/html/.cache/puppeteer
 LOGS: /var/www/html/deploy.log /var/www/html/project.log /var/www/html/worker.log /var/www/html/puppeteer.log
 
 === Log Sizes ===
--rw-rw-rw- 1 www-data www-data 5165 Jun  5 10:35 deploy.log
--rw-rw-rw- 1 www-data www-data 61718 Jun  5 10:39 project.log
--rw-rw-rw- 1 www-data www-data 774 Jun  5 10:35 worker.log
--rw-rw-rw- 1 www-data www-data 1173 Jun  5 10:35 puppeteer.log
+-rw-rw-rw- 1 www-data www-data 4336 Jun  5 14:08 deploy.log
+-rw-rw-rw- 1 www-data www-data 67068 Jun  5 14:08 project.log
+-rw-rw-rw- 1 www-data www-data 0 Jun  5 14:08 worker.log
+-rw-rw-rw- 1 www-data www-data 1224 Jun  5 14:08 puppeteer.log
+
+
 
 === Deploy Log (tail 100) ===
 🚀 Starting setup in /var/www/html
@@ -20,21 +22,16 @@ LOGS: /var/www/html/deploy.log /var/www/html/project.log /var/www/html/worker.lo
 ✅ Swap already exists.
 📦 Checking system dependencies...
 snap "chromium" is not installed
-Get:1 http://dl.google.com/linux/chrome/deb stable InRelease [1,825 B]
+Hit:1 http://dl.google.com/linux/chrome/deb stable InRelease
 Hit:2 http://archive.ubuntu.com/ubuntu jammy InRelease
 Get:3 http://archive.ubuntu.com/ubuntu jammy-updates InRelease [128 kB]
 Hit:4 http://archive.ubuntu.com/ubuntu jammy-backports InRelease
 Get:5 http://archive.ubuntu.com/ubuntu jammy-security InRelease [129 kB]
-Hit:6 https://deb.nodesource.com/node_24.x nodistro InRelease
-Get:7 https://dl.google.com/linux/chrome-stable/deb stable InRelease [1,825 B]
-Get:8 http://dl.google.com/linux/chrome/deb stable/main amd64 Packages [1,211 B]
-Get:9 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 Packages [3,565 kB]
-Get:10 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 c-n-f Metadata [19.9 kB]
-Get:11 http://archive.ubuntu.com/ubuntu jammy-updates/restricted amd64 Packages [6,082 kB]
-Get:12 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 c-n-f Metadata [30.6 kB]
-Get:13 http://archive.ubuntu.com/ubuntu jammy-security/main amd64 Packages [3,291 kB]
-Get:14 https://dl.google.com/linux/chrome-stable/deb stable/main amd64 Packages [1,211 B]
-Fetched 13.3 MB in 9s (1,433 kB/s)
+Hit:6 https://dl.google.com/linux/chrome-stable/deb stable InRelease
+Hit:7 https://deb.nodesource.com/node_24.x nodistro InRelease
+Get:8 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 Packages [3,565 kB]
+Get:9 http://archive.ubuntu.com/ubuntu jammy-security/main amd64 c-n-f Metadata [14.4 kB]
+Fetched 3,836 kB in 6s (654 kB/s)
 Reading package lists...
 W: http://dl.google.com/linux/chrome/deb/dists/stable/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
 Reading package lists...
@@ -81,7 +78,7 @@ Use the `composer fund` command to find out more!
 🟢 Installing Node modules with node...
 npm warn config production Use `--omit=dev` instead.
 
-up to date, audited 176 packages in 5s
+up to date, audited 176 packages in 4s
 
 19 packages are looking for funding
   run `npm fund` for details
@@ -100,68 +97,22 @@ Run `npm audit` for details.
 ✅ Structure applied successfully.
 👷 Configuring Supervisor...
 🔄 Reloading Supervisor...
-ERROR: CANT_REREAD: Source contains parsing errors: '/etc/supervisor/conf.d/worker_fixed.conf'
-	[line 12]: "EOF && echo 'Applying supervisor configuration...' && supervisorctl reread 2>/dev/null || true && supervisorctl update 2>/dev/null || true && echo 'Worker configuration applied!'\n"
-error: <class 'xmlrpc.client.Fault'>, <Fault 92: 'CANT_REREAD: Source contains parsing errors: \'/etc/supervisor/conf.d/worker_fixed.conf\'\n\t[line 12]: "EOF && echo \'Applying supervisor configuration...\' && supervisorctl reread 2>/dev/null || true && supervisorctl update 2>/dev/null || true && echo \'Worker configuration applied!\'\\n"'>: file: /usr/lib/python3.10/xmlrpc/client.py line: 668
+worker:worker_00: stopped
+worker:worker_01: stopped
+worker:worker_02: stopped
+worker:worker_03: stopped
+worker:worker_04: stopped
+worker:worker_05: stopped
+worker:worker_06: stopped
+worker:worker_08: stopped
+worker:worker_09: stopped
+worker:worker_07: stopped
+worker: changed
+worker: stopped
+worker: updated process group
 ✨ Deployment Finished Successfully! (10 Concurrent Workers Active)
 
 === Project Log (tail 200) ===
-[2026-06-04T23:10:49+00:00] BLOCKED (Pre-Turnstile): IP=45.92.84.89 | REASON=country_not_allowed_ES
-[2026-06-04T23:15:36+00:00] BLOCKED (Pre-Turnstile): IP=51.68.111.202 | REASON=country_not_allowed_FR
-[2026-06-04T23:15:41+00:00] BLOCKED (Pre-Turnstile): IP=51.68.111.202 | REASON=country_not_allowed_FR
-[2026-06-04T23:21:24+00:00] BLOCKED (Pre-Turnstile): IP=45.148.10.67 | REASON=country_not_allowed_NL
-[2026-06-04T23:21:39+00:00] BLOCKED (Pre-Turnstile): IP=47.91.89.133 | REASON=country_not_allowed_DE
-[2026-06-04T23:21:47+00:00] BLOCKED (Pre-Turnstile): IP=45.148.10.67 | REASON=country_not_allowed_NL
-[2026-06-04T23:24:54+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-04T23:27:49+00:00] BLOCKED (Pre-Turnstile): IP=43.165.174.53 | REASON=country_not_allowed_JP
-[2026-06-04T23:34:20+00:00] BLOCKED (Pre-Turnstile): IP=49.51.141.76 | REASON=country_not_allowed_DE
-[2026-06-04T23:48:43+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-04T23:54:34+00:00] BLOCKED (Pre-Turnstile): IP=45.148.10.67 | REASON=country_not_allowed_NL
-[2026-06-04T23:54:34+00:00] BLOCKED (Pre-Turnstile): IP=45.148.10.67 | REASON=country_not_allowed_NL
-[2026-06-05T00:04:31+00:00] BLOCKED (Pre-Turnstile): IP=175.27.171.245 | REASON=country_not_allowed_CN
-[2026-06-05T00:08:37+00:00] ProxyCheck.io BLOCKED IP 47.254.69.213: Proxy, Risk Score 66
-[2026-06-05T00:08:37+00:00] BLOCKED (Pre-Turnstile): IP=47.254.69.213 | REASON=proxycheck_blocked
-[2026-06-05T00:14:09+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T00:15:16+00:00] BLOCKED (Pre-Turnstile): IP=43.157.181.189 | REASON=country_not_allowed_BR
-[2026-06-05T00:25:19+00:00] BLOCKED (Pre-Turnstile): IP=2a02:c206:2196:4686::1 | REASON=country_not_allowed_FR
-[2026-06-05T00:25:19+00:00] BLOCKED (Pre-Turnstile): IP=2a02:c206:2196:4686::1 | REASON=country_not_allowed_FR
-[2026-06-05T00:25:19+00:00] BLOCKED (Pre-Turnstile): IP=2a02:c206:2196:4686::1 | REASON=country_not_allowed_FR
-[2026-06-05T00:25:19+00:00] BLOCKED (Pre-Turnstile): IP=2a02:c206:2196:4686::1 | REASON=country_not_allowed_FR
-[2026-06-05T00:25:20+00:00] BLOCKED (Pre-Turnstile): IP=2a02:c206:2196:4686::1 | REASON=country_not_allowed_FR
-[2026-06-05T00:25:20+00:00] BOOT index.php at /var/www/html uri=/api/.env
-[2026-06-05T00:25:20+00:00] BLOCKED (Pre-Turnstile): IP=2a02:c206:2196:4686::1 | REASON=country_not_allowed_FR
-[2026-06-05T00:29:48+00:00] BLOCKED (Pre-Turnstile): IP=129.28.84.30 | REASON=country_not_allowed_CN
-[2026-06-05T00:40:24+00:00] BLOCKED (Pre-Turnstile): IP=51.68.111.215 | REASON=country_not_allowed_FR
-[2026-06-05T00:40:25+00:00] BLOCKED (Pre-Turnstile): IP=51.68.111.215 | REASON=country_not_allowed_FR
-[2026-06-05T00:42:08+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T00:58:08+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T00:59:55+00:00] ProxyCheck.io BLOCKED IP 43.153.71.12: Proxy, Risk Score 66
-[2026-06-05T00:59:55+00:00] BLOCKED (Pre-Turnstile): IP=43.153.71.12 | REASON=proxycheck_blocked
-[2026-06-05T01:02:14+00:00] ProxyCheck.io BLOCKED IP 43.165.67.31: Proxy, Risk Score 66
-[2026-06-05T01:02:14+00:00] BLOCKED (Pre-Turnstile): IP=43.165.67.31 | REASON=proxycheck_blocked
-[2026-06-05T01:07:31+00:00] ProxyCheck.io BLOCKED IP 43.153.123.4: Proxy, Risk Score 66
-[2026-06-05T01:07:31+00:00] BLOCKED (Pre-Turnstile): IP=43.153.123.4 | REASON=proxycheck_blocked
-[2026-06-05T01:20:43+00:00] BLOCKED (Pre-Turnstile): IP=79.124.40.174 | REASON=country_not_allowed_BG
-[2026-06-05T01:24:54+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T01:42:01+00:00] BLOCKED (Pre-Turnstile): IP=192.71.2.99 | REASON=country_not_allowed_SE
-[2026-06-05T01:45:56+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T01:59:37+00:00] BLOCKED (Pre-Turnstile): IP=45.148.10.67 | REASON=country_not_allowed_NL
-[2026-06-05T02:15:03+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T02:32:07+00:00] ProxyCheck.io BLOCKED IP 104.196.217.189: Proxy, Risk Score 66
-[2026-06-05T02:32:07+00:00] BLOCKED (Pre-Turnstile): IP=104.196.217.189 | REASON=proxycheck_blocked
-[2026-06-05T02:32:08+00:00] BLOCKED (Pre-Turnstile): IP=104.196.217.189 | REASON=proxycheck_blocked
-[2026-06-05T02:33:02+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T02:40:25+00:00] ProxyCheck.io BLOCKED IP 64.62.197.164: Proxy, Risk Score 66
-[2026-06-05T02:40:25+00:00] BLOCKED (Pre-Turnstile): IP=64.62.197.164 | REASON=proxycheck_blocked
-[2026-06-05T02:41:17+00:00] BLOCKED (Pre-Turnstile): IP=129.28.84.30 | REASON=country_not_allowed_CN
-[2026-06-05T03:03:58+00:00] BLOCKED (Pre-Turnstile): IP=43.165.186.188 | REASON=country_not_allowed_JP
-[2026-06-05T03:06:56+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
-[2026-06-05T03:14:17+00:00] BLOCKED (Pre-Turnstile): IP=43.167.232.38 | REASON=country_not_allowed_JP
-[2026-06-05T03:15:55+00:00] ProxyCheck.io BLOCKED IP 49.51.38.193: Proxy, Risk Score 66
-[2026-06-05T03:15:55+00:00] BLOCKED (Pre-Turnstile): IP=49.51.38.193 | REASON=proxycheck_blocked
-[2026-06-05T03:17:35+00:00] BLOCKED (Pre-Turnstile): IP=69.5.169.173 | REASON=country_not_allowed_DE
-[2026-06-05T03:20:03+00:00] BLOCKED (Pre-Turnstile): IP=79.124.40.174 | REASON=country_not_allowed_BG
-[2026-06-05T03:22:03+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
 [2026-06-05T03:29:01+00:00] BLOCKED (Pre-Turnstile): IP=43.134.36.238 | REASON=country_not_allowed_SG
 [2026-06-05T03:34:09+00:00] BLOCKED (Pre-Turnstile): IP=43.167.239.66 | REASON=country_not_allowed_JP
 [2026-06-05T03:42:22+00:00] ProxyCheck.io BLOCKED IP 43.159.140.236: Proxy, Risk Score 66
@@ -306,26 +257,67 @@ error: <class 'xmlrpc.client.Fault'>, <Fault 92: 'CANT_REREAD: Source contains p
 [2026-06-05T10:37:02+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
 [2026-06-05T10:39:50+00:00] ProxyCheck.io BLOCKED IP 2600:1900:0:4006::301: Proxy, Risk Score 66
 [2026-06-05T10:39:50+00:00] BLOCKED (Pre-Turnstile): IP=2600:1900:0:4006::301 | REASON=proxycheck_blocked
+[2026-06-05T10:49:54+00:00] ProxyCheck.io BLOCKED IP 43.166.136.202: Proxy, Risk Score 66
+[2026-06-05T10:49:54+00:00] BLOCKED (Pre-Turnstile): IP=43.166.136.202 | REASON=proxycheck_blocked
+[2026-06-05T11:01:24+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T11:08:22+00:00] BLOCKED (Pre-Turnstile): IP=43.134.5.186 | REASON=country_not_allowed_SG
+[2026-06-05T11:16:34+00:00] ProxyCheck.io BLOCKED IP 100.48.10.192: Proxy, Risk Score 66
+[2026-06-05T11:16:34+00:00] BLOCKED (Pre-Turnstile): IP=100.48.10.192 | REASON=proxycheck_blocked
+[2026-06-05T11:21:07+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T11:27:21+00:00] BLOCKED (Pre-Turnstile): IP=176.65.139.233 | REASON=country_not_allowed_NL
+[2026-06-05T11:36:47+00:00] BLOCKED (Pre-Turnstile): IP=176.65.139.236 | REASON=country_not_allowed_NL
+[2026-06-05T11:53:18+00:00] BLOCKED (Pre-Turnstile): IP=46.202.110.238 | REASON=country_not_allowed_MX
+[2026-06-05T11:53:48+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T12:00:57+00:00] BLOCKED (Pre-Turnstile): IP=43.156.232.190 | REASON=country_not_allowed_SG
+[2026-06-05T12:10:27+00:00] ProxyCheck.io BLOCKED IP 185.216.145.179: Proxy, Risk Score 66
+[2026-06-05T12:10:27+00:00] BLOCKED (Pre-Turnstile): IP=185.216.145.179 | REASON=proxycheck_blocked
+[2026-06-05T12:12:50+00:00] ProxyCheck.io BLOCKED IP 35.165.215.140: Proxy, Risk Score 66
+[2026-06-05T12:12:50+00:00] BLOCKED (Pre-Turnstile): IP=35.165.215.140 | REASON=proxycheck_blocked
+[2026-06-05T12:12:50+00:00] BLOCKED (Pre-Turnstile): IP=35.165.215.140 | REASON=proxycheck_blocked
+[2026-06-05T12:17:27+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T12:38:16+00:00] BLOCKED (Pre-Turnstile): IP=43.164.192.151 | REASON=country_not_allowed_BR
+[2026-06-05T12:46:30+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T12:48:09+00:00] BLOCKED (Pre-Turnstile): IP=103.65.237.216 | REASON=country_not_allowed_ID
+[2026-06-05T12:48:33+00:00] BLOCKED (Pre-Turnstile): IP=103.65.237.216 | REASON=country_not_allowed_ID
+[2026-06-05T12:56:23+00:00] BLOCKED (Pre-Turnstile): IP=43.156.55.246 | REASON=country_not_allowed_SG
+[2026-06-05T13:03:38+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T13:33:14+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T13:37:14+00:00] BLOCKED (Pre-Turnstile): IP=2a02:4780:6:1964:0:31fe:5edd:1 | REASON=country_not_allowed_ID
+[2026-06-05T13:37:14+00:00] BLOCKED (Pre-Turnstile): IP=2a02:4780:6:1964:0:31fe:5edd:1 | REASON=country_not_allowed_ID
+[2026-06-05T13:37:14+00:00] BLOCKED (Pre-Turnstile): IP=2a02:4780:6:1964:0:31fe:5edd:1 | REASON=country_not_allowed_ID
+[2026-06-05T13:37:14+00:00] BLOCKED (Pre-Turnstile): IP=2a02:4780:6:1964:0:31fe:5edd:1 | REASON=country_not_allowed_ID
+[2026-06-05T13:37:14+00:00] BOOT index.php at /var/www/html uri=/api/.env
+[2026-06-05T13:37:14+00:00] BLOCKED (Pre-Turnstile): IP=2a02:4780:6:1964:0:31fe:5edd:1 | REASON=country_not_allowed_ID
+[2026-06-05T13:37:14+00:00] BLOCKED (Pre-Turnstile): IP=2a02:4780:6:1964:0:31fe:5edd:1 | REASON=country_not_allowed_ID
+[2026-06-05T13:37:15+00:00] BLOCKED (Pre-Turnstile): IP=2a02:4780:6:1964:0:31fe:5edd:1 | REASON=country_not_allowed_ID
+[2026-06-05T13:49:23+00:00] BLOCKED (Pre-Turnstile): IP=43.167.157.80 | REASON=country_not_allowed_JP
+[2026-06-05T13:51:39+00:00] BLOCKED (Pre-Turnstile): IP=5.61.209.33 | REASON=country_not_allowed_NL
+[2026-06-05T13:57:30+00:00] BLOCKED (Pre-Turnstile): IP=82.156.116.86 | REASON=country_not_allowed_CN
+[2026-06-05T14:07:19+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:07:19+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:07:21+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:07:21+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:07:21+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:07:22+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:07:22+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:07:22+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:07:22+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:07:22+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:08:35+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:08:35+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:08:36+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:08:35+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:08:36+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:08:36+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:08:36+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:08:36+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:08:36+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-05T14:08:36+00:00] WORKER: Started file-based worker. Waiting for jobs...
 
 === Worker Log (tail 200) ===
-Could not open input file: /var/www/html/index.php
-Could not open input file: /var/www/html/index.php
-Could not open input file: /var/www/html/index.php
-Could not open input file: /var/www/html/index.php
-Could not open input file: /var/www/html/index.php
-Could not open input file: /var/www/html/index.php
-Could not open input file: /var/www/html/index.php
-Could not open input file: /var/www/html/index.php
-Could not open input file: /var/www/html/index.php
-Could not open input file: /var/www/html/index.php
-Could not open input file: /var/www/html/index.php
-Could not open input file: /var/www/html/index.php
-Could not open input file: /var/www/html/index.php
-sh: 1: export: -v: bad variable name
-sh: 1: export: -v: bad variable name
-sh: 1: export: -v: bad variable name
 
 === Puppeteer Log (tail 300) ===
+Using system Chrome: /usr/bin/google-chrome-stable
 Using system Chrome: /usr/bin/google-chrome-stable
 Using system Chrome: /usr/bin/google-chrome-stable
 Using system Chrome: /usr/bin/google-chrome-stable

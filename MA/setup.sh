@@ -199,19 +199,16 @@ user=www-data
 numprocs=10
 redirect_stderr=true
 stdout_logfile=$PROJECT_ROOT/worker.log
-stopwaitsecs=3600
+stopwaitsecs=30
 EOF
 
 echo "🔄 Reloading Supervisor..."
-# Stop existing workers cleanly so the new config takes effect
-supervisorctl stop worker:* 2>/dev/null || true
 if ! supervisorctl reread; then
     echo "❌ supervisorctl reread failed. Listing /etc/supervisor/conf.d/ for diagnosis:"
     ls -la /etc/supervisor/conf.d/
     exit 1
 fi
 supervisorctl update
-supervisorctl start worker:*
 
 # Verify workers are actually RUNNING before declaring success
 sleep 2
