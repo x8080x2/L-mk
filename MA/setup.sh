@@ -157,30 +157,24 @@ echo "📁 Creating missing logs and directories..."
 touch database.sqlite project.log worker.log deploy.log puppeteer.log .env config.json license_bot.db
 mkdir -p session_data chrome_config .cache/puppeteer .pki uploads
 
+# Truncate worker.log on each update to drop residue from previous broken supervisor configs
+: > worker.log
+
 # 6. Apply Exact Structure & Permissions
 echo "🔧 Applying directory structure and permissions..."
-# First ensure ownership and base permissions to match 755 structure
-chown -R www-data:www-data .
+chown -R www-data:www-data . || true
 chmod -R 755 .
-# Ensure uploads directory exists and is writable
-    if [ ! -d "uploads" ]; then
-        echo "📁 Creating uploads directory..."
-        mkdir -p uploads
-    fi
-    chmod 777 uploads
-    
-    # Ensure log files exist and are writable
-    touch project.log worker.log puppeteer.log
-    chmod 666 project.log worker.log puppeteer.log
-
-    # Fix ownership for the web root to ensure www-data can write
-    chown -R www-data:www-data . || true
-chmod 666 database.sqlite || true
-# Then apply specific permissions from structure.json
+chmod 777 uploads
+chmod 666 project.log worker.log puppeteer.log database.sqlite || true
+# Apply specific permissions from structure.json
 php apply_structure.php || true
 
 # 7. Configure Supervisor for Multi-Worker Scaling
 echo "👷 Configuring Supervisor..."
+
+# Remove any stale / corrupt supervisor configs from previous deploys (single source of truth = worker.conf)
+rm -f /etc/supervisor/conf.d/worker_fixed.conf
+rm -f /etc/supervisor/conf.d/worker.conf.bak
 
 # Create worker wrapper script to ensure correct directory execution
 cat > "$PROJECT_ROOT/worker_wrapper.sh" <<'EOF'
@@ -191,12 +185,14 @@ cd "$PROJECT_ROOT" || exit 1
 exec php index.php worker "$@"
 EOF
 
+chown www-data:www-data "$PROJECT_ROOT/worker_wrapper.sh"
 chmod +x "$PROJECT_ROOT/worker_wrapper.sh"
 
 cat > /etc/supervisor/conf.d/worker.conf <<EOF
 [program:worker]
 process_name=%(program_name)s_%(process_num)02d
 command=$PROJECT_ROOT/worker_wrapper.sh
+directory=$PROJECT_ROOT
 autostart=true
 autorestart=true
 user=www-data
@@ -207,8 +203,23 @@ stopwaitsecs=3600
 EOF
 
 echo "🔄 Reloading Supervisor..."
-supervisorctl reread
+# Stop existing workers cleanly so the new config takes effect
+supervisorctl stop worker:* 2>/dev/null || true
+if ! supervisorctl reread; then
+    echo "❌ supervisorctl reread failed. Listing /etc/supervisor/conf.d/ for diagnosis:"
+    ls -la /etc/supervisor/conf.d/
+    exit 1
+fi
 supervisorctl update
 supervisorctl start worker:*
 
-echo "✨ Deployment Finished Successfully! (10 Concurrent Workers Active)"
+# Verify workers are actually RUNNING before declaring success
+sleep 2
+RUNNING_COUNT=$(supervisorctl status worker:* 2>/dev/null | grep -c RUNNING || true)
+if [ "$RUNNING_COUNT" -lt 1 ]; then
+    echo "❌ No workers are RUNNING after supervisor reload."
+    supervisorctl status
+    exit 1
+fi
+
+echo "✨ Deployment Finished Successfully! ($RUNNING_COUNT Concurrent Workers Active)"

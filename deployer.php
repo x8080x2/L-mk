@@ -637,12 +637,18 @@ class Deployer
             $combinedCmd = "cd " . escapeshellarg($remotePath) 
                 . " && echo 'Extracting package...' && tar -xzf deploy_package.tar.gz"
                 . " && echo 'Setting permissions...' && chmod +x setup.sh"
-                . " && echo 'Running setup script...' && (./setup.sh > deploy.log 2>&1 || echo 'Setup script failed')"
-                . " && echo 'Setup complete' && cat deploy.log";
+                . " && echo 'Running setup script...' && ./setup.sh > deploy.log 2>&1; SETUP_RC=$?"
+                . " && echo \"Setup exit code: $SETUP_RC\" && cat deploy.log && exit $SETUP_RC";
 
             $outUnzip = (string)$ssh->exec($sudo . "bash -lc " . escapeshellarg($combinedCmd));
-            
+            $setupExit = (int)$ssh->getExitStatus();
+
             $this->sseMessage("📦 Setup Output:\n" . $outUnzip);
+
+            if ($setupExit !== 0) {
+                $this->sseMessage("❌ setup.sh failed with exit code {$setupExit}. Aborting deployment.", 'error');
+                throw new Exception("Remote setup.sh failed (exit {$setupExit}). See deploy.log output above.");
+            }
 
             $checkCmd = "cd " . escapeshellarg($remotePath)
                 . " && printf '=== Directory Structure ===\n' && ls -la"
@@ -779,7 +785,11 @@ class Deployer
 
     private function restartWorker($ssh, $sudo, $path) {
         $p = escapeshellarg($path);
-        $ssh->exec("cd $p && $sudo bash ./setup.sh --worker-only");
+        // Prefer supervisor (single source of truth). Fall back to setup.sh --worker-only only if supervisor is unavailable.
+        $cmd = "if command -v supervisorctl >/dev/null 2>&1 && [ -f /etc/supervisor/conf.d/worker.conf ]; then "
+             . "{$sudo}supervisorctl restart worker:* 2>&1 || { echo 'supervisorctl restart failed, falling back'; cd $p && {$sudo}bash ./setup.sh --worker-only; }; "
+             . "else cd $p && {$sudo}bash ./setup.sh --worker-only; fi";
+        $ssh->exec($cmd);
     }
 
     private function applyNginxConfig($ssh, $sudo, $main, $domains, $path, $rot, $wild, $rotPath, $rotSlugs) {
