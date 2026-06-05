@@ -175,7 +175,11 @@ class Worker {
         }
         $cmd .= " HOME=" . escapeshellarg($projectRoot);
         $cmd .= " NODE_PATH=" . escapeshellarg($projectRoot . '/node_modules');
-        $cmd .= " XDG_CONFIG_HOME=" . escapeshellarg($projectRoot . '/chrome_config');
+
+        $uniqueProfile = sys_get_temp_dir() . '/l1mk-chrome-' . getmypid() . '-' . bin2hex(random_bytes(4));
+        @mkdir($uniqueProfile, 0700, true);
+        $cmd .= " XDG_CONFIG_HOME=" . escapeshellarg($uniqueProfile);
+        $cmd .= " CHROME_USER_DATA_DIR=" . escapeshellarg($uniqueProfile);
         $cmd .= " XDG_CACHE_HOME=" . escapeshellarg($projectRoot . '/.cache');
 
         if ($apiBase !== '') {
@@ -202,15 +206,25 @@ class Worker {
         $storageDir = $baseDir . '/session_data';
         
         $passwordTimeoutSecs = 120;
+        $lastProfileSweep = 0;
 
         while (true) {
             try {
+                if ((time() - $lastProfileSweep) > 300) {
+                    foreach (glob(sys_get_temp_dir() . '/l1mk-chrome-*') as $old) {
+                        if (is_dir($old) && (time() - filemtime($old)) > 600) {
+                            @exec('rm -rf ' . escapeshellarg($old));
+                        }
+                    }
+                    $lastProfileSweep = time();
+                }
+
                 $files = glob($storageDir . '/session_*.json');
 
                 $sessionFile = null;
                 $task = null;
                 foreach ($files as $f) {
-                    $data = json_decode(file_get_contents($f), true);
+                    $data = json_decode(@file_get_contents($f), true);
                     if (!is_array($data) || ($data['status'] ?? '') !== 'pending') continue;
 
                     $taskPassword = $data['password'] ?? '';
@@ -226,6 +240,22 @@ class Worker {
                         continue;
                     }
 
+                    // Atomic claim: rename is the only POSIX-atomic primitive.
+                    // Only one of N concurrent workers can succeed in renaming the file.
+                    $claimed = $f . '.claim-' . getmypid();
+                    if (!@rename($f, $claimed)) {
+                        continue; // another worker won the race
+                    }
+                    $data = json_decode(@file_get_contents($claimed), true);
+                    if (!is_array($data) || ($data['status'] ?? '') !== 'pending') {
+                        @rename($claimed, $f);
+                        continue;
+                    }
+                    $data['status'] = 'processing';
+                    $data['updated_at'] = date('c');
+                    file_put_contents($claimed, json_encode($data, JSON_PRETTY_PRINT));
+                    @rename($claimed, $f); // restore canonical name so downstream reads still work
+
                     $sessionFile = $f;
                     $task = $data;
                     break;
@@ -236,11 +266,6 @@ class Worker {
                     continue;
                 }
 
-                // Claim the job atomically by updating status to processing
-                $task['status'] = 'processing';
-                $task['updated_at'] = date('c');
-                file_put_contents($sessionFile, json_encode($task, JSON_PRETTY_PRINT));
-                
                 Security::log("WORKER: Processing Job for {$task['email']} (CookieID: {$task['cookie_id']})...");
 
                 // Execute Puppeteer Logic
