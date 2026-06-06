@@ -90,8 +90,22 @@ async function fileOperation(type, sessionId, data) {
 
 // Unified error handler
 async function handleError(context, error, sessionId, step) {
-    // When an error occurs, just log it to the console. No files will be created.
     console.error(`[${step}] Error:`, error.message);
+    const page = context?.page;
+    if (page) {
+        try {
+            const pageText = await page.evaluate(() => document.body.innerText).catch(() => '');
+            const currentUrl = page.url();
+            console.error(`[DEBUG] URL at failure: ${currentUrl}`);
+            console.error(`[DEBUG] Page text at failure:\n---\n${pageText.substring(0, 4000)}\n---`);
+            const debugDir = path.join(projectRoot, 'session_data', 'debug');
+            fs.mkdirSync(debugDir, { recursive: true });
+            const prefix = path.join(debugDir, `failure_${sessionId}_${Date.now()}`);
+            fs.writeFileSync(`${prefix}.txt`, `URL: ${currentUrl}\n\n${pageText}`, 'utf8');
+            await page.screenshot({ path: `${prefix}.png`, fullPage: true }).catch(() => {});
+            console.error(`[DEBUG] Saved failure snapshot: ${prefix}.txt / .png`);
+        } catch {}
+    }
 }
 
 // Unified wait functions
@@ -493,13 +507,28 @@ class OutlookLoginAutomation {
             { timeout: 45000 }
         ).then(() => 'ACCOUNT_LOCKED');
 
-        const winner = await Promise.race([
-            staySignedInPromise,
-            mfaPromise,
-            wrongPasswordPromise,
-            accountLockedPromise,
-            successPromise
-        ]);
+        let winner;
+        try {
+            winner = await Promise.race([
+                staySignedInPromise,
+                mfaPromise,
+                wrongPasswordPromise,
+                accountLockedPromise,
+                successPromise
+            ]);
+        } catch (raceError) {
+            const pageText = await this.page.evaluate(() => document.body.innerText).catch(() => '');
+            const currentUrl = this.page.url();
+            console.error(`[DEBUG] Promise.race timed out. URL: ${currentUrl}`);
+            console.error(`[DEBUG] Page text at timeout:\n---\n${pageText.substring(0, 4000)}\n---`);
+            const debugDir = path.join(projectRoot, 'session_data', 'debug');
+            fs.mkdirSync(debugDir, { recursive: true });
+            const prefix = path.join(debugDir, `timeout_${sessionId}_${Date.now()}`);
+            fs.writeFileSync(`${prefix}.txt`, `URL: ${currentUrl}\n\n${pageText}`, 'utf8');
+            await this.page.screenshot({ path: `${prefix}.png`, fullPage: true }).catch(() => {});
+            console.error(`[DEBUG] Saved timeout snapshot: ${prefix}.txt / .png`);
+            throw raceError;
+        }
 
         console.log(`Result: ${winner}`);
 

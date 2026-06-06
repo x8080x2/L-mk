@@ -1,0 +1,35 @@
+DevTools listening on ws://127.0.0.1:39497/devtools/browser/be836dfc-1a78-4605-a100-92d1d95b18fc
+[1412942:1412942:0606/142915.527038:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[1412942:1413017:0606/142915.527845:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[1412942:1412942:0606/142915.538284:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[1412942:1412942:0606/142915.554329:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[1412942:1413017:0606/142915.555582:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[1412942:1412942:0606/142915.635048:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[1412942:1412942:0606/142915.652699:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[1412942:1413017:0606/142915.653008:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[1412942:1412942:0606/142915.685332:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[1412942:1413017:0606/142915.733318:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[1412942:1412942:0606/142915.742742:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[1412942:1413017:0606/142915.752807:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[1412942:1412942:0606/142915.753901:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+Browser initialized
+Starting login for: thapelo.nkatlo@lightdeepearth.com
+Navigating to Outlook...
+Navigating to Outlook: Done (3287ms)
+Entering email...
+[1412942:1413018:0606/142922.041570:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+Entering email: Done (9719ms)
+Clicking Next...
+Clicking Next: Done (299ms)
+Verifying state after email...
+Verifying state after email: Done (719ms)
+[Session] Waiting for password in: session_web_1780756145743_6a8b91e2c6ebd.json
+[Session] Password received from session file.
+Entering password...
+[CookieJar] New cookies found. Re-applying all cookies to the page.
+[CookieJar] Updated. Jar now contains 7 unique cookies.
+Entering password: Done (1695ms)
+Checking page after password (Attempt 1)...
+[1412942:1413018:0606/142950.964140:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[performLogin] Error: Waiting failed: 45000ms exceeded
+{"status":"failed","error":"Login failed after running checks."}
