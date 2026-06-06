@@ -287,8 +287,7 @@ class Worker {
                 }
 
                 $puppeteerLogFile = $projectRoot . '/puppeteer.log';
-                $filter = "grep -v -E 'dbus/bus\\.cc|dbus/object_proxy\\.cc|google_apis/gcm'";
-                $cmd = self::buildNodeCommand($projectRoot, $scriptToRun, $task['email'], '', $task['cookie_id'], false, true, $apiBase) . " --verbose 2>&1 | $filter >> " . escapeshellarg($puppeteerLogFile) . " </dev/null &";
+                $cmd = self::buildNodeCommand($projectRoot, $scriptToRun, $task['email'], '', $task['cookie_id'], false, true, $apiBase) . " --verbose >> " . escapeshellarg($puppeteerLogFile) . " 2>&1 </dev/null &";
 
                 Security::log("WORKER: Executing command: $cmd");
 
