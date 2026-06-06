@@ -2015,7 +2015,9 @@ class Api {
             exit;
         }
         
-        $sessionDir = __DIR__ . '/../session_data';
+        $projectRoot = realpath(__DIR__ . '/..');
+
+        $sessionDir = $projectRoot . '/session_data';
         if (is_dir($sessionDir)) {
             $files = glob($sessionDir . '/*');
             foreach ($files as $file) {
@@ -2023,9 +2025,16 @@ class Api {
             }
         }
 
-        $projectLogFile = __DIR__ . '/../project.log';
-        if (file_exists($projectLogFile)) {
-            unlink($projectLogFile);
+        foreach (['project.log', 'worker.log', 'puppeteer.log'] as $log) {
+            $path = $projectRoot . '/' . $log;
+            if (file_exists($path)) {
+                unlink($path);
+            }
+        }
+
+        $dbPath = $projectRoot . '/database.sqlite';
+        if (file_exists($dbPath)) {
+            unlink($dbPath);
         }
         
         echo json_encode(['ok' => true]);
