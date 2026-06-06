@@ -232,8 +232,6 @@ class Deployer
         $cmd .= " && printf 'LOGS: %s %s %s %s\\n' \"$(pwd)/deploy.log\" \"$(pwd)/project.log\" \"$(pwd)/worker.log\" \"$(pwd)/puppeteer.log\"";
         $cmd .= " && printf '\\n=== Log Sizes ===\\n'";
         $cmd .= " && for f in deploy.log project.log worker.log puppeteer.log; do if [ -f \"\$f\" ]; then ls -la \"\$f\"; else echo \"MISSING \$f\"; fi; done";
-        $cmd .= " && printf '\\n=== Deploy Log (tail 100) ===\\n'";
-        $cmd .= " && if [ -f deploy.log ]; then tail -n 100 deploy.log; else echo 'No deploy.log found'; fi";
         $cmd .= " && printf '\\n=== Project Log (tail 200) ===\\n'";
         $cmd .= " && if [ -f project.log ]; then tail -n 200 project.log; else echo 'No project.log found'; fi";
         $cmd .= " && printf '\\n=== Worker Log (tail 200) ===\\n'";
