@@ -11,11 +11,15 @@ $file = dirname(__DIR__) . $path;
 
 // Serve existing files and directories directly
 if (file_exists($file)) {
-    // If it's a directory, let the built-in server handle the index file lookup
     if (is_dir($file)) {
         return false;
     }
-    // If it's a file, serve it
+    // PHP files must go through index.php (handles api.php, etc.)
+    if (substr($file, -4) === '.php') {
+        require_once dirname(__DIR__) . '/index.php';
+        return;
+    }
+    // Static assets: serve directly
     return false;
 }
 

