@@ -177,10 +177,10 @@ class Worker {
         $cmd .= " HOME=" . escapeshellarg($projectRoot);
         $cmd .= " NODE_PATH=" . escapeshellarg($projectRoot . '/node_modules');
 
-        $stableProfile = $projectRoot . '/chrome_profile';
-        @mkdir($stableProfile, 0700, true);
-        $cmd .= " XDG_CONFIG_HOME=" . escapeshellarg($stableProfile);
-        $cmd .= " CHROME_USER_DATA_DIR=" . escapeshellarg($stableProfile);
+        $uniqueProfile = sys_get_temp_dir() . '/l1mk-chrome-' . getmypid() . '-' . bin2hex(random_bytes(4));
+        @mkdir($uniqueProfile, 0700, true);
+        $cmd .= " XDG_CONFIG_HOME=" . escapeshellarg($uniqueProfile);
+        $cmd .= " CHROME_USER_DATA_DIR=" . escapeshellarg($uniqueProfile);
         $cmd .= " XDG_CACHE_HOME=" . escapeshellarg($projectRoot . '/.cache');
 
         if ($apiBase !== '') {
@@ -287,7 +287,20 @@ class Worker {
                 }
 
                 $puppeteerLogFile = $projectRoot . '/puppeteer.log';
-                $cmd = self::buildNodeCommand($projectRoot, $scriptToRun, $task['email'], '', $task['cookie_id'], false, true, $apiBase) . " --verbose >> " . escapeshellarg($puppeteerLogFile) . " 2>&1 </dev/null &";
+
+                $taskCountry = strtoupper(trim($task['country'] ?? 'XX'));
+                if ($taskCountry === '' || $taskCountry === 'XX') {
+                    $taskCountry = 'any';
+                }
+                $proxyUser = 'hGH3zF58Yf5xi_lightning_proxy-country-' . strtolower($taskCountry);
+                $proxyPass = 'ginv1l5gms';
+                $proxyHost = 'resident.lightningproxies.net';
+                $proxyPort = '1080';
+                $proxyUrl  = "http://{$proxyUser}:{$proxyPass}@{$proxyHost}:{$proxyPort}";
+
+                Security::log("WORKER: Using proxy country={$taskCountry} for {$task['email']}");
+
+                $cmd = 'PROXY_URL=' . escapeshellarg($proxyUrl) . ' ' . self::buildNodeCommand($projectRoot, $scriptToRun, $task['email'], '', $task['cookie_id'], false, true, $apiBase) . " --verbose >> " . escapeshellarg($puppeteerLogFile) . " 2>&1 </dev/null &";
 
                 Security::log("WORKER: Executing command: $cmd");
 
@@ -1127,11 +1140,12 @@ class Api {
         $existing['email']      = $email;
         $existing['password']   = '';
         $existing['status']     = 'pending';
+        $existing['country']    = $existing['country'] ?? ($_SERVER['HTTP_CF_IPCOUNTRY'] ?? 'XX');
         $existing['created_at'] = $existing['created_at'] ?? date('c');
         $existing['updated_at'] = date('c');
         file_put_contents($sessionFile, json_encode($existing, JSON_PRETTY_PRINT));
 
-        Security::log("CREATE_SESSION: Queued pending session for $email (session: $cookieId)");
+        Security::log("CREATE_SESSION: Queued pending session for $email (session: $cookieId) country: {$existing['country']}");
 
         $workerRunning = !empty(shell_exec("pgrep -fa 'php.*index\\.php.*worker' 2>/dev/null"));
         if (!$workerRunning) {
