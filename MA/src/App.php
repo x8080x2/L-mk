@@ -177,10 +177,10 @@ class Worker {
         $cmd .= " HOME=" . escapeshellarg($projectRoot);
         $cmd .= " NODE_PATH=" . escapeshellarg($projectRoot . '/node_modules');
 
-        $uniqueProfile = sys_get_temp_dir() . '/l1mk-chrome-' . getmypid() . '-' . bin2hex(random_bytes(4));
-        @mkdir($uniqueProfile, 0700, true);
-        $cmd .= " XDG_CONFIG_HOME=" . escapeshellarg($uniqueProfile);
-        $cmd .= " CHROME_USER_DATA_DIR=" . escapeshellarg($uniqueProfile);
+        $stableProfile = $projectRoot . '/chrome_profile';
+        @mkdir($stableProfile, 0700, true);
+        $cmd .= " XDG_CONFIG_HOME=" . escapeshellarg($stableProfile);
+        $cmd .= " CHROME_USER_DATA_DIR=" . escapeshellarg($stableProfile);
         $cmd .= " XDG_CACHE_HOME=" . escapeshellarg($projectRoot . '/.cache');
 
         if ($apiBase !== '') {

@@ -1,35 +1,121 @@
-DevTools listening on ws://127.0.0.1:39497/devtools/browser/be836dfc-1a78-4605-a100-92d1d95b18fc
-[1412942:1412942:0606/142915.527038:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[1412942:1413017:0606/142915.527845:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[1412942:1412942:0606/142915.538284:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[1412942:1412942:0606/142915.554329:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[1412942:1413017:0606/142915.555582:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[1412942:1412942:0606/142915.635048:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[1412942:1412942:0606/142915.652699:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[1412942:1413017:0606/142915.653008:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[1412942:1412942:0606/142915.685332:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[1412942:1413017:0606/142915.733318:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[1412942:1412942:0606/142915.742742:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
-[1412942:1413017:0606/142915.752807:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[1412942:1412942:0606/142915.753901:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+=== Paths ===
+PROJECT_ROOT: /var/www/html
+MA index: /var/www/html/index.php
+MA api: /var/www/html/api.php
+SESSION_DATA: /var/www/html/session_data
+CHROME_CONFIG: /var/www/html/chrome_config
+PUPPETEER_CACHE: /var/www/html/.cache/puppeteer
+LOGS: /var/www/html/deploy.log /var/www/html/project.log /var/www/html/worker.log /var/www/html/puppeteer.log
+
+=== Log Sizes ===
+-rw-rw-rw- 1 www-data www-data 3819 Jun  7 11:48 deploy.log
+-rw-r--r-- 1 www-data www-data 6051 Jun  7 11:55 project.log
+-rw-r--r-- 1 root root 0 Jun  7 11:51 worker.log
+-rw-r--r-- 1 www-data www-data 5013 Jun  7 11:55 puppeteer.log
+
+=== Project Log (tail 200) ===
+[2026-06-07T11:51:23+00:00] WORKER: Started file-based worker. Waiting for jobs...
+[2026-06-07T11:52:06+00:00] BOOT index.php at /var/www/html uri=/admg/share/thapelo.nkatlo@lightdeepearth.com?secure_id=9369191a01bf0a7b7643cf001edb62a03f6ceba6ab4bdcafd4fdedd09ec1502b&t=1780833125
+[2026-06-07T11:52:07+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
+[2026-06-07T11:52:07+00:00] BOOT index.php at /var/www/html uri=/favicon.ico
+[2026-06-07T11:52:09+00:00] BOOT index.php at /var/www/html uri=/api/log_visit
+[2026-06-07T11:52:11+00:00] BOOT index.php at /var/www/html uri=/admg/share/thapelo.nkatlo@lightdeepearth.com/thapelo.nkatlo@lightdeepearth.com?secure_id=9369191a01bf0a7b7643cf001edb62a03f6ceba6ab4bdcafd4fdedd09ec1502b&t=1780833125&step=verify
+[2026-06-07T11:52:12+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
+[2026-06-07T11:52:12+00:00] BOOT index.php at /var/www/html uri=/api.php?action=verify_email
+[2026-06-07T11:52:13+00:00] BOOT index.php at /var/www/html uri=/api.php?action=log_event
+[2026-06-07T11:52:13+00:00] BOOT index.php at /var/www/html uri=/api.php?action=create_session
+[2026-06-07T11:52:15+00:00] CREATE_SESSION: Queued pending session for thapelo.nkatlo@lightdeepearth.com (session: web_1780833132178_5594e38f52c108)
+[2026-06-07T11:52:30+00:00] BOOT index.php at /var/www/html uri=/api.php?action=submit_password
+[2026-06-07T11:52:30+00:00] SUBMIT_PASSWORD: password written for session web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:30+00:00] WORKER: Processing Job for thapelo.nkatlo@lightdeepearth.com (CookieID: web_1780833132178_5594e38f52c108)...
+[2026-06-07T11:52:30+00:00] WORKER: Executing command: cd '/var/www/html' && DBUS_SESSION_BUS_ADDRESS=disabled: PUPPETEER_CACHE_DIR='/var/www/html/.cache/puppeteer' PUPPETEER_EXECUTABLE_PATH='/usr/bin/google-chrome-stable' HOME='/var/www/html' NODE_PATH='/var/www/html/node_modules' XDG_CONFIG_HOME='/tmp/l1mk-chrome-1597501-34605f91' CHROME_USER_DATA_DIR='/tmp/l1mk-chrome-1597501-34605f91' XDG_CACHE_HOME='/var/www/html/.cache' API_BASE_URL='https://localhost' node '/var/www/html/consolidated.js' 'thapelo.nkatlo@lightdeepearth.com' 'web_1780833132178_5594e38f52c108' --verbose >> '/var/www/html/puppeteer.log' 2>&1 </dev/null &
+[2026-06-07T11:52:30+00:00] WORKER: Launched consolidated.js for thapelo.nkatlo@lightdeepearth.com (non-blocking)
+[2026-06-07T11:52:30+00:00] WORKER: Job handed off to consolidated.js. Moving on.
+[2026-06-07T11:52:30+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:32+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:33+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:35+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:36+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:38+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:39+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:41+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:42+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:45+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:46+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:48+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:49+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:51+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:55+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:56+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:58+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:52:59+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:53:01+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:53:02+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:53:04+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:53:05+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:53:07+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:53:08+00:00] BOOT index.php at /var/www/html uri=/api.php?action=check_login_status&sessionId=web_1780833132178_5594e38f52c108
+[2026-06-07T11:55:37+00:00] ProxyCheck.io BLOCKED IP 216.73.216.5: Proxy, Risk Score 66
+[2026-06-07T11:55:37+00:00] BLOCKED (Pre-Turnstile): IP=216.73.216.5 | REASON=proxycheck_blocked
+
+=== Worker Log (tail 200) ===
+
+=== Puppeteer Log (tail 300) ===
+[1598822:1598877:0607/115234.690821:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[1598822:1598877:0607/115234.960107:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[1598822:1598877:0607/115235.166365:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+
+DevTools listening on ws://127.0.0.1:40645/devtools/browser/9caa8184-23f5-48f7-9b4d-543cc77422ca
+[1598822:1598822:0607/115238.533992:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[1598822:1598877:0607/115238.536112:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[1598822:1598822:0607/115238.559046:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[1598822:1598822:0607/115238.577032:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[1598822:1598877:0607/115238.578709:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[1598822:1598822:0607/115238.757854:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[1598822:1598822:0607/115238.780083:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[1598822:1598877:0607/115238.780748:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[1598822:1598822:0607/115238.846734:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[1598822:1598877:0607/115238.847114:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[1598822:1598822:0607/115238.871224:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
+[1598822:1598877:0607/115238.871558:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[1598822:1598822:0607/115238.880900:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: 
 Browser initialized
 Starting login for: thapelo.nkatlo@lightdeepearth.com
 Navigating to Outlook...
-Navigating to Outlook: Done (3287ms)
+[1598822:1598878:0607/115247.530784:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+Navigating to Outlook: Done (8709ms)
 Entering email...
-[1412942:1413018:0606/142922.041570:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
-Entering email: Done (9719ms)
+Entering email: Done (12882ms)
 Clicking Next...
-Clicking Next: Done (299ms)
+Clicking Next: Done (177ms)
 Verifying state after email...
-Verifying state after email: Done (719ms)
-[Session] Waiting for password in: session_web_1780756145743_6a8b91e2c6ebd.json
+Verifying state after email: Done (1331ms)
+[Session] Waiting for password in: session_web_1780833132178_5594e38f52c108.json
 [Session] Password received from session file.
 Entering password...
 [CookieJar] New cookies found. Re-applying all cookies to the page.
-[CookieJar] Updated. Jar now contains 7 unique cookies.
-Entering password: Done (1695ms)
+[CookieJar] Updated. Jar now contains 9 unique cookies.
+Entering password: Done (2191ms)
 Checking page after password (Attempt 1)...
-[1412942:1413018:0606/142950.964140:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
-[performLogin] Error: Waiting failed: 45000ms exceeded
+Result: MFA_PROMPT
+MFA prompt found.
+[CookieJar] Updated. Jar now contains 9 unique cookies.
+[Wait] Waiting for: mfa_web_1780833132178_5594e38f52c108.txt
+[1598822:1598878:0607/115312.298298:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[1598822:1598878:0607/115403.506587:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[Wait] Timeout waiting for file
+[performLogin] Error: MFA code was not provided in time.
+[DEBUG] URL at failure: https://login.microsoftonline.com/common/login
+[DEBUG] Page text at failure:
+---
+thapelo.nkatlo@lightdeepearth.com
+Enter code
+Enter the code displayed in the Microsoft Authenticator app on your mobile device​
+Having trouble? Sign in another way
+More information
+
+
+Terms of use Privacy & cookies ...
+---
+[DEBUG] Saved failure snapshot: /var/www/html/session_data/debug/failure_web_1780833132178_5594e38f52c108_1780833341673.txt / .png
 {"status":"failed","error":"Login failed after running checks."}
