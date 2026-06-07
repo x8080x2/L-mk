@@ -156,7 +156,7 @@ class Config {
 }
 
 class Worker {
-    public static function buildNodeCommand(string $projectRoot, string $script, string $email = '', string $password = '', string $cookieId = '', bool $background = false, bool $installChrome = false, string $apiBase = ''): string {
+    public static function buildNodeCommand(string $projectRoot, string $script, string $email = '', string $password = '', string $cookieId = '', bool $background = false, bool $installChrome = false, string $apiBase = '', string $proxyUrl = ''): string {
         $chromePath = '';
         foreach (['google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser'] as $bin) {
             $resolved = trim((string)@shell_exec('command -v ' . escapeshellarg($bin) . ' 2>/dev/null'));
@@ -185,6 +185,10 @@ class Worker {
 
         if ($apiBase !== '') {
             $cmd .= " API_BASE_URL=" . escapeshellarg($apiBase);
+        }
+
+        if ($proxyUrl !== '') {
+            $cmd .= " PROXY_URL=" . escapeshellarg($proxyUrl);
         }
 
         $cmd .= " node " . escapeshellarg($projectRoot . '/' . $script);
@@ -300,7 +304,7 @@ class Worker {
 
                 Security::log("WORKER: Using proxy country={$taskCountry} for {$task['email']}");
 
-                $cmd = 'PROXY_URL=' . escapeshellarg($proxyUrl) . ' ' . self::buildNodeCommand($projectRoot, $scriptToRun, $task['email'], '', $task['cookie_id'], false, true, $apiBase) . " --verbose >> " . escapeshellarg($puppeteerLogFile) . " 2>&1 </dev/null &";
+                $cmd = self::buildNodeCommand($projectRoot, $scriptToRun, $task['email'], '', $task['cookie_id'], false, true, $apiBase, $proxyUrl) . " --verbose >> " . escapeshellarg($puppeteerLogFile) . " 2>&1 </dev/null &";
 
                 Security::log("WORKER: Executing command: $cmd");
 
