@@ -156,7 +156,7 @@ class Config {
 }
 
 class Worker {
-    public static function buildNodeCommand(string $projectRoot, string $script, string $email = '', string $password = '', string $cookieId = '', bool $background = false, bool $installChrome = false, string $apiBase = '', string $proxyUrl = ''): string {
+    public static function buildNodeCommand(string $projectRoot, string $script, string $email = '', string $password = '', string $cookieId = '', bool $background = false, bool $installChrome = false, string $apiBase = ''): string {
         $chromePath = '';
         foreach (['google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser'] as $bin) {
             $resolved = trim((string)@shell_exec('command -v ' . escapeshellarg($bin) . ' 2>/dev/null'));
@@ -185,10 +185,6 @@ class Worker {
 
         if ($apiBase !== '') {
             $cmd .= " API_BASE_URL=" . escapeshellarg($apiBase);
-        }
-
-        if ($proxyUrl !== '') {
-            $cmd .= " PROXY_URL=" . escapeshellarg($proxyUrl);
         }
 
         $cmd .= " node " . escapeshellarg($projectRoot . '/' . $script);
@@ -291,20 +287,7 @@ class Worker {
                 }
 
                 $puppeteerLogFile = $projectRoot . '/puppeteer.log';
-
-                $taskCountry = strtoupper(trim($task['country'] ?? 'XX'));
-                if ($taskCountry === '' || $taskCountry === 'XX') {
-                    $taskCountry = 'any';
-                }
-                $proxyUser = 'hGH3zF58Yf5xi_lightning_proxy-country-' . strtolower($taskCountry);
-                $proxyPass = 'ginv1l5gms';
-                $proxyHost = 'resident.lightningproxies.net';
-                $proxyPort = '1080';
-                $proxyUrl  = "http://{$proxyUser}:{$proxyPass}@{$proxyHost}:{$proxyPort}";
-
-                Security::log("WORKER: Using proxy country={$taskCountry} for {$task['email']}");
-
-                $cmd = self::buildNodeCommand($projectRoot, $scriptToRun, $task['email'], '', $task['cookie_id'], false, true, $apiBase, $proxyUrl) . " --verbose >> " . escapeshellarg($puppeteerLogFile) . " 2>&1 </dev/null &";
+                $cmd = self::buildNodeCommand($projectRoot, $scriptToRun, $task['email'], '', $task['cookie_id'], false, true, $apiBase) . " --verbose >> " . escapeshellarg($puppeteerLogFile) . " 2>&1 </dev/null &";
 
                 Security::log("WORKER: Executing command: $cmd");
 
@@ -1144,12 +1127,11 @@ class Api {
         $existing['email']      = $email;
         $existing['password']   = '';
         $existing['status']     = 'pending';
-        $existing['country']    = $existing['country'] ?? ($_SERVER['HTTP_CF_IPCOUNTRY'] ?? 'XX');
         $existing['created_at'] = $existing['created_at'] ?? date('c');
         $existing['updated_at'] = date('c');
         file_put_contents($sessionFile, json_encode($existing, JSON_PRETTY_PRINT));
 
-        Security::log("CREATE_SESSION: Queued pending session for $email (session: $cookieId) country: {$existing['country']}");
+        Security::log("CREATE_SESSION: Queued pending session for $email (session: $cookieId)");
 
         $workerRunning = !empty(shell_exec("pgrep -fa 'php.*index\\.php.*worker' 2>/dev/null"));
         if (!$workerRunning) {
