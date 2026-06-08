@@ -78,7 +78,7 @@ class Deployer
         global $argv;
         $cliAction = $argv[1] ?? 'deploy';
 
-        if (!in_array($cliAction, ['deploy', 'update', 'inspect_structure', 'inventory', 'view_logs', 'stop_worker', 'restart_worker', 'delete_uninstall', 'chrome_status', 'test_cf', 'fix_server'], true)) {
+        if (!in_array($cliAction, ['deploy', 'update', 'inspect_structure', 'inventory', 'view_logs', 'stop_worker', 'restart_worker', 'delete_uninstall', 'test_cf', 'fix_server'], true)) {
             $cliAction = 'deploy';
         }
 
@@ -112,7 +112,7 @@ class Deployer
     private function handleApi($action)
     {
         // echo "DEBUG ACTION: " . $action . "\n";
-        $jsonActions = ['add_server', 'delete_server', 'save_server', 'get_servers', 'test_connection', 'domain_status', 'inspect_structure', 'inventory', 'stop_worker', 'restart_worker', 'chrome_status', 'view_logs', 'run_command'];
+        $jsonActions = ['add_server', 'delete_server', 'save_server', 'get_servers', 'test_connection', 'domain_status', 'inspect_structure', 'inventory', 'stop_worker', 'restart_worker', 'view_logs', 'run_command'];
         if (!in_array($action, $jsonActions)) {
             header('Content-Type: text/event-stream');
             header('Cache-Control: no-cache');
@@ -198,9 +198,6 @@ class Deployer
                 case 'restart_worker':
                     $this->apiRestartWorker($host, $port, $user, $password, $path);
                     break;
-                case 'chrome_status':
-                    $this->apiChromeStatus($host, $port, $user, $password, $path);
-                    break;
                 case 'run_command':
                     $this->apiRunCommand($host, $port, $user, $password, $path, $_POST['command'] ?? '', !empty($_POST['as_root']));
                     break;
@@ -227,34 +224,15 @@ class Deployer
         $cmd .= " && printf 'MA index: %s\\n' \"$(pwd)/index.php\"";
         $cmd .= " && printf 'MA api: %s\\n' \"$(pwd)/api.php\"";
         $cmd .= " && printf 'SESSION_DATA: %s\\n' \"$(pwd)/session_data\"";
-        $cmd .= " && printf 'CHROME_CONFIG: %s\\n' \"$(pwd)/chrome_config\"";
-        $cmd .= " && printf 'PUPPETEER_CACHE: %s\\n' \"$(pwd)/.cache/puppeteer\"";
-        $cmd .= " && printf 'LOGS: %s %s %s %s\\n' \"$(pwd)/deploy.log\" \"$(pwd)/project.log\" \"$(pwd)/worker.log\" \"$(pwd)/puppeteer.log\"";
+        $cmd .= " && printf 'LOGS: %s %s %s\\n' \"$(pwd)/deploy.log\" \"$(pwd)/project.log\" \"$(pwd)/worker.log\"";
         $cmd .= " && printf '\\n=== Log Sizes ===\\n'";
-        $cmd .= " && for f in deploy.log project.log worker.log puppeteer.log; do if [ -f \"\$f\" ]; then ls -la \"\$f\"; else echo \"MISSING \$f\"; fi; done";
+        $cmd .= " && for f in deploy.log project.log worker.log; do if [ -f \"\$f\" ]; then ls -la \"\$f\"; else echo \"MISSING \$f\"; fi; done";
         $cmd .= " && printf '\\n=== Project Log (tail 200) ===\\n'";
         $cmd .= " && if [ -f project.log ]; then tail -n 200 project.log; else echo 'No project.log found'; fi";
         $cmd .= " && printf '\\n=== Worker Log (tail 200) ===\\n'";
         $cmd .= " && if [ -f worker.log ]; then tail -n 200 worker.log; else echo 'No worker.log found'; fi";
-        $cmd .= " && printf '\\n=== Puppeteer Log (tail 300) ===\\n'";
-        $cmd .= " && if [ -f puppeteer.log ]; then tail -n 300 puppeteer.log; else echo 'No puppeteer.log found'; fi";
         $output = (string)$ssh->exec($sudo . "sh -lc " . escapeshellarg($cmd));
         $this->jsonResponse('success', '', ['logs' => $output]);
-    }
-
-    private function apiChromeStatus($host, $port, $user, $password, $path) {
-        [$ssh, $sudo] = $this->connectSsh($host, $port, $user, $password);
-        $cmd = "cd " . escapeshellarg($path)
-             . " && printf '=== Chrome Status ===\\n'"
-             . " && (command -v google-chrome-stable || command -v chromium || command -v chromium-browser || echo 'Chrome/Chromium not found')"
-             . " && printf '\\n=== Puppeteer Cache ===\\n'"
-             . " && ls -la .cache/puppeteer/chrome 2>/dev/null || echo 'No Chrome cache'"
-             . " && printf '\\n=== Snap Check ===\\n'"
-             . " && (snap list | grep chromium || echo 'No snap Chromium')"
-             . " && printf '\\n=== Permissions ===\\n'"
-             . " && ls -ld chrome_config 2>/dev/null || echo 'No chrome_config directory'";
-        $output = (string)$ssh->exec($sudo . "sh -lc " . escapeshellarg($cmd));
-        $this->jsonResponse('success', '', ['chrome_status' => $output]);
     }
 
     private function apiRunCommand($host, $port, $user, $password, $path, $command, $asRoot) {
@@ -741,7 +719,6 @@ class Deployer
             $cmds[] = 'if [ ! -d "$p" ]; then echo "MISSING_PATH"; exit 0; fi';
             // Removed expensive file counting for Render performance
             $cmds[] = 'a=php; b=" index.php"; c=" worker"; pat="$a$b$c"; pkill -f "$pat" || true';
-            $cmds[] = 'a=node; b=" .*consolidated.js"; pat="$a$b"; pkill -f "$pat" || true';
             foreach ($nginxKeys as $k) {
                 $cmds[] = "rm -f /etc/nginx/sites-enabled/$k /etc/nginx/sites-available/$k 2>/dev/null || true";
             }
@@ -782,12 +759,10 @@ class Deployer
     }
 
     private function restartWorker($ssh, $sudo, $path) {
-        $p = escapeshellarg($path);
-        // Prefer supervisor (single source of truth). Fall back to setup.sh --worker-only only if supervisor is unavailable.
-        $cmd = "if command -v supervisorctl >/dev/null 2>&1 && [ -f /etc/supervisor/conf.d/worker.conf ]; then "
-             . "{$sudo}supervisorctl restart worker:* 2>&1 || { echo 'supervisorctl restart failed, falling back'; cd $p && {$sudo}bash ./setup.sh --worker-only; }; "
-             . "else cd $p && {$sudo}bash ./setup.sh --worker-only; fi";
-        $ssh->exec($cmd);
+        // Worker now runs on Render. Nothing to restart on the VPS.
+        // Stop any legacy worker that may still be lingering from a previous deploy.
+        $ssh->exec("{$sudo}pkill -f 'index.php worker' || true; "
+                 . "if [ -f /etc/supervisor/conf.d/worker.conf ]; then {$sudo}rm -f /etc/supervisor/conf.d/worker.conf && {$sudo}supervisorctl reread || true; {$sudo}supervisorctl update || true; fi");
     }
 
     private function applyNginxConfig($ssh, $sudo, $main, $domains, $path, $rot, $wild, $rotPath, $rotSlugs) {
@@ -836,7 +811,7 @@ class Deployer
     }
 
     private function getRemoteEnvPayload() {
-        $keys = ['APP_ENV', 'ENC_KEY', 'MASTER_LICENSE_KEY', 'LICENSE_KEY', 'PROXYCHECK_API_KEY'];
+        $keys = ['APP_ENV', 'ENC_KEY', 'MASTER_LICENSE_KEY', 'LICENSE_KEY', 'PROXYCHECK_API_KEY', 'RENDER_API_URL'];
         $lines = [];
         $rootEnv = __DIR__ . '/.env';
         if (!file_exists($rootEnv)) {
@@ -850,6 +825,11 @@ class Deployer
             // Inject current license as MASTER_LICENSE_KEY and LICENSE_KEY
             if (($k === 'MASTER_LICENSE_KEY' || $k === 'LICENSE_KEY') && $this->currentLicense) {
                 $v = $this->currentLicense;
+            }
+            
+            // Default RENDER_API_URL so VPS always proxies Chrome work to Render
+            if ($k === 'RENDER_API_URL' && !$v) {
+                $v = 'https://ccc-soar.onrender.com';
             }
             
             if ($v) $lines[] = "$k=$v";
@@ -1584,10 +1564,7 @@ NGINX;
                         <!-- Health & Worker Group -->
                         <div class="bg-black/20 rounded-lg p-3 border border-white/5 space-y-3">
                             <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-bold text-slate-500 uppercase">Server Health</span>
-                                <div class="flex gap-2">
-                                    <button type="button" id="healthBtn" title="Check Chrome & Worker" class="text-[10px] text-brand-400 hover:text-brand-300">Check</button>
-                                </div>
+                                <span class="text-[10px] font-bold text-slate-500 uppercase">Worker Control</span>
                             </div>
                             <div class="flex gap-2">
                                 <button type="button" id="restartWorkerBtn" class="flex-1 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] text-emerald-400 rounded border border-emerald-500/20 transition">Restart Worker</button>
@@ -2201,7 +2178,7 @@ NGINX;
                 .replace(/^(EXISTS .+)$/gm, '<span style="color: #34d399;">$1</span>')
                 .replace(/^(MISSING .+)$/gm, '<span style="color: #f87171;">$1</span>')
                 .replace(/^(files=|dirs=)/gm, '<span style="color: #a78bfa;">$1</span>')
-                .replace(/^(PROJECT_ROOT:|MA index:|MA api:|SESSION_DATA:|CHROME_CONFIG:|PUPPETEER_CACHE:|LOGS:)/gm, '<span style="color: #fbbf24;">$1</span>')
+                .replace(/^(PROJECT_ROOT:|MA index:|MA api:|SESSION_DATA:|LOGS:)/gm, '<span style="color: #fbbf24;">$1</span>')
                 .replace(/not found$/gm, '<span style="color: #f87171;">$&</span>')
                 .replace(/not running$/gm, '<span style="color: #f87171;">$&</span>');
             
@@ -2225,45 +2202,6 @@ NGINX;
         document.getElementById('testBtn').onclick = () => { testConnection(); };
 
 
-        document.getElementById('healthBtn').onclick = async () => {
-            const btn = document.getElementById('healthBtn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<svg class="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" stroke-dasharray="32" stroke-dashoffset="0"/></svg> Checking...';
-            btn.disabled = true;
-            
-            const form = document.getElementById('deployForm');
-            if (!form) {
-                log('Error: Deploy form not found', 'error');
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                return;
-            }
-            
-            const fd = new FormData(form);
-            switchTerminalTab('logs');
-            const logTerm = document.getElementById('log-terminal');
-            logTerm.textContent = 'Checking server health...';
-            
-            try {
-                const res = await fetch('?action=chrome_status', { method: 'POST', body: fd });
-                const json = await res.json();
-                
-                if (json.chrome_status) {
-                    showFormattedResults(json.chrome_status, 'Server Health Check Results');
-                    log('Server health check completed', 'success');
-                } else {
-                    const errorMsg = json.message || 'Failed to check server health';
-                    logTerm.textContent = 'Error: ' + errorMsg;
-                    log('Health check failed: ' + errorMsg, 'error');
-                }
-            } catch (e) {
-                logTerm.textContent = 'Connection Error: ' + e.message;
-                log('Connection error during health check: ' + e.message, 'error');
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        };
 
         document.getElementById('stopWorkerBtn').onclick = async () => {
             if (!confirm('Stop all background worker processes?')) return;
