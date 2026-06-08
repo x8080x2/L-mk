@@ -1110,7 +1110,7 @@ class Api {
         $err  = curl_error($ch);
         unset($ch);
 
-        if (class_exists('Security')) {
+        if (class_exists(Security::class)) {
             Security::log("RENDER_FORWARD: $method $action -> HTTP $code" . ($err ? " curl=$err" : ''));
         }
 
