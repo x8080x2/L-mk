@@ -36,14 +36,14 @@ foreach ($structure as $item) {
 }
 
 // Special case for database and logs to ensure they are writable
-$writableFiles = ['database.sqlite', 'project.log', 'worker.log', 'deploy.log', 'puppeteer.log'];
+$writableFiles = ['database.sqlite', 'project.log', 'deploy.log'];
 foreach ($writableFiles as $f) {
     if (file_exists(__DIR__ . '/' . $f)) {
         chmod(__DIR__ . '/' . $f, 0666);
     }
 }
 
-$writableDirs = ['session_data', 'chrome_config', '.cache/puppeteer'];
+$writableDirs = ['session_data'];
 foreach ($writableDirs as $d) {
     if (!is_dir(__DIR__ . '/' . $d)) mkdir(__DIR__ . '/' . $d, 0777, true);
     chmod(__DIR__ . '/' . $d, 0777);

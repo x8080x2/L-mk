@@ -58,14 +58,11 @@ if (class_exists($dotenvClass)) {
 // CLI Routing
 if (php_sapi_name() === 'cli' && !isset($_SERVER['REQUEST_METHOD'])) {
     $cmd = $argv[1] ?? 'help';
-    if ($cmd === 'worker') {
-        App\Worker::run();
-    } elseif ($cmd === 'manage') {
+    if ($cmd === 'manage') {
         App\Console::handle($argv);
     } else {
         echo "L1mk Console\n";
         echo "Usage:\n";
-        echo "  php index.php worker            Start background worker\n";
         echo "  php index.php manage [args...]  Manage encrypted files\n";
     }
     exit;

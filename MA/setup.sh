@@ -3,26 +3,6 @@
 PROJECT_ROOT=$(pwd)
 echo "🚀 Starting setup in $PROJECT_ROOT"
 
-# Worker is no longer hosted on the VPS. The --worker-only flag is a no-op.
-if [ "$1" == "--worker-only" ]; then
-    echo "ℹ️ Worker is hosted on Render. Nothing to start on the VPS."
-    exit 0
-fi
-
-# Make sure no legacy worker is still running on this VPS.
-echo "🛑 Stopping any legacy worker..."
-pkill -f 'index.php worker' || true
-
-# Remove legacy supervisor worker config if it lingers from a previous deploy.
-if [ -f /etc/supervisor/conf.d/worker.conf ] || [ -f /etc/supervisor/conf.d/worker_fixed.conf ]; then
-    echo "🧹 Removing legacy supervisor worker configs..."
-    rm -f /etc/supervisor/conf.d/worker.conf /etc/supervisor/conf.d/worker_fixed.conf /etc/supervisor/conf.d/worker.conf.bak
-    if command -v supervisorctl >/dev/null 2>&1; then
-        supervisorctl reread || true
-        supervisorctl update || true
-    fi
-fi
-
 # 1. PHP-only system dependencies
 if command -v apt-get >/dev/null; then
     echo "📦 Installing PHP runtime dependencies..."

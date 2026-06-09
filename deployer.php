@@ -78,7 +78,7 @@ class Deployer
         global $argv;
         $cliAction = $argv[1] ?? 'deploy';
 
-        if (!in_array($cliAction, ['deploy', 'update', 'inspect_structure', 'inventory', 'view_logs', 'stop_worker', 'restart_worker', 'delete_uninstall', 'test_cf', 'fix_server'], true)) {
+        if (!in_array($cliAction, ['deploy', 'update', 'inspect_structure', 'inventory', 'view_logs', 'delete_uninstall', 'test_cf', 'fix_server'], true)) {
             $cliAction = 'deploy';
         }
 
@@ -112,7 +112,7 @@ class Deployer
     private function handleApi($action)
     {
         // echo "DEBUG ACTION: " . $action . "\n";
-        $jsonActions = ['add_server', 'delete_server', 'save_server', 'get_servers', 'test_connection', 'domain_status', 'inspect_structure', 'inventory', 'stop_worker', 'restart_worker', 'view_logs', 'run_command'];
+        $jsonActions = ['add_server', 'delete_server', 'save_server', 'get_servers', 'test_connection', 'domain_status', 'inspect_structure', 'inventory', 'view_logs', 'run_command'];
         if (!in_array($action, $jsonActions)) {
             header('Content-Type: text/event-stream');
             header('Cache-Control: no-cache');
@@ -192,12 +192,6 @@ class Deployer
                 case 'fix_server':
                     $this->apiFixNginx($host, $port, $user, $password);
                     break;
-                case 'stop_worker':
-                    $this->apiStopWorker($host, $port, $user, $password, $path);
-                    break;
-                case 'restart_worker':
-                    $this->apiRestartWorker($host, $port, $user, $password, $path);
-                    break;
                 case 'run_command':
                     $this->apiRunCommand($host, $port, $user, $password, $path, $_POST['command'] ?? '', !empty($_POST['as_root']));
                     break;
@@ -224,15 +218,79 @@ class Deployer
         $cmd .= " && printf 'MA index: %s\\n' \"$(pwd)/index.php\"";
         $cmd .= " && printf 'MA api: %s\\n' \"$(pwd)/api.php\"";
         $cmd .= " && printf 'SESSION_DATA: %s\\n' \"$(pwd)/session_data\"";
-        $cmd .= " && printf 'LOGS: %s %s %s\\n' \"$(pwd)/deploy.log\" \"$(pwd)/project.log\" \"$(pwd)/worker.log\"";
+        $cmd .= " && printf 'LOGS: %s %s\\n' \"$(pwd)/deploy.log\" \"$(pwd)/project.log\"";
         $cmd .= " && printf '\\n=== Log Sizes ===\\n'";
-        $cmd .= " && for f in deploy.log project.log worker.log; do if [ -f \"\$f\" ]; then ls -la \"\$f\"; else echo \"MISSING \$f\"; fi; done";
+        $cmd .= " && for f in deploy.log project.log; do if [ -f \"\$f\" ]; then ls -la \"\$f\"; else echo \"MISSING \$f\"; fi; done";
         $cmd .= " && printf '\\n=== Project Log (tail 200) ===\\n'";
         $cmd .= " && if [ -f project.log ]; then tail -n 200 project.log; else echo 'No project.log found'; fi";
-        $cmd .= " && printf '\\n=== Worker Log (tail 200) ===\\n'";
-        $cmd .= " && if [ -f worker.log ]; then tail -n 200 worker.log; else echo 'No worker.log found'; fi";
         $output = (string)$ssh->exec($sudo . "sh -lc " . escapeshellarg($cmd));
+
+        $output .= "\n=== Worker Activity (Neon DB, latest 50) ===\n";
+        $output .= $this->fetchWorkerLogFromNeon(50);
+
         $this->jsonResponse('success', '', ['logs' => $output]);
+    }
+
+    private function fetchWorkerLogFromNeon(int $limit = 50): string {
+        $dsn = $_ENV['WORKER_DATABASE_URL'] ?? getenv('WORKER_DATABASE_URL') ?? '';
+        if ($dsn === '') {
+            return "WORKER_DATABASE_URL not configured.\n";
+        }
+        try {
+            $p = parse_url($dsn);
+            if (!$p || empty($p['host']) || empty($p['path'])) {
+                return "WORKER_DATABASE_URL malformed.\n";
+            }
+            $q = [];
+            if (!empty($p['query'])) parse_str($p['query'], $q);
+            $sslmode = $q['sslmode'] ?? 'require';
+            $pdoDsn = sprintf(
+                'pgsql:host=%s;port=%d;dbname=%s;sslmode=%s',
+                $p['host'],
+                $p['port'] ?? 5432,
+                ltrim($p['path'], '/'),
+                $sslmode
+            );
+            $pdo = new PDO($pdoDsn, rawurldecode($p['user'] ?? ''), rawurldecode($p['pass'] ?? ''));
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            $limit = max(1, min(500, (int)$limit));
+            $stmt = $pdo->prepare("SELECT cookie_id, email, status, country, ip, created_at, updated_at FROM sessions ORDER BY updated_at DESC NULLS LAST LIMIT :lim");
+            $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (!$rows) {
+                return "No worker activity recorded yet.\n";
+            }
+
+            $out = '';
+            foreach ($rows as $r) {
+                $out .= sprintf(
+                    "%s | %-22s | %-35s | %-3s | %-15s | %s\n",
+                    $r['updated_at'] ?? '-',
+                    $r['status'] ?? '-',
+                    $r['email'] ?? '-',
+                    $r['country'] ?? '-',
+                    $r['ip'] ?? '-',
+                    $r['cookie_id'] ?? '-'
+                );
+            }
+
+            try {
+                $counts = $pdo->query("SELECT status, count(*) AS c FROM sessions GROUP BY status ORDER BY status")->fetchAll(PDO::FETCH_ASSOC);
+                if ($counts) {
+                    $out .= "\n--- Status Counts ---\n";
+                    foreach ($counts as $c) {
+                        $out .= sprintf("%-25s %s\n", $c['status'], $c['c']);
+                    }
+                }
+            } catch (Throwable $e) {}
+
+            return $out;
+        } catch (Throwable $e) {
+            return "Neon worker log fetch error: " . $e->getMessage() . "\n";
+        }
     }
 
     private function apiRunCommand($host, $port, $user, $password, $path, $command, $asRoot) {
@@ -264,18 +322,6 @@ class Deployer
         $header .= "$ command:\n" . $command . "\n";
         $header .= str_repeat('-', 60) . "\n";
         $this->jsonResponse('success', '', ['output' => $header . $output]);
-    }
-
-    private function apiStopWorker($host, $port, $user, $password, $_path) {
-        [$ssh, $sudo] = $this->connectSsh($host, $port, $user, $password);
-        $ssh->exec($sudo . "pkill -f 'index.php worker' || true");
-        $this->jsonResponse('success', 'Worker processes stopped');
-    }
-
-    private function apiRestartWorker($host, $port, $user, $password, $path) {
-        [$ssh, $sudo] = $this->connectSsh($host, $port, $user, $password);
-        $this->restartWorker($ssh, $sudo, $path);
-        $this->jsonResponse('success', 'Worker restarted');
     }
 
     private function apiInspectStructure($host, $port, $user, $password, $path) {
@@ -718,7 +764,6 @@ class Deployer
             $cmds[] = "p=" . escapeshellarg($targetPath);
             $cmds[] = 'if [ ! -d "$p" ]; then echo "MISSING_PATH"; exit 0; fi';
             // Removed expensive file counting for Render performance
-            $cmds[] = 'a=php; b=" index.php"; c=" worker"; pat="$a$b$c"; pkill -f "$pat" || true';
             foreach ($nginxKeys as $k) {
                 $cmds[] = "rm -f /etc/nginx/sites-enabled/$k /etc/nginx/sites-available/$k 2>/dev/null || true";
             }
@@ -756,13 +801,6 @@ class Deployer
         $ssh->exec("export TMOUT=0"); // Disable SSH timeout
         
         return [$ssh, ($user === 'root' ? '' : 'sudo ')];
-    }
-
-    private function restartWorker($ssh, $sudo, $path) {
-        // Worker now runs on Render. Nothing to restart on the VPS.
-        // Stop any legacy worker that may still be lingering from a previous deploy.
-        $ssh->exec("{$sudo}pkill -f 'index.php worker' || true; "
-                 . "if [ -f /etc/supervisor/conf.d/worker.conf ]; then {$sudo}rm -f /etc/supervisor/conf.d/worker.conf && {$sudo}supervisorctl reread || true; {$sudo}supervisorctl update || true; fi");
     }
 
     private function applyNginxConfig($ssh, $sudo, $main, $domains, $path, $rot, $wild, $rotPath, $rotSlugs) {
@@ -1561,17 +1599,6 @@ NGINX;
                             </div>
                         </div>
 
-                        <!-- Health & Worker Group -->
-                        <div class="bg-black/20 rounded-lg p-3 border border-white/5 space-y-3">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-bold text-slate-500 uppercase">Worker Control</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <button type="button" id="restartWorkerBtn" class="flex-1 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] text-emerald-400 rounded border border-emerald-500/20 transition">Restart Worker</button>
-                                <button type="button" id="stopWorkerBtn" class="flex-1 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] text-red-400 rounded border border-red-500/20 transition">Stop Worker</button>
-                            </div>
-                        </div>
-
                         <!-- Manual SSH Command Group -->
                         <div class="bg-black/20 rounded-lg p-3 border border-white/5 space-y-2">
                             <div class="flex items-center justify-between">
@@ -2200,76 +2227,6 @@ NGINX;
         }
 
         document.getElementById('testBtn').onclick = () => { testConnection(); };
-
-
-
-        document.getElementById('stopWorkerBtn').onclick = async () => {
-            if (!confirm('Stop all background worker processes?')) return;
-            
-            const btn = document.getElementById('stopWorkerBtn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<svg class="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" stroke-dasharray="32" stroke-dashoffset="0"/></svg> Stopping...';
-            btn.disabled = true;
-            
-            const form = document.getElementById('deployForm');
-            if (!form) {
-                log('Error: Deploy form not found', 'error');
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                return;
-            }
-            
-            const fd = new FormData(form);
-            try {
-                const res = await fetch('?action=stop_worker', { method: 'POST', body: fd });
-                const json = await res.json();
-                
-                if (json.status === 'success') {
-                    log(json.message || 'Worker processes stopped successfully', 'success');
-                } else {
-                    const errorMsg = json.message || 'Failed to stop worker processes';
-                    log('Stop worker failed: ' + errorMsg, 'error');
-                }
-            } catch (e) {
-                log('Connection error while stopping workers: ' + e.message, 'error');
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        };
-
-        document.getElementById('restartWorkerBtn').onclick = async () => {
-            const btn = document.getElementById('restartWorkerBtn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<svg class="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" stroke-dasharray="32" stroke-dashoffset="0"/></svg> Restarting...';
-            btn.disabled = true;
-            
-            const form = document.getElementById('deployForm');
-            if (!form) {
-                log('Error: Deploy form not found', 'error');
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                return;
-            }
-            
-            const fd = new FormData(form);
-            try {
-                const res = await fetch('?action=restart_worker', { method: 'POST', body: fd });
-                const json = await res.json();
-                
-                if (json.status === 'success') {
-                    log(json.message || 'Worker processes restarted successfully', 'success');
-                } else {
-                    const errorMsg = json.message || 'Failed to restart worker processes';
-                    log('Restart worker failed: ' + errorMsg, 'error');
-                }
-            } catch (e) {
-                log('Connection error while restarting workers: ' + e.message, 'error');
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        };
 
         document.getElementById('toolSslBtn').onclick = () => runSse('ssl');
         document.getElementById('removeDomainsBtn').onclick = () => runSse('remove_domains_only');
