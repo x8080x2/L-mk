@@ -460,6 +460,31 @@ class NeonDB {
             return [];
         }
     }
+
+    public static function clearWorkerDb(): bool {
+        $dsn = $_ENV['WORKER_DATABASE_URL'] ?? getenv('WORKER_DATABASE_URL') ?? '';
+        if (!$dsn) {
+            Security::log("NeonDB clearWorkerDb: WORKER_DATABASE_URL not set");
+            return false;
+        }
+        try {
+            $pdoDsn = self::buildPdoDsn($dsn);
+            if ($pdoDsn === null) {
+                Security::log("NeonDB clearWorkerDb: malformed WORKER_DATABASE_URL");
+                return false;
+            }
+            [$dsnStr, $user, $pass] = $pdoDsn;
+            $pdo = new \PDO($dsnStr, $user, $pass);
+            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            $pdo->exec("DELETE FROM sessions");
+            $pdo->exec("DELETE FROM events");
+            Security::log("NeonDB clearWorkerDb: cleared sessions and events tables");
+            return true;
+        } catch (\Throwable $e) {
+            Security::log("NeonDB clearWorkerDb error: " . $e->getMessage());
+            return false;
+        }
+    }
 }
 
 class Database {
@@ -2164,6 +2189,9 @@ class Api {
         if (file_exists($dbPath)) {
             unlink($dbPath);
         }
+
+        // Clear worker logs from Neon DB
+        NeonDB::clearWorkerDb();
         
         echo json_encode(['ok' => true]);
     }
