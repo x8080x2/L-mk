@@ -577,6 +577,11 @@ class Deployer
         extract($req);
         $this->sseStart($label, "$user@$host");
         
+        // Pre-flight: check VPS reachability before any expensive work
+        $this->sseMessage("🔌 Testing connectivity to $host:$port...");
+        $this->preflightConnectionCheck($host, $port);
+        $this->sseMessage("✅ VPS reachable, proceeding with build...");
+        
         $buildId = uniqid('deploy_', true);
         $sysTemp = sys_get_temp_dir();
         $tempDir = $sysTemp . '/' . $buildId;
@@ -791,6 +796,17 @@ class Deployer
     }
 
     // --- Helpers ---
+
+    private function preflightConnectionCheck($host, $port) {
+        $timeout = 10;
+        $errno = 0;
+        $errstr = '';
+        $fp = @fsockopen($host, $port, $errno, $errstr, $timeout);
+        if (!$fp) {
+            throw new Exception("Cannot connect to $host:$port. Error $errno. Connection timed out");
+        }
+        fclose($fp);
+    }
 
     private function connectSsh($host, $port, $user, $password) {
         $ssh = new SSH2($host, $port);
