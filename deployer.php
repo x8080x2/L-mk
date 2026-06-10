@@ -886,15 +886,21 @@ class Deployer
                 $v = 'https://ccc-soar.onrender.com';
             }
             
-            if ($v) $lines[] = "$k=$v";
-        }
-        
-        // Ensure MASTER_LICENSE_KEY is always set if we have a current license
-        if ($this->currentLicense && !in_array("MASTER_LICENSE_KEY=$this->currentLicense", $lines)) {
-             // Logic above should handle it, but this is a safety net
+            if ($v) $lines[] = $k . '=' . $this->quoteEnvValue($v);
         }
         
         return $lines ? base64_encode(implode("\n", $lines) . "\n") : '';
+    }
+
+    /**
+     * Quote a .env value if it contains characters that would break INI parsing.
+     * Wraps in double quotes, escaping any internal double quotes.
+     */
+    private function quoteEnvValue(string $value): string {
+        if (preg_match('/[=#\s\';"]/', $value) || $value === '' || $value === '""') {
+            return '"' . str_replace('"', '\\"', $value) . '"';
+        }
+        return $value;
     }
 
     private function encryptTemplates($sourceDir) {

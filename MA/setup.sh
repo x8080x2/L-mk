@@ -8,7 +8,7 @@ if command -v apt-get >/dev/null; then
     echo "📦 Installing PHP runtime dependencies..."
     apt-get update || true
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        php-cli php-fpm php-sqlite3 php-curl php-mbstring php-xml \
+        php-cli php-fpm php-sqlite3 php-curl php-mbstring php-xml php-pgsql \
         sqlite3 unzip || true
 fi
 
