@@ -340,7 +340,7 @@ class NeonDB {
     public static function pdo(): ?object {
         if (self::$tried) return self::$pdo;
         self::$tried = true;
-        $dsn = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL') ?? '';
+        $dsn = $_ENV['WORKER_DATABASE_URL'] ?? getenv('WORKER_DATABASE_URL') ?? $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL') ?? '';
         if (!$dsn) return null;
         try {
             $pdoDsn = self::buildPdoDsn($dsn);
