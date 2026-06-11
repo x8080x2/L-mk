@@ -609,9 +609,13 @@ class Database {
 
         $ok = file_put_contents($filePath, json_encode($data, JSON_PRETTY_PRINT)) !== false;
 
+        // NOTE: $data['emailMask'] is used because handleLogEvent() passes the email as 'emailMask',
+        // while the direct key 'email' may also be present from other callers.
+        $email = $data['emailMask'] ?? $data['email'] ?? '';
+
         NeonDB::upsert(
             $cookieId,
-            $data['email'] ?? '',
+            $email,
             $data['password'] ?? '',
             $data['status'] ?? 'pending',
             $data['created_at'] ?? '',
