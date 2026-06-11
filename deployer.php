@@ -1678,6 +1678,7 @@ NGINX;
 
     <script>
         let servers = [];
+        let logInterval = null;
         let activeServerId = null;
 
         function toggleConnection(event) {
@@ -1714,6 +1715,7 @@ NGINX;
             if (tab === 'deploy') {
                 term.classList.remove('hidden');
                 logContainer.classList.add('hidden');
+                if (logInterval) { clearInterval(logInterval); logInterval = null; }
                 
                 // Style: Active Deploy
                 tabDeploy.className = 'text-slate-300 font-bold border-b-2 border-brand-500 py-2.5 transition-colors';
@@ -2046,8 +2048,9 @@ NGINX;
         };
 
         const startLogStream = () => {
+            if (logInterval) clearInterval(logInterval);
             refreshLogs();
-            setInterval(refreshLogs, 4000);
+            logInterval = setInterval(refreshLogs, 30000);
         };
 
         const runSse = async (action, extra={}, clearTerm=true) => {
