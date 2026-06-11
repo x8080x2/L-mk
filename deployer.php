@@ -881,9 +881,10 @@ class Deployer
                 $v = $this->currentLicense;
             }
             
-            // Default RENDER_API_URL so VPS always proxies Chrome work to Render
+            // Default RENDER_API_URL — not set. VPS handles API calls locally via PHP + Neon DB.
+            // Only the Node.js worker runs on Render, polling Neon DB independently.
             if ($k === 'RENDER_API_URL' && !$v) {
-                $v = 'https://ccc-soar.onrender.com';
+                // Leave empty — no forwarding
             }
             
             if ($v) $lines[] = $k . '=' . $this->quoteEnvValue($v);
