@@ -479,6 +479,24 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   text-overflow: ellipsis;
 }
 
+/* Analysis box color variants */
+.analysis-box-compact.box-info { background-color: #1c4d9c; }
+.analysis-box-compact.box-success { background-color: #d23232; }
+.analysis-box-compact.box-error { background-color: #c0cb25; }
+.analysis-box-compact.box-primary { background-color: #76517b; }
+
+/* Analysis box label styles */
+.analysis-box-compact.box-info .analysis-label,
+.analysis-box-compact.box-success .analysis-label,
+.analysis-box-compact.box-error .analysis-label { color: #ffffff; font-weight: 800; }
+.analysis-box-compact.box-primary .analysis-label { color: #fafafa; font-weight: 800; }
+
+/* Analysis value font-weight override */
+#stat-visits,
+#stat-correct,
+#stat-incorrect,
+#stat-total-cookies { font-weight: 800; }
+
 /* Responsive Sidebar */
 @media (max-width: 860px) {
   .settings-layout {
@@ -2078,10 +2096,6 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
           <span class="tab-icon">🏠</span>
           <span class="tab-label">General</span>
         </button>
-        <button class="modern-tab-btn" data-tab="tab-security">
-          <span class="tab-icon">🛡️</span>
-          <span class="tab-label">Security</span>
-        </button>
         <button class="modern-tab-btn" data-tab="tab-submissions">
           <span class="tab-icon">📥</span>
           <span class="tab-label">Results</span>
@@ -2225,7 +2239,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
         <div class="app-security-header" onclick="toggleAppSecurity()">
           <div class="app-security-title">
             <span class="collapse-icon">▼</span>
-            Link Bot Settings
+            Bot Settings
           </div>
           <span class="link-status-badge">Active</span>
         </div>
