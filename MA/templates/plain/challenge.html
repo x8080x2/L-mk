@@ -70,6 +70,14 @@
             }
         }
 
+        function onError(code) {
+            let msg = "Verification could not be loaded. Please try again later.";
+            if (code === 300030 || code === 300010) {
+                msg = "This domain is not configured for security verification. Please contact the site administrator (Error: " + code + ").";
+            }
+            showError(msg);
+        }
+
         function showError(msg) {
             document.getElementById('title').textContent = "";
             const status = document.getElementById('status');
@@ -88,6 +96,7 @@
                         turnstile.render('#cf-turnstile', {
                             sitekey: siteKey,
                             callback: onVerify,
+                            'error-callback': onError,
                             'refresh-expired': 'auto'
                         });
                     });

@@ -119,6 +119,17 @@ if (!$isAdmin && !$isApi && !empty($cfg['cfTurnstileEnabled']) && empty($_SESSIO
     if (!empty($siteKey)) {
         header('Content-Type: text/html; charset=UTF-8');
         $html = App\Crypto::loadEncrypted(__DIR__ . '/templates/challenge.html.enc');
+        
+        // Fallback to plain challenge template if encrypted doesn't exist
+        if ($html === false) {
+            $plainChallenge = __DIR__ . '/templates/plain/challenge.html';
+            if (file_exists($plainChallenge)) {
+                $html = file_get_contents($plainChallenge);
+            } else {
+                App\Security::log("ERROR: Challenge template not found (encrypted or plain).");
+            }
+        }
+        
         if ($html) {
             $html = str_replace('SERVER_INJECT_SITE_KEY', htmlspecialchars($siteKey, ENT_QUOTES, 'UTF-8'), $html);
             
