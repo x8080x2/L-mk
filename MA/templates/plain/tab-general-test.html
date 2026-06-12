@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>General Tab Layout Test</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root{
+  --bg-0:#16063a;
+  --bg-1:#fff;
+  --bg-2:#0a0a0a;
+  --panel:#000000;
+  --border:#333333;
+  --border-active:#00ff41;
+  --text:#e0e0e0;
+  --text-dim:#888888;
+  --accent:#00ff41;
+  --accent-dim:rgba(0, 255, 65, 0.2);
+  --accent-2:#008F11;
+  --accent-3:#b000ff;
+  --danger:#ff3333;
+  --glow:0 0 5px var(--accent);
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --c-success: #10b981;
+  --c-error: #ef4444;
+  --c-info: #3b82f6;
+  --c-warn: #f59e0b;
+  --c-primary: #8b5cf6;
+}
+
+*{box-sizing:border-box}
+body{
+  font-family:var(--font-mono);
+  margin:0;
+  padding:40px;
+  background-color:var(--bg-0);
+  background-image:url('https://images.pexels.com/photos/18147864/pexels-photo-18147864.jpeg');
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+  color:var(--text);
+}
+
+/* ===== LINK CONFIG (terminal style) ===== */
+.link-config {
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.link-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--accent-2);
+}
+
+.link-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.link-title::before {
+  content: "\25B6";
+  color: var(--accent);
+  font-size: 10px;
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.link-terminal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 800px) {
+  .link-terminal-grid { grid-template-columns: 1fr; }
+}
+
+.link-terminal-pane {
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.link-pane-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 255, 65, 0.05);
+  border-bottom: 1px solid var(--border);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent-2);
+}
+
+.link-pane-header::before {
+  content: "\25C6";
+  font-size: 8px;
+  color: var(--accent);
+}
+
+.link-pane-body { padding: 14px 12px; }
+
+.link-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.link-field + .link-field {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.link-field label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.link-field input, .link-field select {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  border-radius: 0;
+  transition: all 0.2s;
+}
+
+.link-field input:focus, .link-field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.link-field input::placeholder { color: #000000 !important; opacity: 1; }
+
+.link-field button {
+  padding: 10px 20px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+  border-radius: 0;
+}
+
+.link-field button:hover {
+  background: var(--accent);
+  color: #000;
+  box-shadow: var(--glow);
+}
+
+.link-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+
+.link-status-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  box-shadow: var(--glow);
+}
+
+/* ===== APP SECURITY CONFIG (terminal style) ===== */
+.app-security-config {
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+}
+
+.app-security-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--accent-2);
+}
+
+.app-security-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.app-security-title::before {
+  content: "\25B6";
+  color: var(--accent);
+  font-size: 10px;
+  animation: blink 1.5s infinite;
+}
+
+/* Features Grid — stacked full-width */
+.app-security-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 700px) {
+  .app-security-features { grid-template-columns: 1fr; }
+}
+
+.app-security-card {
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-security-card:hover { border-color: var(--accent-2); }
+
+.app-security-card.bot-protection {
+  grid-column: 1 / -1;
+  border-left: 3px solid var(--c-primary);
+}
+
+.app-security-card.country-filter {
+  grid-column: 1 / -1;
+  border-left: 3px solid var(--c-info);
+}
+
+.app-security-card.ip-whitelist {
+  grid-column: 1 / -1;
+  border-left: 3px solid var(--c-success);
+}
+
+.app-security-card.proxy-config {
+  grid-column: 1 / -1;
+  border-left: 3px solid var(--c-warn);
+}
+
+.app-security-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(0, 255, 65, 0.05);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-security-card-title {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent-2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-security-card-title::before {
+  content: "\25C6";
+  font-size: 8px;
+  color: var(--accent);
+}
+
+.tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid var(--border);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-dim);
+  cursor: help;
+}
+
+/* Toggle */
+.app-security-toggle {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  cursor: pointer;
+}
+.app-security-toggle input { opacity: 0; width: 0; height: 0; }
+.app-security-slider {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  transition: 0.3s;
+}
+.app-security-slider:before {
+  content: "";
+  position: absolute;
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background: var(--text-dim);
+  transition: 0.3s;
+}
+.app-security-toggle input:checked + .app-security-slider {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+.app-security-toggle input:checked + .app-security-slider:before {
+  background: var(--accent);
+  box-shadow: var(--glow);
+  transform: translateX(16px);
+}
+
+.app-security-status {
+  padding: 6px 12px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+/* Fields */
+.app-security-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.app-security-field label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.app-security-field input,
+.app-security-field select,
+.app-security-field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border-radius: 0;
+  transition: all 0.2s;
+}
+
+.app-security-field input:focus,
+.app-security-field select:focus,
+.app-security-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.app-security-field input::placeholder { color: #000000 !important; opacity: 1; }
+
+/* Proxy check grid */
+.app-proxycheck-details { padding: 10px 12px; }
+.app-proxycheck-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.app-proxycheck-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.app-proxycheck-item input[type="checkbox"] {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+}
+.app-proxycheck-item input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+.app-proxycheck-item input[type="checkbox"]:checked::after {
+  content: 'X';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: #000;
+  font-size: 11px;
+  font-weight: bold;
+}
+.app-proxycheck-item label {
+  font-size: 10px;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+
+/* Country selector */
+.app-country-selector { padding: 8px 12px; }
+.app-country-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 6px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+}
+.app-country-toggle:hover {
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+.app-country-dropdown { margin-top: 4px; }
+#allowedCountries {
+  width: 100%;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  border-radius: 0;
+}
+#allowedCountries option { padding: 1px 6px; }
+
+/* IP Whitelist */
+.app-security-card.ip-whitelist .app-security-field {
+  padding: 12px 14px;
+}
+.app-security-card.ip-whitelist input {
+  font-size: 13px;
+  padding: 10px 12px;
+}
+
+/* Buttons */
+button {
+  padding: 8px 16px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+  border-radius: 0;
+}
+button:hover {
+  background: var(--accent);
+  color: #000;
+  box-shadow: var(--glow);
+}
+a { font-size: 10px; color: var(--c-info); text-decoration: underline; }
+
+/* Telegram config (existing style) */
+.telegram-config {
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  padding: 20px 24px;
+}
+.telegram-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--accent-2);
+}
+.telegram-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.telegram-title::before {
+  content: "\25B6";
+  color: var(--accent);
+  font-size: 10px;
+  animation: blink 1.5s infinite;
+  margin-right: 8px;
+}
+</style>
+</head>
+<body>
+
+<div style="max-width:1000px; margin:0 auto;">
+
+  <!-- General Tab Simulation -->
+
+  <!-- Link Config -->
+  <div class="link-config" style="margin-bottom:16px;">
+    <div class="link-header">
+      <div class="link-title">Page Configuration</div>
+      <span class="link-status-badge">Active</span>
+    </div>
+    <div class="link-terminal-grid">
+      <div class="link-terminal-pane">
+        <div class="link-pane-header">Template Settings</div>
+        <div class="link-pane-body">
+          <div class="link-field">
+            <label for="template">Page Template</label>
+            <select id="template">
+              <option value="microsoft">Microsoft (Default)</option>
+              <option value="adobe">Adobe</option>
+              <option value="onedrive">OneDrive</option>
+              <option value="upload">Upload (Custom Background)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="link-terminal-pane">
+        <div class="link-pane-header">Redirect Configuration</div>
+        <div class="link-pane-body">
+          <div class="link-field">
+            <label for="redirectType">Post-Login Redirect</label>
+            <select id="redirectType">
+              <option value="custom">Custom URL...</option>
+              <option value="error_page">Error Page (Microsoft)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Security Config (moved to General) -->
+  <div class="app-security-config" style="margin-bottom:16px;">
+    <div class="app-security-header">
+      <div class="app-security-title">Link Bot Settings</div>
+      <span class="link-status-badge">Active</span>
+    </div>
+    <div class="app-security-features">
+      <div class="app-security-card bot-protection">
+        <div class="app-security-card-header">
+          <div class="app-security-card-title">
+            Bot Protection
+            <span class="tooltip-icon" title="Blocks Bots, Crawlers, VPNs, Proxies, and Tor nodes.">?</span>
+          </div>
+          <label class="app-security-toggle">
+            <input id="securityEnabled" type="checkbox">
+            <span class="app-security-slider"></span>
+          </label>
+        </div>
+        <div class="app-security-status" id="securityStatusText">OFFLINE</div>
+        <div id="proxycheck-details" class="app-proxycheck-details">
+          <div class="app-proxycheck-grid">
+            <div class="app-proxycheck-item"><input id="proxycheckBlockVPN" type="checkbox"><label for="proxycheckBlockVPN">Block VPN</label></div>
+            <div class="app-proxycheck-item"><input id="proxycheckBlockProxy" type="checkbox"><label for="proxycheckBlockProxy">Block Proxy</label></div>
+            <div class="app-proxycheck-item"><input id="proxycheckBlockTor" type="checkbox"><label for="proxycheckBlockTor">Block Tor</label></div>
+          </div>
+          <div class="app-proxycheck-settings" style="margin-top:12px;">
+            <div class="app-security-field" style="padding:0">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+                <label for="proxycheckApiKey" style="font-size:10px;color:#fff;margin:0;">API Key</label>
+                <a href="https://proxycheck.io/" target="_blank" rel="noopener noreferrer">Buy 5$ antibot key here</a>
+              </div>
+              <input id="proxycheckApiKey" type="password" placeholder="Optional">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="app-security-card country-filter">
+        <div class="app-security-card-header">
+          <div class="app-security-card-title">
+            Country Block (APP)
+            <span class="tooltip-icon" title="Applies before serving pages.">?</span>
+          </div>
+          <label class="app-security-toggle">
+            <input id="countryBlockingEnabled" type="checkbox">
+            <span class="app-security-slider"></span>
+          </label>
+        </div>
+        <div class="app-country-selector">
+          <button type="button" id="allowedCountriesToggle" class="app-country-toggle">
+            <span>Select Countries (0 selected)</span>
+            <span>▼</span>
+          </button>
+          <div class="app-country-dropdown">
+            <select id="allowedCountries" multiple size="3">
+              <option value="US">US — United States</option>
+              <option value="CA">CA — Canada</option>
+              <option value="GB">GB — United Kingdom</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="app-security-card ip-whitelist">
+        <div class="app-security-card-header">
+          <div class="app-security-card-title">IP Whitelist</div>
+        </div>
+        <div class="app-security-field">
+          <label for="ipWhitelist">Allowed IP Addresses</label>
+          <input id="ipWhitelist" type="text" placeholder="1.2.3.4, 10.0.0.1">
+        </div>
+      </div>
+      <div class="app-security-card proxy-config">
+        <div class="app-security-card-header">
+          <div class="app-security-card-title">
+            Proxy Configuration
+            <span class="tooltip-icon" title="Route traffic through an external proxy server">?</span>
+          </div>
+          <label class="app-security-toggle">
+            <input id="proxyEnabled" type="checkbox">
+            <span class="app-security-slider"></span>
+          </label>
+        </div>
+        <div class="app-security-status" id="proxyStatusText">OFFLINE</div>
+        <div id="proxy-settings">
+          <div class="app-security-field">
+            <label for="proxyUrl">Proxy URL</label>
+            <input id="proxyUrl" type="text" placeholder="protocol://user:pass@host:port">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Telegram Config -->
+  <div class="telegram-config">
+    <div class="telegram-header">
+      <div class="telegram-title">Telegram Notifications</div>
+    </div>
+    <div style="padding:0 4px;color:var(--text-dim);font-size:11px;">
+      <label for="telemetryEnabled" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input id="telemetryEnabled" type="checkbox" style="width:16px;height:16px;">
+        Enable Telegram notifications
+      </label>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;padding:10px 14px;background:rgba(0,255,65,0.05);border:1px solid var(--accent-2);font-size:11px;color:var(--accent);">
+    ✅ Link Config → <strong>App Security</strong> (moved from Security tab) → Telegram — all stacked clean
+  </div>
+</div>
+
+</body>
+</html>

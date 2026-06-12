@@ -81,16 +81,6 @@
         (async function() {
             try {
                 const siteKey = "SERVER_INJECT_SITE_KEY";
-                // Optimized: Injected directly by server to save RTT
-                const invisible = (String("SERVER_INJECT_INVISIBLE") === "true");
-
-                if (invisible) {
-                    document.body.style.opacity = '0.01';
-                    document.body.style.pointerEvents = 'none';
-                } else {
-                    document.body.style.opacity = '1';
-                    document.body.style.pointerEvents = 'auto';
-                }
 
                 // Robust check: Ensure key exists and has valid length
                 if (siteKey && siteKey.length > 20 && siteKey.indexOf("SERVER_INJECT") === -1) {

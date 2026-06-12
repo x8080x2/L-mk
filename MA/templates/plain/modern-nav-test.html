@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Temp Test - Fixed Layout</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root{
+  --bg-0:#16063a;
+  --border:#333333;
+  --text:#e0e0e0;
+  --text-dim:#888888;
+  --accent:#00ff41;
+  --accent-dim:rgba(0, 255, 65, 0.2);
+  --c-info: #3b82f6;
+  --c-success: #10b981;
+  --c-error: #ef4444;
+  --c-primary: #8b5cf6;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'JetBrains Mono',monospace;
+  background:var(--bg-0);
+  color:var(--text);
+  padding:40px;
+}
+
+/* === 2-column grid: stats | tabs === */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  align-items: start;
+}
+
+/* === TABS (left column) === */
+.modern-nav-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 160px;
+}
+
+.modern-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  justify-content: flex-start;
+}
+
+.tab-icon { font-size: 12px; }
+.tab-label { font-size: 11px; }
+
+.modern-tab-btn.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  box-shadow: 0 0 5px var(--accent-dim);
+}
+
+.modern-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+.tab-icon { font-size: 12px; }
+.tab-label { font-size: 11px; }
+
+.dashboard-layout .modern-nav-tabs {
+  margin-top: 10px;
+}
+
+/* === STATS (right column) === */
+.modern-analysis-sidebar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 5px;
+}
+
+.analysis-box-compact {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 16px;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.analysis-box-compact.box-info { border-left: 3px solid var(--c-info); }
+.analysis-box-compact.box-success { border-left: 3px solid var(--c-success); }
+.analysis-box-compact.box-error { border-left: 3px solid var(--c-error); }
+.analysis-box-compact.box-primary { border-left: 3px solid var(--c-primary); }
+
+.analysis-value {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.box-info .analysis-value { color: var(--c-info); }
+.box-success .analysis-value { color: var(--c-success); }
+.box-error .analysis-value { color: var(--c-error); }
+.box-primary .analysis-value { color: var(--c-primary); }
+
+.analysis-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  color: var(--accent);
+}
+</style>
+</head>
+<body>
+
+<div class="section-label">✅ SWAPPED — Stats (left) + Tabs (right), content below</div>
+
+<div class="dashboard-layout">
+
+  <!-- LEFT: Stats (side by side) -->
+  <div class="modern-analysis-sidebar">
+    <div class="analysis-box-compact box-info">
+      <div class="analysis-value">0</div>
+      <div class="analysis-label">Total Visits</div>
+    </div>
+    <div class="analysis-box-compact box-success">
+      <div class="analysis-value">0</div>
+      <div class="analysis-label">Correct</div>
+    </div>
+    <div class="analysis-box-compact box-error">
+      <div class="analysis-value">0</div>
+      <div class="analysis-label">Incorrect</div>
+    </div>
+    <div class="analysis-box-compact box-primary">
+      <div class="analysis-value">0</div>
+      <div class="analysis-label">Cookies</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Stacked Tabs -->
+  <div class="modern-nav-tabs">
+    <button class="modern-tab-btn active" data-tab="tab-general">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">General</span>
+    </button>
+    <button class="modern-tab-btn" data-tab="tab-security">
+      <span class="tab-icon">🛡️</span>
+      <span class="tab-label">Security</span>
+    </button>
+    <button class="modern-tab-btn" data-tab="tab-submissions">
+      <span class="tab-icon">📥</span>
+      <span class="tab-label">Results</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- Content below the grid -->
+<div id="section-settings" style="margin-top: 24px; padding: 20px; background: rgba(255,255,255,0.03); border: 1px dashed var(--border); border-radius: 8px;">
+  <div class="muted" style="color: var(--text-dim); font-size: 12px; text-align: center;">
+    Settings content goes here (below the grid)
+  </div>
+</div>
+
+</body>
+</html>

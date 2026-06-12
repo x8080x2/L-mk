@@ -3338,12 +3338,6 @@ class Api {
             $cfg['cfSecretKey'] = $result['secret'];
         }
         $cfg['cfTurnstileEnabled'] = true;
-        // Auto-set invisible toggle based on widget mode
-        if ($mode === 'invisible') {
-            $cfg['cfTurnstileInvisible'] = true;
-        } else {
-            $cfg['cfTurnstileInvisible'] = false;
-        }
         Config::save($cfg);
 
         echo json_encode([

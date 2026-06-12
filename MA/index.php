@@ -122,10 +122,6 @@ if (!$isAdmin && !$isApi && !empty($cfg['cfTurnstileEnabled']) && empty($_SESSIO
         if ($html) {
             $html = str_replace('SERVER_INJECT_SITE_KEY', htmlspecialchars($siteKey, ENT_QUOTES, 'UTF-8'), $html);
             
-            // Inject Invisible Setting
-            $invisible = !empty($cfg['cfTurnstileInvisible']) ? "true" : "false";
-            $html = str_replace('SERVER_INJECT_INVISIBLE', $invisible, $html);
-            
             echo $html;
             exit;
         }

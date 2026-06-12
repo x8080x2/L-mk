@@ -36,18 +36,17 @@
   opacity: 1;
 }
 *{box-sizing:border-box}
-html,body{height:100%}
+html,body{height:100%;overflow:hidden;}
 body{
   font-family:var(--font-mono);
   margin:0;
   background-color:var(--bg-0);
-  background-image:url('https://images.pexels.com/photos/18147864/pexels-photo-18147864.jpeg');
+  background-image:url('https://miro.medium.com/v2/resize:fit:1358/format:webp/1*CaQim1Hvv-VvoOBlOMcDoQ.jpeg');
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
   background-attachment:fixed;
   color:var(--text);
-  overflow-x:hidden;
 }
 body::after {
   content: "";
@@ -65,15 +64,15 @@ body::after {
   pointer-events: none;
   z-index: 9999;
 }
-.app{min-height:100%;display:flex;flex-direction:column;position:relative;z-index:1}
+.app{height:100vh;display:flex;flex-direction:column;position:relative;z-index:1;overflow:hidden;}
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
-  padding:6px ;
+  padding:2px 6px;
   border-bottom:1px solid var(--border);
 }
 .brand{
-  display:flex;align-items:center;gap:12px;
-  font-size:10px;font-weight:700;letter-spacing:1px;
+  display:flex;align-items:center;gap:6px;
+  font-size:9px;font-weight:700;letter-spacing:1px;
   color:var(--c-info);
   text-transform:uppercase;
 }
@@ -100,16 +99,16 @@ body::after {
 }
 
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-.nav{display:flex;gap:12px}
+.nav{display:flex;gap:6px}
 .nav button{
-  padding:8px 16px;
+  padding:4px 10px;
   border:1px solid var(--border);
   background:transparent;
   color:var(--c-info);
   border-radius:0;
   cursor:pointer;
   font-family:var(--font-mono);
-  font-size:12px;
+  font-size:10px;
   text-transform:uppercase;
   transition:all 0.2s ease;
 }
@@ -124,9 +123,9 @@ body::after {
   background:var(--accent-dim);
   color:var(--c-info);
 }
-.container{width:88%;margin:0 auto;padding-left:30px;}
+.container{width:100%;margin:0 auto;padding:8px 20px;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
 .main{
-  padding:0px;
+  padding:0px;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;
 }
 .main::before {
   content:"";position:absolute;top:-1px;right:-1px;width:20px;height:20px;
@@ -211,6 +210,7 @@ button.secondary:hover{
 button.primary {
   border-color: var(--c-info);
   color: var(--c-info);
+  padding: 7px 12px;
 }
 button.primary:hover {
   background: var(--c-info);
@@ -256,10 +256,24 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
 .tab-btn:hover {color: var(--accent);border-color: var(--accent);}
 .tab-btn.active {background: var(--accent-dim);color: var(--accent);border-color: var(--accent);box-shadow: var(--glow);}
 
+/* Dashboard Layout — 2-column grid for stats + tabs */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  flex-shrink:0;
+}
+#section-settings{overflow-y:auto;flex:1;min-height:0;padding-right:4px;}
+
+.dashboard-layout .modern-nav-container {
+  margin: 0;
+}
+
 /* Modern Consolidated Navigation Styles */
 .modern-nav-container {
   border-radius: 12px;
-  margin: 24px 0; /* Adjusted: 0 top, 24px bottom */
+  margin: 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
@@ -302,33 +316,38 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
 
 .modern-nav-tabs {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 4px;
+  border-radius: 6px;
+  padding: 3px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 160px;
+  flex-shrink: 0;
 }
 
 .modern-tab-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 6px;
+  padding: 6px 10px;
   background: transparent;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   color: var(--text-dim);
   font-family: var(--font-mono);
-  font-size: 25px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.3s ease;
-  flex: 1;
-  justify-content: center;
+  flex: none;
+  justify-content: flex-start;
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .modern-tab-btn:hover {
@@ -349,7 +368,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
 }
 
 .tab-icon {
-  font-size: 14px;
+  font-size: 12px;
   transition: all 0.3s ease;
 }
 
@@ -363,12 +382,8 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
     padding: 16px;
   }
   
-  .modern-nav-tabs {
-    flex-direction: column;
-  }
-  
-  .modern-tab-btn {
-    justify-content: flex-start;
+  .dashboard-layout {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -393,9 +408,10 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
   transition: all 0.3s ease;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, auto);
   gap: 12px;
-  margin:10px 0;
+  margin: 0;
+  width: fit-content;
 }
 
 .modern-analysis-sidebar:hover {
@@ -431,8 +447,12 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
-  padding: 12px;
+  padding: 8px 20px;
   transition: all 0.2s ease;
+  width: 180px;
+  flex-shrink: 0;
+  text-align: center;
+  overflow: hidden;
 }
 
 .analysis-box-compact:hover {
@@ -441,9 +461,12 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
 }
 
 .analysis-box-compact .analysis-value {
-  font-size: 58px;
+  font-size: 42px;
   font-weight: 700;
   margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .analysis-box-compact .analysis-label {
@@ -451,6 +474,9 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   text-transform: uppercase;
   letter-spacing: 0.5px;
   opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Responsive Sidebar */
@@ -514,12 +540,12 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
 /* Status Message Enhancement */
 .status {
   margin-top: 16px !important;
-  padding: 12px 16px;
-  border-radius: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 10px;
   text-align: center;
   transition: all 0.3s ease;
 }
@@ -661,59 +687,53 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
 .analysis-value {font-size: 28px;font-weight: 700;color: var(--text);margin-bottom: 4px; transition: color 0.3s ease;}
 .analysis-label {font-size: 11px;color: var(--text-dim);text-transform: uppercase;letter-spacing: 1px;text-align: center;}
 
-/* Modern Telegram Configuration Styles */
+/* ==============================================
+     THEME: SaaS Clean — Telegram Configuration
+     ============================================== */
 .telegram-config {
-  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   margin: 6px 0;
-  margin-bottom: 0 !important;
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
-  transition: all 0.3s ease;
 }
 
 .telegram-config:hover {
-  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.2);
-  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .telegram-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1px;
-  padding-bottom: 6px;
-
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .telegram-title {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 10px;
+  gap: 8px;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--c-info);
+  color: #0f172a;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.3px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .telegram-icon {
-  width: 24px;
-  height: 24px;
-  background: var(--c-info);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: white;
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+  display: none;
 }
 
-/* Modern Toggle Switch */
+/* SaaS Toggle */
 .telegram-toggle {
   position: relative;
   display: inline-block;
-  width: 60px;
-  height: 30px;
+  width: 36px;
+  height: 20px;
 }
 
 .telegram-toggle input {
@@ -729,58 +749,55 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 255, 255, 0.1);
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
   transition: 0.3s;
-  border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .toggle-slider:before {
   position: absolute;
   content: "";
-  height: 22px;
-  width: 22px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: 0.3s;
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background: #ffffff;
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  transition: 0.3s;
 }
 
 .telegram-toggle input:checked + .toggle-slider {
-  background-color: var(--c-info);
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+  background: #6366f1;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.12);
 }
 
 .telegram-toggle input:checked + .toggle-slider:before {
-  transform: translateX(30px);
+  transform: translateX(16px);
+  background: #ffffff;
+  box-shadow: none;
 }
 
-/* Telegram Details Container */
+/* Details Container */
 .telegram-details {
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
   animation: slideDown 0.3s ease;
 }
 
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .telegram-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .telegram-field {
@@ -789,77 +806,89 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
 
 .telegram-field label {
   display: block;
-  margin-bottom: 8px;
-  font-size: 12px;
+  margin-bottom: 4px;
+  font-size: 10px;
   font-weight: 600;
-  color: var(--text-dim);
+  color: #475569 !important;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .telegram-field input {
   width: 100%;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 14px;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
   transition: all 0.2s ease;
 }
 
 .telegram-field input:focus {
   outline: none;
-  border-color: var(--c-info);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.1);
+  background: #ffffff;
 }
 
 .telegram-field input::placeholder {
-  color: #ffffff !important;
+  color: #94a3b8 !important;
   opacity: 1;
 }
 
 /* Test Button */
 .telegram-test-btn {
-  background: linear-gradient(135deg, var(--c-info) 0%, var(--c-primary) 100%);
+  background: #6366f1;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  color: white;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+  box-shadow: none;
 }
 
 .telegram-test-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  background: #4f46e5;
+  box-shadow: 0 1px 3px rgba(99,102,241,0.3);
 }
 
 .telegram-test-btn:active {
-  transform: translateY(0);
+  transform: none;
 }
 
 .telegram-test-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
-/* Unified Cloudflare Control Styles - Compact Side Theme */
+/* Responsive */
+@media (max-width: 768px) {
+  .telegram-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .telegram-config {
+    padding: 14px 16px;
+    margin: 6px 0;
+  }
+  .telegram-header {
+    flex-direction: row;
+    gap: 0;
+    align-items: center;
+  }
+}
+
 .unified-cloudflare-control {
-  background: rgba(139, 92, 246, 0.05);
-  border-left: 3px solid var(--c-primary);
-  border-radius: 4px;
-  padding: 3px; /* Reduced from 16px */
-  margin: 2px 0; /* Reduced from 16px */
+  padding: 6px 10px;
   position: relative;
   overflow: hidden;
 }
@@ -877,7 +906,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   left: -50%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.15), transparent);
   transform: skewX(-20deg);
   animation: scan-light 1.5s infinite linear;
   pointer-events: none;
@@ -888,83 +917,98 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2px; /* Reduced from 5px */
+  margin-bottom: 4px;
 }
 
 .unified-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--c-primary);
+  font-size: 10px;
+  font-weight: 700;
+  color: #0f172a;
   display: flex;
   align-items: center;
-  gap: 6px; /* Reduced from 8px */
+  gap: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .unified-toggle {
-  transform: scale(0.8); /* Reduced from 0.9 */
+  transform: scale(0.85);
 }
 
 .unified-status {
-  text-align: left;
-  font-size: 10px; /* Reduced from 11px */
-  color: var(--text-dim);
-  margin-bottom: 6px; /* Reduced from 12px */
-  padding: 2px 0; /* Reduced from 4px */
-  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
-  background: transparent;
+  font-size: 9px;
+  font-weight: 600;
+  color: #94a3b8;
   display: flex;
   align-items: center;
-  gap: 4px; /* Reduced from 6px */
+  gap: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .unified-status::before {
   content: "STATUS:";
   font-weight: 700;
-  color: var(--c-primary);
-  font-size: 9px; /* Reduced from 10px */
+  color: #6366f1;
+  font-size: 8px;
+}
+
+.unified-status-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .unified-features {
-  display: grid;
-  gap: 4px; /* Reduced from 8px */
-  margin-bottom: 8px; /* Reduced from 16px */
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
 }
 
 .feature-item {
   display: flex;
   align-items: center;
-  gap: 6px; /* Reduced from 8px */
-  padding: 4px 8px; /* Reduced from 6px 10px */
-  background: rgba(0, 0, 0, 0.2);
+  justify-content: space-between;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #ffffff;
   border-radius: 4px;
-  border: 1px solid transparent;
+  border: 1px solid #e2e8f0;
+  flex: 1;
+  min-width: 100px;
 }
 
 .feature-icon {
-  font-size: 11px; /* Reduced from 12px */
+  font-size: 10px;
 }
 
 .feature-text {
   flex: 1;
-  font-size: 10px; /* Reduced from 11px */
-  color: #ffffff;
+  font-size: 9px;
+  color: #334155;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .feature-status {
-  font-size: 10px; /* Reduced from 11px */
-  min-width: 16px;
+  font-size: 10px;
+  min-width: 14px;
   text-align: center;
 }
 
 .unified-actions {
   display: flex;
-  gap: 6px; /* Reduced from 8px */
+  gap: 4px;
   justify-content: flex-start;
 }
 
 .unified-actions .cloudflare-btn {
-  padding: 4px 10px; /* Reduced from 6px 12px */
-  font-size: 10px; /* Reduced from 11px */
+  padding: 2px 8px;
+  font-size: 9px;
 }
 
 /* Responsive Design */
@@ -986,129 +1030,59 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   }
 }
 
-/* Modern Cloudflare Configuration Styles */
+/* ==============================================
+     THEME: SaaS Clean — Cloudflare Configuration
+     ============================================== */
 .cloudflare-config {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(239, 68, 68, 0.1) 100%);
-  border-left: 3px solid var(--c-warn);
-  border-radius: 4px; /* Reduced from 12px to match unified-cloudflare-control style if needed, or keep 12px */
-  padding: 10px;
-  margin: 0; 
-  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1);
-  transition: all 0.3s ease;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 6px 0;
 }
 
 .cloudflare-config:hover {
-  box-shadow: 0 8px 30px rgba(245, 158, 11, 0.2);
-  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .cloudflare-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .cloudflare-title {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 10px;
+  gap: 8px;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--c-warn);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  color: #f29136;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .cloudflare-icon {
-  width: 24px;
-  height: 24px;
-  background: var(--c-warn);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: white;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+  display: none;
 }
 
-/* Cloudflare Security Cards */
-.cloudflare-security {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+.cloudflare-content {
+  display: block;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #e2e8f0;
 }
 
-.security-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 16px;
-  transition: all 0.3s ease;
-}
-
-.security-card:hover {
-  border-color: var(--c-warn);
-  transform: translateY(-1px);
-}
-
-.security-card.core-security {
-  border-left: 4px solid var(--c-warn);
-}
-
-.security-card.bot-shield {
-  border-left: 4px solid var(--c-error);
-}
-
-.security-card.under-attack {
-  border-left: 4px solid var(--c-error);
-}
-
-.security-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.security-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.security-status {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 2px 6px;
-  border-radius: 3px;
-}
-
-.security-status.active {
-  background: var(--c-warn);
-  color: black;
-}
-
-.security-status.inactive {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-dim);
-}
-
-/* Cloudflare Toggle Switch */
+/* SaaS Toggle for Cloudflare */
 .cloudflare-toggle {
   position: relative;
   display: inline-block;
-  width: 50px;
-  height: 24px;
+  width: 36px;
+  height: 20px;
 }
 
 .cloudflare-toggle input {
@@ -1124,40 +1098,43 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 255, 255, 0.1);
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
   transition: 0.3s;
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .cloudflare-slider:before {
   position: absolute;
   content: "";
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: 0.3s;
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background: #ffffff;
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  transition: 0.3s;
 }
 
 .cloudflare-toggle input:checked + .cloudflare-slider {
-  background-color: var(--c-warn);
-  box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+  background: #6366f1;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.12);
 }
 
 .cloudflare-toggle input:checked + .cloudflare-slider:before {
-  transform: translateX(26px);
+  transform: translateX(16px);
+  background: #ffffff;
+  box-shadow: none;
 }
 
-/* Cloudflare Input Fields (Restored & Updated) */
+/* Cloudflare Fields */
 .cloudflare-fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .cloudflare-field {
@@ -1166,645 +1143,881 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
 
 .cloudflare-field label {
   display: block;
-  margin-bottom: 6px;
-  font-size: 11px;
+  margin-bottom: 4px;
+  font-size: 10px;
   font-weight: 600;
-  color: var(--text-dim);
+  color: #475569;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .cloudflare-field input,
 .cloudflare-field select {
   width: 100%;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
   border-radius: 6px;
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 13px;
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
   transition: all 0.2s ease;
 }
 
 .cloudflare-field input:focus,
 .cloudflare-field select:focus {
   outline: none;
-  border-color: var(--c-warn);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.1);
+  background: #ffffff;
 }
 
 .cloudflare-field input::placeholder {
-  color: #ffffff !important;
+  color: #94a3b8 !important;
   opacity: 1;
+}
+
+/* Action Buttons */
+.cloudflare-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.cloudflare-btn {
+  background: #6366f1;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: none;
+}
+
+.cloudflare-btn:hover {
+  background: #4f46e5;
+  box-shadow: 0 1px 3px rgba(99,102,241,0.3);
+}
+
+.cloudflare-btn.secondary {
+  background: #f1f5f9;
+  color: #475569;
+  box-shadow: none;
+}
+
+.cloudflare-btn.secondary:hover {
+  background: #e2e8f0;
+  color: #1e293b;
 }
 
 /* API Configuration Card */
 .api-config-card {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  margin: 16px 0;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.02);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 6px 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .api-config-card:hover {
-  border-color: var(--c-warn);
+  border-color: #cbd5e1;
 }
 
 .api-config-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  cursor: pointer;
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.3s ease;
-}
-
-.api-config-card.open .api-config-header {
-  border-bottom-color: var(--border);
+  padding: 0;
+  background: transparent;
+  border-bottom: none;
 }
 
 .api-config-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.api-config-title::after {
-  content: "▼";
-  font-size: 10px;
-  margin-left: 8px;
-  transition: transform 0.3s ease;
-  opacity: 0.7;
-}
-
-.api-config-card.open .api-config-title::after {
-  transform: rotate(180deg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .api-config-content {
-  display: none;
-  padding: 16px;
-  animation: slideDown 0.3s ease;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
 }
 
-.api-config-card.open .api-config-content {
-  display: block;
+.api-config-content .cloudflare-field {
+  width: 200px;
 }
 
 /* Turnstile Card */
+/* ===== TURNSTILE CARD — WIDE & SHORT ===== */
 .turnstile-card {
-  border-left: 5px solid var(--c-primary);
-  padding: 6px;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 8px 14px;
   margin: 6px 0;
-  transition: all 0.3s ease;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .turnstile-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0; /* Reduced from 12px since content is hidden by default */
   cursor: pointer;
+  padding: 2px 0;
 }
 
 .turnstile-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--c-primary);
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-/* Dropdown arrow for Turnstile */
-.turnstile-title::after {
-  content: "▼";
-  font-size: 10px;
-  margin-left: 8px;
-  transition: transform 0.3s ease;
-  opacity: 0.7;
-}
-
-/* Rotate arrow when open */
-.turnstile-card.open .turnstile-title::after {
-  transform: rotate(180deg);
+  gap: 6px;
+  letter-spacing: -0.01em;
 }
 
 .turnstile-content {
-  display: none;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(59, 130, 246, 0.2);
-  animation: slideDown 0.3s ease;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: none;
 }
 
 .turnstile-card.open .turnstile-content {
   display: block;
 }
 
-/* Action Buttons */
-.cloudflare-actions {
+/* --- Horizontal content row --- */
+.turnstile-body-row {
   display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-top: 16px;
+  gap: 10px;
+  align-items: flex-start;
+}
+.turnstile-body-row > * {
+  width: 480px;
+  min-width: 0;
 }
 
-.cloudflare-btn {
-  background: linear-gradient(135deg, var(--c-warn) 0%, var(--c-error) 100%);
-  border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
-  color: white;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
+/* --- Column sections inside row --- */
+.turnstile-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.turnstile-col-header {
+  font-size: 8px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+  margin-bottom: 2px;
 }
 
-.cloudflare-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+/* --- Scoped: compact fields inside turnstile card --- */
+.turnstile-card .cloudflare-field label {
+  margin-bottom: 1px;
+  font-size: 9px;
+}
+.turnstile-card .cloudflare-field input,
+.turnstile-card .cloudflare-field select {
+  padding: 2px 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 11px;
+}
+.turnstile-card .cloudflare-field input::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1;
 }
 
-.cloudflare-btn.secondary {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text);
-  box-shadow: none;
+/* --- Scoped: compact toggle inside turnstile card --- */
+.turnstile-card .cloudflare-toggle {
+  width: 32px;
+  height: 18px;
+}
+.turnstile-card .cloudflare-slider {
+  border-radius: 18px;
+}
+.turnstile-card .cloudflare-slider:before {
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+}
+.turnstile-card .cloudflare-toggle input:checked + .cloudflare-slider:before {
+  transform: translateX(14px);
 }
 
-.cloudflare-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
+/* --- Scoped: compact buttons & actions inside turnstile card --- */
+.turnstile-card .cloudflare-btn {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+.turnstile-card .cloudflare-btn.secondary {
+  border: none;
+}
+.turnstile-card .cloudflare-actions {
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: none;
 }
 
-/* Responsive Design */
+/* --- Widget box --- */
+.turnstile-widget-box {
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 0;
+  box-sizing: content-box;
+}
+.turnstile-widget-box .widget-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #6366f1;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.turnstile-widget-box .widget-inner {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  align-items: flex-end;
+}
+.turnstile-widget-box .widget-inner .cloudflare-field {
+  width: 180px;
+}
+.turnstile-widget-box .widget-inner .cloudflare-field select {
+  height: 32px;
+}
+.turnstile-widget-box .widget-inner .cloudflare-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+  height: fit-content;
+}
+
+/* === Responsive for turnstile === */
 @media (max-width: 768px) {
-  .cloudflare-security {
-    grid-template-columns: 1fr;
-  }
-  
-  .cloudflare-fields {
-    grid-template-columns: 1fr;
-  }
-  
-  .cloudflare-config {
-    padding: 20px;
-    margin: 16px 0;
-  }
-  
-  .cloudflare-header {
+  .turnstile-body-row {
     flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
   }
 }
 
-/* Modern App Security Configuration Styles */
+/* ==============================================
+     THEME: SaaS Clean (compact) — .app-security-config
+     ============================================== */
 .app-security-config {
-   padding: 5px; /* Reduced by ~70% from 24px */
-  margin: 2px 0; /* Reduced by ~70% from 24px */
-  margin-bottom: 0 !important;
-  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.1);
-  transition: all 0.3s ease;
-}
-
-.app-security-config:hover {
-  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.2);
-  transform: translateY(-2px);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .app-security-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px; /* Reduced by ~70% from 32px */
-  padding-bottom: 5px; /* Reduced by ~70% from 16px */
-  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .app-security-title {
   display: flex;
   align-items: center;
-  gap: 6px; /* Reduced */
-  font-size: 10px;
+  gap: 8px;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--c-primary);
+  color: #0f172a;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.3px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+.app-security-title::before {
+  content: "";
+  display: none;
+}
 
-
-/* App Security Features Grid */
+/* Features Grid */
 .app-security-features {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 5px; /* Reduced by ~70% from 16px */
-  margin-bottom: 10px; /* Reduced by ~70% from 32px */
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+@media (max-width: 700px) {
+  .app-security-features { grid-template-columns: 1fr; }
 }
 
 .app-security-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
   border-radius: 8px;
-  padding: 5px; /* Reduced by ~70% from 16px */
-  transition: all 0.3s ease;
+  transition: border-color 0.2s;
+  display: flex;
+  flex-direction: column;
 }
 
-.app-security-card:hover {
-  border-color: var(--c-primary);
-  transform: translateY(-1px);
-}
+.app-security-card:hover { border-color: #cbd5e1; }
 
 .app-security-card.bot-protection {
-  border-left: 4px solid var(--c-primary);
+  grid-column: 1 / -1;
+  border-left: 3px solid #8b5cf6;
+  border-radius: 8px;
 }
 
 .app-security-card.country-filter {
-  border-left: 4px solid var(--c-info);
+  grid-column: 1 / -1;
+  border-left: 3px solid #3b82f6;
+  border-radius: 8px;
 }
 
 .app-security-card.ip-whitelist {
-  border-left: 4px solid var(--c-success);
+  grid-column: 1 / -1;
+  border-left: 3px solid #10b981;
+  border-radius: 8px;
 }
 
-.app-security-card.vpn-block {
-  border-left: 4px solid var(--c-warn);
+.app-security-card.proxy-config {
+  grid-column: 1 / -1;
+  border-left: 3px solid #f59e0b;
+  border-radius: 8px;
 }
 
 .app-security-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px; /* Reduced */
+  padding: 6px 12px;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 7px 7px 0 0;
 }
 
 .app-security-card-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #1e293b;
   display: flex;
   align-items: center;
-  gap: 4px; /* Reduced */
+  gap: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.app-security-status {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 2px 6px;
-  border-radius: 3px;
-  color: #ffffff;
+.app-security-card-title::before {
+  content: "◆";
+  font-size: 8px;
+  color: #94a3b8;
 }
 
-.app-security-status.active {
-  background: var(--c-primary);
-  color: white;
+.tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: help;
 }
 
-.app-security-status.inactive {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-dim);
-}
-
-/* App Security Toggle Switch */
+/* Toggle Switch — SaaS style */
 .app-security-toggle {
   position: relative;
   display: inline-block;
-  width: 50px;
-  height: 24px;
+  width: 36px;
+  height: 20px;
+  cursor: pointer;
 }
 
-.app-security-toggle input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
+.app-security-toggle input { opacity: 0; width: 0; height: 0; }
 
 .app-security-slider {
   position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.1);
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
   transition: 0.3s;
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .app-security-slider:before {
-  position: absolute;
   content: "";
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: 0.3s;
+  position: absolute;
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background: #ffffff;
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  transition: 0.3s;
 }
 
 .app-security-toggle input:checked + .app-security-slider {
-  background-color: var(--c-primary);
-  box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+  background: #6366f1;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.12);
 }
 
 .app-security-toggle input:checked + .app-security-slider:before {
-  transform: translateX(26px);
+  background: #ffffff;
+  box-shadow: none;
+  transform: translateX(16px);
 }
 
-/* App Security Input Fields */
-.app-security-fields {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 5px; /* Reduced by ~70% from 16px */
-  margin-bottom: 6px; /* Reduced by ~70% from 20px */
+/* Status Text */
+.app-security-status {
+  padding: 6px 12px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #94a3b8;
+  border-bottom: 1px solid #e2e8f0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* Fields */
 .app-security-field {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
 }
 
 .app-security-field label {
-  display: block;
-  margin-bottom: 2px; /* Reduced by ~70% from 6px */
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  color: var(--text-dim);
+  color: #475569;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .app-security-field input,
-.app-security-field select {
+.app-security-field select,
+.app-security-field textarea {
   width: 100%;
-  padding: 4px 6px; /* Reduced by ~60-70% from 10px 12px */
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
   border-radius: 6px;
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  transition: all 0.2s ease;
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  transition: all 0.2s;
 }
 
 .app-security-field input:focus,
-.app-security-field select:focus {
+.app-security-field select:focus,
+.app-security-field textarea:focus {
   outline: none;
-  border-color: var(--c-primary);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.1);
+  background: #ffffff;
 }
 
-.app-security-field input::placeholder {
-  color: #ffffff !important;
-  opacity: 1;
-}
+.app-security-field input::placeholder { color: #94a3b8 !important; opacity: 1; }
 
-/* Country Selection */
-.app-country-selector {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.app-country-selector:hover {
-  border-color: var(--c-info);
-}
-
-.app-country-toggle {
-  width: 100%;
-  text-align: left;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: var(--text);
-  padding: 4px 6px; /* Reduced from 10px 12px */
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: var(--font-mono);
-  font-size: 13px;
-}
-
-.app-country-toggle:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--c-info);
-}
-
-.app-country-dropdown {
-  display: none;
-  max-height: 200px;
-  overflow-y: auto;
-  background: var(--bg-2);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.app-country-dropdown select {
-  width: 100%;
-  background: transparent;
-  border: none;
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  padding: 4px; /* Reduced from 8px */
-}
-
-.app-country-dropdown select option {
-  padding: 2px 4px; /* Reduced from 4px 8px */
-  transition: background 0.2s ease;
-}
-
-.app-country-dropdown select option:hover {
-  background: rgba(59, 130, 246, 0.2);
-}
-
-/* ProxyCheck Details */
-.app-proxycheck-details {
-  margin-top: 5px; /* Reduced from 16px */
-  padding: 5px; /* Reduced from 16px */
-  background: rgba(245, 158, 11, 0.05);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  border-radius: 6px;
-  animation: slideDown 0.3s ease;
-}
+/* Proxycheck Grid */
+.app-proxycheck-details { padding: 8px 12px; }
 
 .app-proxycheck-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 4px; /* Reduced from 12px */
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
 }
 
 .app-proxycheck-item {
   display: flex;
   align-items: center;
-  gap: 4px; /* Reduced from 8px */
-  padding: 4px; /* Reduced from 8px */
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.app-proxycheck-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  gap: 6px;
 }
 
 .app-proxycheck-item input[type="checkbox"] {
-  margin: 0;
-  accent-color: var(--c-warn);
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.app-proxycheck-item input[type="checkbox"]:checked {
+  background: #6366f1;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.12);
+}
+
+.app-proxycheck-item input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: bold;
 }
 
 .app-proxycheck-item label {
-  font-size: 11px;
-  color: var(--text);
-  margin: 0;
+  font-size: 10px;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
   cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .app-security-features {
-    grid-template-columns: 1fr;
-  }
-  
-  .app-security-fields {
-    grid-template-columns: 1fr;
-  }
-  
-  .app-security-config {
-    padding: 10px; /* Reduced */
-    margin: 8px 0; /* Reduced */
-  }
-  
-  .app-security-header {
-    flex-direction: column;
-    gap: 5px; /* Reduced */
-    align-items: flex-start;
-  }
-  
-  .app-proxycheck-grid {
-    grid-template-columns: 1fr;
-  }
+/* Country Selector */
+.app-country-selector { padding: 8px 12px; }
+
+.app-country-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 6px 10px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #334155;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 10px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: all 0.2s;
 }
-/* Link Configuration Styles */
+
+.app-country-toggle:hover {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.08);
+}
+
+.app-country-dropdown { margin-top: 4px; }
+
+#allowedCountries {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 10px;
+}
+
+#allowedCountries option { padding: 4px 8px; }
+#allowedCountries option:checked { background: #eef2ff; color: #4338ca; }
+
+/* IP Whitelist */
+.app-security-card.ip-whitelist .app-security-field {
+  padding: 8px 12px;
+}
+
+.app-security-card.ip-whitelist input {
+  font-size: 12px;
+  padding: 8px 12px;
+}
+
+/* Proxy settings inside card */
+#proxy-settings .app-security-field {
+  padding: 8px 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app-security-features { grid-template-columns: 1fr; }
+  .app-security-config { padding: 14px 16px; }
+  .app-proxycheck-grid { grid-template-columns: 1fr; }
+}
+
+/* Collapse */
+.app-security-header {
+  cursor: pointer;
+  user-select: none;
+}
+.app-security-header .collapse-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  color: #64748b;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+.app-security-config.collapsed .app-security-header .collapse-icon {
+  transform: rotate(-90deg);
+}
+.app-security-body {
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.25s ease, margin 0.3s ease;
+  max-height: 2000px;
+  opacity: 1;
+}
+.app-security-config.collapsed .app-security-body {
+  max-height: 0 !important;
+  opacity: 0;
+  margin-top: 0;
+}
+/* ==============================================
+     THEME: SaaS Clean (compact) — .link-config
+     ============================================== */
 .link-config {
-  border-radius: 12px;
-  margin:  0;
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .link-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
-  padding-bottom: 6px;
-
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .link-title {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 10px;
+  gap: 8px;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--c-info);
+  color: #0f172a;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.3px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.link-icon {
-  width: 24px;
-  height: 24px;
-  background: var(--c-info);
-  border-radius: 50%;
+.link-title::before {
+  content: "";
+  display: none;
+}
+
+.link-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #64748b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.link-status-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: #22c55e;
+  box-shadow: none;
+}
+
+.link-terminal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 800px) {
+  .link-terminal-grid { grid-template-columns: 1fr; }
+}
+
+.link-terminal-pane {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.link-pane-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: white;
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 10px;
+  font-weight: 700;
+  color: #475569;
+  border-radius: 7px 7px 0 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.link-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+.link-pane-header::before {
+  content: "◆";
+  font-size: 8px;
+  color: #94a3b8;
 }
+
+.link-pane-body { padding: 10px 12px; }
 
 .link-field {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.link-field + .link-field {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
 }
 
 .link-field label {
-  display: flex;
-  margin-bottom: 8px;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
-  color: #fff;
+  color: #475569;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.link-field input, .link-field select {
+.link-field input,
+.link-field select {
   width: 100%;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 14px;
-  transition: all 0.2s ease;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #0f172a;
+  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: all 0.2s;
 }
 
-.link-field input:focus, .link-field select:focus {
+.link-field input:focus,
+.link-field select:focus {
   outline: none;
-  border-color: var(--c-info);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.1);
+  background: #ffffff;
 }
 
 .link-field input::placeholder {
-  color: #ffffff !important;
+  color: #94a3b8 !important;
   opacity: 1;
 }
 
-/* Specific overrides for upload button inside link config if needed */
 .link-field button {
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 8px 16px;
+  background: #6366f1;
   border: none;
-  background: var(--c-info);
-  color: white;
-  font-weight: 600;
+  color: #ffffff;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
   cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   transition: all 0.2s;
 }
+
 .link-field button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  background: #4f46e5;
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(99,102,241,0.3);
+}
+
+.link-config select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  appearance: none;
+}
+
+/* Collapse for link-config */
+.link-config .link-header {
+  cursor: pointer;
+  user-select: none;
+}
+.link-config .link-header .collapse-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  color: #64748b;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+.link-config.collapsed .link-header .collapse-icon {
+  transform: rotate(-90deg);
+}
+.link-config-body {
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.25s ease, margin 0.3s ease;
+  max-height: 2000px;
+  opacity: 1;
+}
+.link-config.collapsed .link-config-body {
+  max-height: 0 !important;
+  opacity: 0;
+  margin-top: 0;
+}
+
+/* Collapse for cloudflare-config */
+.cloudflare-config .cloudflare-header {
+  cursor: pointer;
+  user-select: none;
+}
+.cloudflare-config .cloudflare-header .collapse-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  color: #64748b;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+.cloudflare-config.collapsed .cloudflare-header .collapse-icon {
+  transform: rotate(-90deg);
+}
+.cloudflare-config-body {
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.25s ease, margin 0.3s ease;
+  max-height: 2000px;
+  opacity: 1;
+}
+.cloudflare-config.collapsed .cloudflare-config-body {
+  max-height: 0 !important;
+  opacity: 0;
+  margin-top: 0;
 }
 
 /* Modern Results Container */
@@ -1839,6 +2052,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   </div>
   <div class="container">
     <div class="main">
+    <div class="dashboard-layout">
       <div class="modern-analysis-sidebar" style="margin-bottom: 0;">
 
         <div class="analysis-box-compact box-info">
@@ -1857,25 +2071,25 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
           <div class="analysis-value" id="stat-total-cookies">0</div>
           <div class="analysis-label">Cookies</div>
         </div>
+    </div>  <!-- close modern-analysis-sidebar -->
+    <div class="modern-nav-container">
+      <div class="modern-nav-tabs">
+        <button class="modern-tab-btn active" data-tab="tab-general">
+          <span class="tab-icon">🏠</span>
+          <span class="tab-label">General</span>
+        </button>
+        <button class="modern-tab-btn" data-tab="tab-security">
+          <span class="tab-icon">🛡️</span>
+          <span class="tab-label">Security</span>
+        </button>
+        <button class="modern-tab-btn" data-tab="tab-submissions">
+          <span class="tab-icon">📥</span>
+          <span class="tab-label">Results</span>
+        </button>
       </div>
-  <div id="section-settings">
-  <div class="modern-nav-container">
-    <div class="modern-nav-tabs">
-      <button class="modern-tab-btn active" data-tab="tab-general">
-        <span class="tab-icon">🏠</span>
-        <span class="tab-label">General</span>
-      </button>
-      <button class="modern-tab-btn" data-tab="tab-security">
-        <span class="tab-icon">🛡️</span>
-        <span class="tab-label">Security</span>
-      </button>
-      <button class="modern-tab-btn" data-tab="tab-submissions">
-        <span class="tab-icon">📥</span>
-        <span class="tab-label">Results</span>
-      </button>
-
     </div>
-  </div>
+  </div>  <!-- close dashboard-layout -->
+  <div id="section-settings">
 
   <!-- Moved Results Section -->
   <div id="results-container" class="modern-results-container" style="display:none;">
@@ -1912,80 +2126,216 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
         <!-- Main content sections will go here -->
     <div class="settings-content-wrapper">
       <div id="tab-general" class="tab-content active">
-      <div id="deployment-links-container" style="display:none; margin-bottom: 4px;   background: rgba(59, 130, 246, 0.05);">
-          <h3 style="margin-bottom:2px; color:white; text-transform:uppercase; font-size:19px; letter-spacing:1px;">Your Links</h3>
-          <div id="deployment-links-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      <div style="display:flex; gap:12px; align-items:center; margin-bottom:4px;">
+      <div id="deployment-links-container" style="display:none; background: rgba(59, 130, 246, 0.05); flex:1; padding:4px 8px;">
+          <h3 style="margin:0; color:white; text-transform:uppercase; font-size:11px; letter-spacing:1px;">Your Links</h3>
+          <div id="deployment-links-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
       </div>
 
-      <div class="status-indicators" style="margin-bottom: 6px;">
-        <h3 style="margin-bottom:10px; color:var(--text); text-transform:uppercase; font-size:14px; letter-spacing:1px;">Connection Status</h3>
-        <div style="display: flex; gap: 20px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
+      <div class="status-indicators" style="white-space:nowrap;">
+        <h3 style="margin:0 0 4px 0; color:var(--text); text-transform:uppercase; font-size:11px; letter-spacing:1px;">Connection Status</h3>
+        <div style="display: flex; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
             <span id="cloudflareStatusDot" class="status-dot"></span>
-            <span style="font-size: 12px; color: var(--text-dim);">Cloudflare</span>
+            <span style="font-size: 11px; color: var(--text-dim);">Cloudflare</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
             <span id="proxycheckStatusDot" class="status-dot"></span>
-            <span style="font-size: 12px; color: var(--text-dim);">Bot Protection</span>
+            <span style="font-size: 11px; color: var(--text-dim);">Bot Protection</span>
           </div>
         </div>
       </div>
+      </div>
 
-      <!-- Modern Link Configuration -->
-      <div class="link-config">
-        <div class="link-header">
+      <!-- Terminal Link Configuration -->
+      <div class="link-config collapsed">
+        <div class="link-header" onclick="toggleLinkConfig()">
           <div class="link-title">
+            <span class="collapse-icon">▼</span>
+            Page Configuration
+          </div>
+          <span class="link-status-badge">Active</span>
+        </div>
 
+        <div class="link-config-body">
+        <div class="link-terminal-grid">
+
+          <!-- Pane 1: Page Template -->
+          <div class="link-terminal-pane">
+            <div class="link-pane-header">Template Settings</div>
+            <div class="link-pane-body">
+
+              <div class="link-field">
+                <label for="template">Page Template</label>
+                <select id="template">
+                  <option value="microsoft">Microsoft (Default)</option>
+                  <option value="adobe">Adobe</option>
+                  <option value="onedrive">OneDrive</option>
+                  <option value="teams_audio">Teams Audio</option>
+                  <option value="docusign">DocuSign</option>
+                  <option value="upload">Upload (Custom Background)</option>
+                  <option value="helper">Microsoft Device Flow (Helper)</option>
+                </select>
+              </div>
+
+              <div class="link-field" id="adminUploadGroup" style="display:none">
+                <label>Upload Background Image</label>
+                <form id="uploadForm" style="display:flex;gap:10px;align-items:center">
+                  <input type="file" name="image" accept="image/png,image/jpeg,image/jpg,image/webp" required style="flex:1;padding:8px 10px;border:1px solid var(--border);background:var(--bg-2);color:var(--accent);font-family:var(--font-mono);font-size:12px;">
+                  <button type="submit" id="uploadBtn">Upload</button>
+                </form>
+                <details style="margin-top:8px;cursor:pointer">
+                  <summary style="color:var(--accent-2);font-size:10px;text-transform:uppercase;letter-spacing:1px;outline:none">View Active Background</summary>
+                  <div class="preview" style="margin-top:8px;border:1px solid var(--border);padding:4px">
+                    <img id="uploadPreview" src="" alt="Current background" style="max-width:100%;display:block">
+                  </div>
+                </details>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Pane 2: Redirect -->
+          <div class="link-terminal-pane">
+            <div class="link-pane-header">Redirect Configuration</div>
+            <div class="link-pane-body">
+
+              <div class="link-field">
+                <label for="redirectType">Post-Login Redirect</label>
+                <select id="redirectType">
+                  <option value="custom">Custom URL...</option>
+                  <option value="error_page">Error Page (Microsoft)</option>
+                </select>
+              </div>
+
+              <div class="link-field" id="redirectUrlGroup">
+                <label for="redirectUrl">Custom URL</label>
+                <input id="redirectUrl" type="url" placeholder="https://example.com" style="display:none;border:1px solid rgba(0,255,65,0.3);box-shadow:0 0 10px rgba(0,255,65,0.05)">
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>  <!-- /link-config-body -->
+      </div>  <!-- /link-config -->
+
+      <!-- Terminal App Security Configuration -->
+      <div class="app-security-config collapsed">
+        <div class="app-security-header" onclick="toggleAppSecurity()">
+          <div class="app-security-title">
+            <span class="collapse-icon">▼</span>
+            Link Bot Settings
+          </div>
+          <span class="link-status-badge">Active</span>
+        </div>
+        <div class="app-security-body">
+        <div class="app-security-features">
+          <div class="app-security-card bot-protection">
+            <div class="app-security-card-header">
+              <div class="app-security-card-title">
+                Bot Protection
+                <span class="tooltip-icon" title="Comprehensive protection: Blocks Bots, Crawlers, VPNs, Proxies, and Tor nodes.">?</span>
+              </div>
+              <label class="app-security-toggle">
+                <input id="securityEnabled" type="checkbox">
+                <span class="app-security-slider"></span>
+              </label>
+            </div>
+            <div class="app-security-status" id="securityStatusText">OFFLINE</div>
+            <div id="proxycheck-details" class="app-proxycheck-details" style="display:none">
+              <div class="app-proxycheck-grid">
+                <div class="app-proxycheck-item">
+                  <input id="proxycheckBlockVPN" type="checkbox">
+                  <label for="proxycheckBlockVPN">Block VPN</label>
+                </div>
+                <div class="app-proxycheck-item">
+                  <input id="proxycheckBlockProxy" type="checkbox">
+                  <label for="proxycheckBlockProxy">Block Proxy</label>
+                </div>
+                <div class="app-proxycheck-item">
+                  <input id="proxycheckBlockTor" type="checkbox">
+                  <label for="proxycheckBlockTor">Block Tor</label>
+                </div>
+              </div>
+              <div class="app-proxycheck-settings" style="margin-top:12px;display:grid;grid-template-columns:1fr;gap:12px;padding:0 12px 12px 12px;">
+                <div class="app-security-field" style="padding:0">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+                    <label for="proxycheckApiKey" style="font-size:10px;color:#fff;margin:0;">API Key</label>
+                    <a href="https://proxycheck.io/" target="_blank" rel="noopener noreferrer" style="font-size:10px;color:var(--c-info);text-decoration:underline;">Buy 5$ antibot key here</a>
+                  </div>
+                  <input id="proxycheckApiKey" type="password" placeholder="Optional">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="app-security-card country-filter">
+            <div class="app-security-card-header">
+              <div class="app-security-card-title">
+                Country Block (APP)
+                <span class="tooltip-icon" title="Applies before serving pages. Uses Cloudflare CF-IPCountry when available.">?</span>
+              </div>
+              <label class="app-security-toggle">
+                <input id="countryBlockingEnabled" type="checkbox">
+                <span class="app-security-slider"></span>
+              </label>
+            </div>
+            <div class="app-country-selector">
+              <button type="button" id="allowedCountriesToggle" class="app-country-toggle">
+                <span>Select Countries (0 selected)</span>
+                <span>▼</span>
+              </button>
+              <div class="app-country-dropdown">
+                <select id="allowedCountries" multiple size="3"></select>
+              </div>
+            </div>
+          </div>
+          <div class="app-security-card ip-whitelist">
+            <div class="app-security-card-header">
+              <div class="app-security-card-title">IP Whitelist</div>
+            </div>
+            <div class="app-security-field">
+              <label for="ipWhitelist">Allowed IP Addresses</label>
+              <input id="ipWhitelist" type="text" placeholder="1.2.3.4, 10.0.0.1">
+            </div>
+          </div>
+          <div class="app-security-card proxy-config">
+            <div class="app-security-card-header">
+              <div class="app-security-card-title">
+                Proxy Configuration
+                <span class="tooltip-icon" title="Route traffic through an external proxy server">?</span>
+              </div>
+              <label class="app-security-toggle">
+                <input id="proxyEnabled" type="checkbox">
+                <span class="app-security-slider"></span>
+              </label>
+            </div>
+            <div class="app-security-status" id="proxyStatusText">OFFLINE</div>
+            <div id="proxy-settings" style="display:none">
+              <div class="app-security-field">
+                <label for="proxyUrl">Proxy URL</label>
+                <input id="proxyUrl" type="text" placeholder="protocol://user:pass@host:port">
+              </div>
+            </div>
           </div>
         </div>
-        
-        <div class="link-grid">
-            <div class="link-field">
-              <label for="template">Page Template</label>
-              <select id="template">
-                <option value="microsoft">Microsoft (Default)</option>
-                <option value="adobe">Adobe</option>
-                <option value="onedrive">OneDrive</option>
-                <option value="teams_audio">Teams Audio</option>
-                <option value="docusign">DocuSign</option>
-                <option value="upload">Upload (Custom Background)</option>
-                <option value="helper">Microsoft Device Flow (Helper)</option>
-              </select>
-            </div>
-            
-            <div class="link-field" id="adminUploadGroup" style="display:none">
-              <label>Upload Background Image</label>
-              <form id="uploadForm" style="display:flex;gap:12px;align-items:center">
-                <input type="file" name="image" accept="image/png,image/jpeg,image/jpg,image/webp" required style="flex:1;padding:12px;border:1px solid var(--border);background:var(--bg-1);color:var(--accent);font-family:var(--font-mono);font-size:13px;">
-                <button type="submit" id="uploadBtn">Upload</button>
-              </form>
-              <details style="margin-top:8px; cursor:pointer">
-                <summary style="color:var(--c-info); font-size:11px; text-transform:uppercase; outline:none">View Active Background</summary>
-                <div class="preview" style="margin-top:8px">
-                  <img id="uploadPreview" src="" alt="Current background" style="max-width:100%; border:1px solid var(--c-info); display:block">
-                </div>
-              </details>
-            </div>
-
-            <div class="link-field">
-              <label for="redirectType">Post-Login Redirect</label>
-              <select id="redirectType">
-                <option value="custom">Custom URL...</option>
-                <option value="error_page">Error Page (Microsoft)</option>
-              </select>
-            </div>
-            
-             <div class="link-field" id="redirectUrlGroup">
-              <input id="redirectUrl" type="url" placeholder="https://example.com" style="display: none; border: 1px solid rgba(59, 130, 246, 0.5); box-shadow: 0 0 15px rgba(59, 130, 246, 0.1); transition: all 0.3s ease;">
-            </div>
+        <!-- Hidden fields -->
+        <div style="display:none">
+          <label for="blockedDomains">Blocked Email Domains</label>
+          <textarea id="blockedDomains" placeholder="gmail.com, yahoo.com"></textarea>
         </div>
-      </div>
+        <div style="display:none">
+          <label for="allowedDomains">Allowed Email Domains</label>
+          <textarea id="allowedDomains" placeholder="mycompany.com"></textarea>
+        </div>
+      </div>  <!-- /app-security-body -->
+      </div>  <!-- /app-security-config -->
       <!-- Modern Telegram Configuration -->
       <div class="telegram-config">
         <div class="telegram-header">
           <div class="telegram-title">
             
-            Telegram Notifications
+           🧮 Telegram Notifications 🧮
           </div>
           <label class="telegram-toggle">
             <input id="telemetryEnabled" type="checkbox">
@@ -2017,23 +2367,23 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
             <span id="telegramTestStatus" style="font-size: 11px; font-weight: 600; text-transform: uppercase;"></span>
           </div>
         </div>
-      <!-- Modern Cloudflare Configuration moved to tab-security -->
       </div>
-    </div>
-    <div id="tab-security" class="tab-content">
       <!-- Modern Cloudflare Configuration -->
-      <div class="cloudflare-config">
-        <div class="cloudflare-header">
+      <div class="cloudflare-config collapsed">
+        <div class="cloudflare-header" onclick="toggleCloudflareConfig()">
           <div class="cloudflare-title">
+            <span class="collapse-icon">▼</span>
             <div class="cloudflare-icon">☁️</div>
-            Cloudflare
+            CLOUDFLARE ☁️
           </div>
         </div>
+      <div class="cloudflare-config-body">
+      <div class="cloudflare-content">
       <!-- Unified Cloudflare Control -->
       <div class="unified-cloudflare-control">
         <div class="unified-header">
           <div class="unified-title">
-            ☁️ Cloudflare Security 
+            ☁️ Security 
             <span class="tooltip-icon" title="Enable/disable all Cloudflare security features with one button">?</span>
           </div>
           <label class="cloudflare-toggle unified-toggle">
@@ -2041,24 +2391,33 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
             <span class="cloudflare-slider"></span>
           </label>
         </div>
-        <div class="unified-status" id="cfMasterStatusText">OFFLINE</div>
-        
-        <div class="unified-features" style="display:flex; flex-direction:row; gap:16px; flex-wrap:wrap;">
-          <div class="feature-item" style="display:flex; justify-content:space-between; flex:1; min-width:200px;">
+        <div class="unified-status-actions">
+          <div class="unified-status" id="cfMasterStatusText">OFFLINE</div>
+          <div class="unified-actions">
+            <button type="button" class="cloudflare-btn secondary" id="syncCloudflareBtn">Sync</button>
+          </div>
+        </div>
+        <div style="display:none">
+          <input type="checkbox" id="cfSecurityEnabled">
+          <input type="checkbox" id="cfBotShield">
+          <input type="checkbox" id="cfUnderAttack">
+        </div>
+        <div class="unified-features">
+          <div class="feature-item" style="display:flex; justify-content:space-between; flex:1;">
             <div style="display:flex; gap:8px;">
               <span class="feature-icon">🔒</span>
               <span class="feature-text">SSL/HTTPS</span>
             </div>
             <span class="feature-status" id="cfSecurityStatus">❌</span>
           </div>
-          <div class="feature-item" style="display:flex; justify-content:space-between; flex:1; min-width:200px;">
+          <div class="feature-item" style="display:flex; justify-content:space-between; flex:1;">
             <div style="display:flex; gap:8px;">
               <span class="feature-icon">🛡️</span>
               <span class="feature-text">Bot Shield</span>
             </div>
             <span class="feature-status" id="cfBotShieldStatus">❌</span>
           </div>
-          <div class="feature-item" style="display:flex; justify-content:space-between; flex:1; min-width:200px;">
+          <div class="feature-item" style="display:flex; justify-content:space-between; flex:1;">
             <div style="display:flex; gap:8px;">
               <span class="feature-icon">⚡</span>
               <span class="feature-text">Under Attack</span>
@@ -2066,20 +2425,12 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
             <span class="feature-status" id="cfUnderAttackStatus">❌</span>
           </div>
         </div>
-        
-        <div class="unified-actions">
-          <button type="button" class="cloudflare-btn secondary" id="syncCloudflareBtn">Sync Status</button>
-        </div>
-        <div style="display:none">
-          <input type="checkbox" id="cfSecurityEnabled">
-          <input type="checkbox" id="cfBotShield">
-          <input type="checkbox" id="cfUnderAttack">
-        </div>
+      </div>
       </div>
         
         <!-- Turnstile Configuration -->
         <div class="turnstile-card" id="turnstileCard">
-          <div class="turnstile-header" onclick="toggleTurnstileCard()">
+          <div class="turnstile-header">
             <div class="turnstile-title">
               🎫 Turnstile Gate
             </div>
@@ -2089,62 +2440,59 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
             </label>
           </div>
           <div class="turnstile-content">
-            <div class="cloudflare-fields">
-              <div class="cloudflare-field">
-                <label for="cfSiteKey">Turnstile Site Key</label>
-                <input id="cfSiteKey" type="text" placeholder="0x4AAAA...">
-              </div>
-              <div class="cloudflare-field">
-                <label for="cfSecretKey">Turnstile Secret Key</label>
-                <input id="cfSecretKey" type="password" placeholder="0x4AAAA...">
-              </div>
-              
-              <!-- Turnstile Visibility Toggle -->
-              <div class="cloudflare-field" style="flex-direction: row; align-items: center; justify-content: space-between; margin-top: 10px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 4px;">
-                <label for="cfTurnstileInvisible" style="margin:0; font-size: 11px; cursor:pointer;">
-                    <span style="font-weight:600; color:var(--text);">Invisible Mode</span>
-                    <div class="muted" style="font-size:10px; font-weight:400; margin-top:2px;">Hide the challenge page completely (Blank Screen)</div>
-                </label>
-                <label class="cloudflare-toggle">
-                  <input id="cfTurnstileInvisible" type="checkbox">
-                  <span class="cloudflare-slider"></span>
-                </label>
+
+            <div class="turnstile-body-row">
+
+              <!-- COL 1: Credentials -->
+              <div class="turnstile-col">
+                <div class="turnstile-col-header">Credentials</div>
+                <div class="cloudflare-field">
+                  <label for="cfSiteKey">Site Key</label>
+                  <input id="cfSiteKey" type="text" placeholder="0x4AAAA...">
+                </div>
+                <div class="cloudflare-field">
+                  <label for="cfSecretKey">Secret Key</label>
+                  <input id="cfSecretKey" type="password" placeholder="0x4AAAA...">
+                </div>
               </div>
 
-              <!-- Create Widget Tool -->
-              <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                  <div style="font-size: 12px; font-weight: 600; color: var(--c-primary); margin-bottom: 8px;">✨ Auto-Create Widget</div>
-                  <div class="cloudflare-fields">
-                      <div class="cloudflare-field">
-                          <label for="cfWidgetDomain">Domains (Hosts)</label>
-                          <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">Hold Ctrl/Cmd to select multiple domains</div>
-                          <select id="cfWidgetDomain" multiple style="width:100%; height: 100px; padding: 4px;">
-                              <option value="">Select domains...</option>
-                          </select>
-                      </div>
-                      <div class="cloudflare-field">
-                          <label for="cfWidgetMode">Widget Mode</label>
-                          <select id="cfWidgetMode" style="width:100%">
-                              <option value="invisible" selected>Invisible (Recommended)</option>
-                              <option value="managed">Managed (Checkbox)</option>
-                              <option value="non-interactive">Non-interactive</option>
-                          </select>
-                      </div>
-                      <button type="button" class="cloudflare-btn" id="createWidgetBtn" style="width:100%">Create & Auto-Fill</button>
+              <!-- COL 2: Auto-Create Widget -->
+              <div class="turnstile-col">
+                <div class="turnstile-widget-box">
+                  <div class="widget-title">✨ Auto-Create Widget</div>
+                  <div class="widget-inner">
+                    <div class="cloudflare-field">
+                      <label for="cfWidgetDomain">Domains</label>
+                      <select id="cfWidgetDomain" multiple style="width:100%; font-size:10px;">
+                        <option value="">Select domains...</option>
+                      </select>
+                    </div>
+                    <div class="cloudflare-field" style="width:180px">
+                      <label for="cfWidgetMode">Mode</label>
+                      <select id="cfWidgetMode" style="width:100%">
+                        <option value="invisible" selected>Invisible</option>
+                        <option value="managed">Checkbox</option>
+                        <option value="non-interactive">Non-int.</option>
+                      </select>
+                    </div>
+                    <button type="button" class="cloudflare-btn" id="createWidgetBtn">Create</button>
                   </div>
+                </div>
               </div>
 
             </div>
+
             <div class="cloudflare-actions">
               <button type="button" class="cloudflare-btn secondary" id="validateTurnstileBtn">Check Config</button>
               <span id="validateTurnstileStatus" class="muted"></span>
             </div>
+
           </div>
         </div>
         
         <!-- API Config (Dropdown) -->
         <div class="api-config-card" id="apiConfigCard">
-          <div class="api-config-header" onclick="toggleApiConfigCard()">
+          <div class="api-config-header">
             <div class="api-config-title">
               🔑 Cloudflare API Configuration
             </div>
@@ -2188,124 +2536,8 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
           </div>
         </div>
       </div>
-
-      <!-- Modern App Security Configuration -->
-      <div class="app-security-config">
-        <div class="app-security-header">
-          <div class="app-security-title">
-            Link Bot Settings
-          </div>
-        </div>
-        
-        <!-- App Security Features -->
-        <div class="app-security-features">
-          <div class="app-security-card bot-protection">
-            <div class="app-security-card-header">
-              <div class="app-security-card-title">
-                BOT PROTECTION
-                <span class="tooltip-icon" title="Comprehensive protection: Blocks Bots, Crawlers, VPNs, Proxies, and Tor nodes.">?</span>
-              </div>
-              <label class="app-security-toggle">
-                <input id="securityEnabled" type="checkbox">
-                <span class="app-security-slider"></span>
-              </label>
-            </div>
-            <div class="app-security-status" id="securityStatusText">OFFLINE</div>
-
-            <!-- Merged VPN/Proxy/Tor Controls -->
-            <div id="proxycheck-details" class="app-proxycheck-details" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); background: transparent;">
-                <div class="app-proxycheck-grid">
-                  <div class="app-proxycheck-item">
-                    <input id="proxycheckBlockVPN" type="checkbox">
-                    <label for="proxycheckBlockVPN">Block VPN</label>
-                  </div>
-                  <div class="app-proxycheck-item">
-                    <input id="proxycheckBlockProxy" type="checkbox">
-                    <label for="proxycheckBlockProxy">Block Proxy</label>
-                  </div>
-                  <div class="app-proxycheck-item">
-                    <input id="proxycheckBlockTor" type="checkbox">
-                    <label for="proxycheckBlockTor">Block Tor</label>
-                  </div>
-                </div>
-                <div class="app-proxycheck-settings" style="margin-top: 12px; display: grid; grid-template-columns: 1fr; gap: 12px; padding: 0 12px 12px 12px;">
-                  <div class="app-security-field">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                      <label for="proxycheckApiKey" style="font-size: 10px; color: #fff; margin:0;">API Key</label>
-                      <a href="https://proxycheck.io/" target="_blank" rel="noopener noreferrer" style="font-size: 10px; color: var(--c-info); text-decoration: underline;">
-                        Buy 5$ antibot key here
-                      </a>
-                    </div>
-                    <input id="proxycheckApiKey" type="password" placeholder="Optional" style="font-size: 11px; padding: 4px 8px; width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text);">
-                  </div>
-                </div>
-            </div>
-          </div>
-          <div class="app-security-card country-filter">
-            <div class="app-security-card-header">
-              <div class="app-security-card-title">
-                🌍 Country Block (APP)
-                <span class="tooltip-icon" title="Applies before serving pages. Uses Cloudflare CF-IPCountry when available.">?</span>
-              </div>
-              <label class="app-security-toggle">
-                <input id="countryBlockingEnabled" type="checkbox">
-                <span class="app-security-slider"></span>
-              </label>
-            </div>
-            <div class="app-country-selector">
-              <button type="button" id="allowedCountriesToggle" class="app-country-toggle">
-                 <span>Select Countries (0 selected)</span>
-                 <span>▼</span>
-              </button>
-              <div class="app-country-dropdown">
-                <select id="allowedCountries" multiple size="8"></select>
-              </div>
-            </div>
-          </div>
-          <div class="app-security-card ip-whitelist">
-            <div class="app-security-card-header">
-              <div class="app-security-card-title">
-                📋 IP Whitelist
-              </div>
-            </div>
-            <div class="app-security-field">
-              <label for="ipWhitelist">Allowed IP Addresses</label>
-              <input id="ipWhitelist" type="text" placeholder="1.2.3.4, 10.0.0.1">
-            </div>
-          </div>
-        <div class="form-group" style="display:none">
-          <label for="blockedDomains">Blocked Email Domains <span class="tooltip-icon" title="Comma-separated domains to block, e.g. gmail.com, outlook.com. These will show an error message.">?</span></label>
-          <textarea id="blockedDomains" placeholder="gmail.com, yahoo.com" style="width:100%;min-height:80px;padding:12px;border:1px solid var(--border);background:var(--bg-1);color:var(--accent);font-family:var(--font-mono);"></textarea>
-        </div>
-        <div class="form-group" style="display:none">
-          <label for="allowedDomains">Allowed Email Domains <span class="tooltip-icon" title="If set, only these domains can access. Comma-separated, e.g. mycompany.com.">?</span></label>
-          <textarea id="allowedDomains" placeholder="mycompany.com" style="width:100%;min-height:80px;padding:12px;border:1px solid var(--border);background:var(--bg-1);color:var(--accent);font-family:var(--font-mono);"></textarea>
-        </div>
-
-        </div>
-
-          <div class="app-security-card proxy-config">
-            <div class="app-security-card-header">
-              <div class="app-security-card-title">
-                🌐 Proxy Configuration
-                <span class="tooltip-icon" title="Route traffic through an external proxy server">?</span>
-              </div>
-              <label class="app-security-toggle">
-                <input id="proxyEnabled" type="checkbox">
-                <span class="app-security-slider"></span>
-              </label>
-            </div>
-            <div class="app-security-status" id="proxyStatusText" style="margin-bottom: 4px;">OFFLINE</div>
-            
-            <div id="proxy-settings" style="display:none; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-              <div class="app-security-field">
-                <label for="proxyUrl">Proxy URL</label>
-                <input id="proxyUrl" type="text" placeholder="protocol://user:pass@host:port" style="font-size: 11px; padding: 6px;">
-              </div>
-            </div>
-          </div>
-      </div>
-      
+      </div>  <!-- /cloudflare-config-body -->
+    </div>  <!-- /cloudflare-config -->
       <div id="tab-analytics" class="tab-content">
         <div class="modern-analysis-sidebar" style="background: rgba(0,0,0,0.2); border: 1px solid var(--border);">
           <div class="analysis-sidebar-header">
@@ -2327,12 +2559,12 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   </div>
   
   <!-- Actions Row - Global placement -->
-  <div class="actions-row" style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border);">
+  <div class="actions-row" style="margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--border);">
     <button class="primary" id="saveServer">Save To Server</button>
   </div>
     
   <!-- Status - Global placement -->
-  <div class="status" id="status" style="margin-top: 16px; min-height: 20px;"></div>
+  <div class="status" id="status" style="margin-top: 8px; min-height: 16px;"></div>
 
   </div>
   </div>
@@ -2374,7 +2606,6 @@ const els={
   cfSecurityEnabled:document.getElementById("cfSecurityEnabled"),
   cfBotShield:document.getElementById("cfBotShield"),
   cfUnderAttack:document.getElementById("cfUnderAttack"),
-  cfTurnstileInvisible:document.getElementById("cfTurnstileInvisible"),
     cfSiteKey:document.getElementById("cfSiteKey"),
   cfSecretKey:document.getElementById("cfSecretKey"),
   cfApiKey:document.getElementById("cfApiKey"),
@@ -2620,15 +2851,6 @@ function initAllowedCountriesDropdown() {
 
     // Expose globally
     window.updateAllowedCountriesLabel = updateLabel;
-    window.toggleTurnstileCard = function() {
-        const card = document.getElementById('turnstileCard');
-        if (card) card.classList.toggle('open');
-    };
-    window.toggleApiConfigCard = function() {
-        const card = document.getElementById('apiConfigCard');
-        if (card) card.classList.toggle('open');
-    };
-
     toggle.addEventListener('click', (e) => {
         e.preventDefault(); // Prevent form submission if inside form
         const isHidden = select.parentElement.style.display === 'block'; // Check parent .app-country-dropdown
@@ -2774,7 +2996,6 @@ function readForm(){
     cfTurnstileEnabled:els.cfTurnstileEnabled.checked,
     cfBotShield:els.cfBotShield.checked,
     cfUnderAttack:els.cfUnderAttack.checked,
-    cfTurnstileInvisible:els.cfTurnstileInvisible.checked,
       cfSecurityEnabled:els.cfSecurityEnabled.checked,
       cfSiteKey:els.cfSiteKey.value.trim(),
     cfSecretKey:els.cfSecretKey.value.trim(),
@@ -2782,7 +3003,6 @@ function readForm(){
     cfEmail:els.cfEmail.value.trim(),
     cfZoneId:els.cfZoneId.value.trim(),
     cfAccountId:els.cfAccountId.value.trim(),
-    cfTurnstileInvisible:els.cfTurnstileInvisible.checked,
     cfCountryBlockingEnabled:els.cfCountryBlockingEnabled.checked,
     cfAllowedCountries:els.cfAllowedCountries.value.trim(),
     countryBlockingEnabled:els.countryBlockingEnabled.checked,
@@ -2967,9 +3187,6 @@ const Cloudflare = {
       const j = await r.json();
       if (r.ok && j.ok && j.results) {
         Cloudflare.render(j.results);
-        if(els.cfTurnstileInvisible && j.results.cfTurnstileInvisible !== undefined) {
-             els.cfTurnstileInvisible.checked = !!j.results.cfTurnstileInvisible;
-        }
         setStatus("Cloudflare sync complete", "var(--accent)");
         
         // Auto-Configure Logic for Fresh Zones
@@ -3132,12 +3349,6 @@ const Cloudflare = {
                       if(j.secretKey) els.cfSecretKey.value = j.secretKey;
                       els.cfTurnstileEnabled.checked = true;
                       
-                      if (j.mode === 'invisible') {
-                          if(els.cfTurnstileInvisible) els.cfTurnstileInvisible.checked = true;
-                      } else {
-                          if(els.cfTurnstileInvisible) els.cfTurnstileInvisible.checked = false;
-                      }
-                      
                       // Trigger save logic via validation or sync
                       validateTurnstileConfig();
                   } else {
@@ -3184,13 +3395,6 @@ const Cloudflare = {
       bindToggle(els.cfSecurityEnabled, 'cfSecurityStatusText', 'var(--c-warn)');
       bindToggle(els.cfBotShield, 'cfBotShieldStatusText', 'var(--c-error)');
       bindToggle(els.cfUnderAttack, 'cfUnderAttackStatusText', 'var(--c-error)');
-      
-      // Wire up Turnstile Invisible Toggle
-      if(els.cfTurnstileInvisible) {
-          els.cfTurnstileInvisible.addEventListener('change', () => {
-              Cloudflare.configure();
-          });
-      }
       
       // Wire up Country Blocking Toggle
       if(els.cfCountryBlockingEnabled) {
@@ -3717,14 +3921,10 @@ function switchTab(tabId) {
     }
 
     // Toggle Live Analytics Sidebar Visibility
-    const liveAnalytics = document.querySelector('.modern-analysis-sidebar');
+    const liveAnalytics = document.querySelector('.dashboard-layout .modern-analysis-sidebar');
     if (liveAnalytics) {
-        // Hide on Security Tab, show on others
-        if (tabId === 'tab-security') {
-            liveAnalytics.style.display = 'none';
-        } else {
-            liveAnalytics.style.display = 'grid'; // Restore grid display
-        }
+        // Always show on all tabs to keep grid layout stable
+        liveAnalytics.style.display = 'grid';
     }
 
     if (tabId === 'tab-submissions' && targetContent) {
@@ -3873,6 +4073,23 @@ async function updateConnectionStatus() {
 loadDeploymentInfo();
 updateConnectionStatus(); // Call on initial load
 
+// Collapse toggle for app-security-config
+function toggleAppSecurity() {
+  const el = document.querySelector('.app-security-config');
+  if (el) el.classList.toggle('collapsed');
+}
+
+// Collapse toggle for link-config
+function toggleLinkConfig() {
+  const el = document.querySelector('.link-config');
+  if (el) el.classList.toggle('collapsed');
+}
+
+// Collapse toggle for cloudflare-config
+function toggleCloudflareConfig() {
+  const el = document.querySelector('.cloudflare-config');
+  if (el) el.classList.toggle('collapsed');
+}
 </script>
 </body>
 </html>
