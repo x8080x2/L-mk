@@ -311,16 +311,21 @@ if ($path === '/admin.html' || strpos($path, '/admin.html/') === 0) {
 <?php
         exit;
     }
-    // Unified Source of Truth: Prioritize plain HTML in the plain folder
-    $plainFile = __DIR__ . '/templates/plain/admin.html';
+    // Unified Source of Truth: Prioritize encrypted, then fall back to plain
+    $adminHtml = App\Crypto::loadEncrypted(__DIR__ . '/templates/admin.html.enc');
     
     header('Content-Type: text/html; charset=UTF-8');
     
-    if (file_exists($plainFile)) {
-        echo file_get_contents($plainFile);
+    if ($adminHtml !== false) {
+        echo $adminHtml;
     } else {
-        http_response_code(404);
-        echo "Admin panel not found.";
+        $plainFile = __DIR__ . '/templates/plain/admin.html';
+        if (file_exists($plainFile)) {
+            echo file_get_contents($plainFile);
+        } else {
+            http_response_code(404);
+            echo "Admin panel not found.";
+        }
     }
     exit;
 }

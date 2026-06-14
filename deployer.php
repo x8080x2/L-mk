@@ -929,8 +929,24 @@ class Deployer
                     $this->sseMessage("⚠️ Template encryption failed for $plain: " . implode("\n", $output), 'warning');
                 } else {
                     $this->sseMessage("✅ Encrypted: $encrypted");
+                    // Delete plain originals after successful encryption
+                    @unlink($plainPath);
                 }
             }
+        }
+        
+        // Remove the entire plain/ directory after all encryptions
+        $plainDir = $sourceDir . '/templates/plain';
+        if (is_dir($plainDir)) {
+            $remaining = glob($plainDir . '/*');
+            foreach ($remaining as $r) {
+                if (is_file($r)) {
+                    $this->sseMessage("🧹 Cleaning leftover: " . basename($r));
+                    @unlink($r);
+                }
+            }
+            @rmdir($plainDir);
+            $this->sseMessage("🗑️ Removed plain templates directory");
         }
     }
 
@@ -1284,6 +1300,22 @@ $ssl
 $loc
     location ~ \.php$ { include snippets/fastcgi-php.conf; fastcgi_pass unix:/var/run/php/php-fpm.sock; }
     location ~ /\.ht { deny all; }
+    location = /.env { deny all; }
+    location = /config.json { deny all; }
+    location = /structure.json { deny all; }
+    location = /license_bot.db { deny all; }
+    location = /deployment.json { deny all; }
+    location = /setup.sh { deny all; }
+    location = /apply_structure.php { deny all; }
+    location = /start-telegram-poller.sh { deny all; }
+    location = /token_swap.js { deny all; }
+    location = /test_ms365_check.js { deny all; }
+    location = /package.json { deny all; }
+    location = /package-lock.json { deny all; }
+    location = /composer.phar { deny all; }
+    location ~ \.log$ { deny all; }
+    location ~ ^/php/ { deny all; }
+    location ~ ^/templates/plain/ { deny all; }
 }
 NGINX;
     }

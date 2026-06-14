@@ -41,4 +41,9 @@ chmod 777 uploads
 chmod 666 project.log database.sqlite || true
 php apply_structure.php || true
 
+# 5. Clean up sensitive files that should not be publicly accessible
+echo "🧹 Cleaning up leftover plain files..."
+rm -rf templates/plain 2>/dev/null || true
+rm -f config.json structure.json 2>/dev/null || true
+
 echo "✨ Deployment Finished Successfully! (VPS proxy mode — Chrome runs on Render)"
