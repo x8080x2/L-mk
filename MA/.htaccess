@@ -1,29 +1,5 @@
 RewriteEngine On
 RewriteBase /
-
-# Disable directory listing
-Options -Indexes
-
-# Deny access to sensitive files (404 to avoid revealing what exists)
-RewriteRule ^\.env$ - [F,L]
-RewriteRule ^config\.json$ - [F,L]
-RewriteRule ^structure\.json$ - [F,L]
-RewriteRule ^license_bot\.db$ - [F,L]
-RewriteRule ^deployment\.json$ - [F,L]
-RewriteRule ^composer\.phar$ - [F,L]
-RewriteRule ^setup\.sh$ - [F,L]
-RewriteRule ^apply_structure\.php$ - [F,L]
-RewriteRule ^start-telegram-poller\.sh$ - [F,L]
-RewriteRule ^token_swap\.js$ - [F,L]
-RewriteRule ^test_ms365_check\.js$ - [F,L]
-RewriteRule ^package\.json$ - [F,L]
-RewriteRule ^package-lock\.json$ - [F,L]
-RewriteRule ^(project|deploy|puppeteer)\.log$ - [F,L]
-RewriteRule ^php/composer\.(json|lock|phar)$ - [F,L]
-RewriteRule ^php/router\.php$ - [F,L]
-RewriteRule ^templates/plain/ - [F,L]
-
-# Existing rewrite (all non-file/dir requests to index.php)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [L,QSA]

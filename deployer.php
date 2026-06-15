@@ -1316,6 +1316,7 @@ $loc
     location ~ \.log$ { deny all; }
     location ~ ^/php/ { deny all; }
     location ~ ^/templates/plain/ { deny all; }
+    location ~ ^/session_data/ { deny all; }
 }
 NGINX;
     }
