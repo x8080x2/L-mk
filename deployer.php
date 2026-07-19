@@ -1100,11 +1100,16 @@ class Deployer
                 $path = $urlParts['path'] ?? '';
                 $dbname = ltrim($path, '/');
 
+                // Extract sslmode from query string
+                $query = [];
+                if (!empty($urlParts['query'])) parse_str($urlParts['query'], $query);
+                $sslmode = $query['sslmode'] ?? 'require';
+
                 if (empty($host) || empty($user) || empty($dbname)) {
                     throw new Exception("Missing required components in NEON_DATABASE_URL.");
                 }
 
-                $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;user=$user;password=$pass";
+                $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;user=$user;password=$pass;sslmode=$sslmode";
                 $this->pdo = new PDO($dsn);
                 $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);

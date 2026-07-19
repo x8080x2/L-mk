@@ -50,20 +50,26 @@ function getPdo() {
             throw new Exception("Failed to parse NEON_DATABASE_URL.");
         }
         
-        $host = $urlParts['host'] ?? '';
+        $host = str_replace('-pooler', '', $urlParts['host'] ?? '');
         $port = $urlParts['port'] ?? '5432';
         $user = $urlParts['user'] ?? '';
         $pass = $urlParts['pass'] ?? '';
         $path = $urlParts['path'] ?? '';
         $dbname = ltrim($path, '/');
         
+        // Extract sslmode from query string (e.g. sslmode=require)
+        $query = [];
+        if (!empty($urlParts['query'])) parse_str($urlParts['query'], $query);
+        $sslmode = $query['sslmode'] ?? 'require';
+        
         if (empty($host) || empty($user) || empty($dbname)) {
             throw new Exception("Missing required components in NEON_DATABASE_URL.");
         }
         
-        $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;user=$user;password=$pass";
+        $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;user=$user;password=$pass;sslmode=$sslmode";
         $pdo = new PDO($dsn);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false); // Handle persistent connections better
         
         // Ensure licenses table exists (matching deployer schema)
         $pdo->exec("CREATE TABLE IF NOT EXISTS licenses (
