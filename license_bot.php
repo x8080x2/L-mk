@@ -497,7 +497,8 @@ while (true) {
                          continue;
                     }
                     
-                    $stmt = $pdo->query("SELECT license_key, expires_at FROM licenses WHERE status = 'active'");
+                    $stmt = $pdo->prepare("SELECT license_key, expires_at FROM licenses WHERE status = 'active' AND expires_at > ?");
+                    $stmt->execute([date('c')]);
                     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     
                     if (empty($rows)) {
