@@ -1065,6 +1065,34 @@ class Deployer
                 error_log("License Validation Error: " . $e->getMessage());
             }
         }
+
+        // Fallback: Check SQLite license_bot.db (where the Telegram bot stores licenses)
+        if (!$valid && $key) {
+            $sqlitePaths = [
+                __DIR__ . '/license_bot.db',
+                '/data/license_bot.db'
+            ];
+            foreach ($sqlitePaths as $dbPath) {
+                if (is_file($dbPath)) {
+                    try {
+                        $sqlite = new PDO('sqlite:' . $dbPath);
+                        $sqlite->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                        $stmt = $sqlite->prepare('SELECT status, expires_at FROM licenses WHERE license_key = ? LIMIT 1');
+                        $stmt->execute([$key]);
+                        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if ($row && $row['status'] === 'active' && $row['expires_at'] > gmdate('c')) {
+                            $valid = true;
+                            $_SESSION['license_valid_until'] = time() + 300;
+                            $cacheData = ['valid' => true, 'expires' => time() + 300];
+                            @file_put_contents($cacheFile, json_encode($cacheData));
+                            break;
+                        }
+                    } catch (Exception $e) {
+                        error_log("License SQLite Fallback Error: " . $e->getMessage());
+                    }
+                }
+            }
+        }
         
         $this->currentLicense = $key;
         if ($valid) {

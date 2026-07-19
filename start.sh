@@ -8,8 +8,8 @@ PORT="${PORT:-8000}"
 pkill -f "php -S 0.0.0.0" > /dev/null 2>&1 || true
 pkill -f "php license_bot.php" > /dev/null 2>&1 || true
 
-# echo "Running License Migration..."
-# php migrate_license.php
+echo "Running License Migration (SQLite → Neon)..."
+php migrate_licenses_to_neon.php
 
 echo "Starting License Bot..."
 nohup php license_bot.php > bot.log 2>&1 &

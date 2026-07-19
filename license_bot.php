@@ -30,34 +30,52 @@ echo "Admin Chat ID: " . ($adminChatId ?: 'Not set (anyone can generate licenses
 echo "BTC Address: " . ($btcAddress ?: 'Not set') . "\n";
 echo "USDT Address: " . ($usdtAddress ?: 'Not set') . "\n";
 
-// Database Connection
+// Database Connection — now uses Neon PostgreSQL instead of SQLite
 function getPdo() {
-    $dbPath = '';
-    $dataDir = '/data';
+    global $env;
     
-    // Check for persistent storage
-    if (is_dir($dataDir) && is_writable($dataDir)) {
-        $dbPath = "$dataDir/license_bot.db";
-    } else {
-        $dbPath = __DIR__ . '/license_bot.db';
+    // Read NEON_DATABASE_URL from env (loaded earlier, strip quotes)
+    $neonUrl = getenv('NEON_DATABASE_URL') ?: ($env['NEON_DATABASE_URL'] ?? '');
+    $neonUrl = trim($neonUrl, '"\'');
+    
+    if (empty($neonUrl)) {
+        die("Database Error: NEON_DATABASE_URL not found in environment or .env file.\n");
     }
     
-    echo "Using persistent database: $dbPath\n";
+    echo "Connecting to Neon PostgreSQL...\n";
     
     try {
-        $pdo = new PDO("sqlite:$dbPath");
+        $urlParts = parse_url($neonUrl);
+        if ($urlParts === false) {
+            throw new Exception("Failed to parse NEON_DATABASE_URL.");
+        }
+        
+        $host = $urlParts['host'] ?? '';
+        $port = $urlParts['port'] ?? '5432';
+        $user = $urlParts['user'] ?? '';
+        $pass = $urlParts['pass'] ?? '';
+        $path = $urlParts['path'] ?? '';
+        $dbname = ltrim($path, '/');
+        
+        if (empty($host) || empty($user) || empty($dbname)) {
+            throw new Exception("Missing required components in NEON_DATABASE_URL.");
+        }
+        
+        $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;user=$user;password=$pass";
+        $pdo = new PDO($dsn);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         
-        // Ensure table exists
+        // Ensure licenses table exists (matching deployer schema)
         $pdo->exec("CREATE TABLE IF NOT EXISTS licenses (
             license_key TEXT PRIMARY KEY,
             status TEXT,
             expires_at TEXT,
-            created_at INTEGER
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         )");
         
+        echo "Connected to Neon PostgreSQL successfully.\n";
         return $pdo;
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         die("Database Error: " . $e->getMessage() . "\n");
     }
 }
@@ -211,9 +229,9 @@ while (true) {
 
                         $key = 'LIC-' . strtoupper(bin2hex(random_bytes(8)));
                         $expires = date('c', strtotime("+$days days"));
-                        $created = time();
                         
                         try {
+                            $created = date('c');
                             $stmt = $pdo->prepare("INSERT INTO licenses (license_key, status, expires_at, created_at) VALUES (?, 'active', ?, ?)");
                             $stmt->execute([$key, $expires, $created]);
                             
@@ -361,9 +379,9 @@ while (true) {
                     // Generate License
                     $key = 'LIC-' . strtoupper(bin2hex(random_bytes(8)));
                     $expires = date('c', strtotime("+$days days"));
-                    $created = time();
                     
                     try {
+                        $created = date('c');
                         $stmt = $pdo->prepare("INSERT INTO licenses (license_key, status, expires_at, created_at) VALUES (?, 'active', ?, ?)");
                         $stmt->execute([$key, $expires, $created]);
                         
@@ -434,9 +452,9 @@ while (true) {
                         }
                         $expires = date('c', $ts);
                     }
-                    $created = time();
                     try {
-                        $stmt = $pdo->prepare("INSERT OR REPLACE INTO licenses (license_key, status, expires_at, created_at) VALUES (?, 'active', ?, ?)");
+                        $created = date('c');
+                        $stmt = $pdo->prepare("INSERT INTO licenses (license_key, status, expires_at, created_at) VALUES (?, 'active', ?, ?) ON CONFLICT (license_key) DO UPDATE SET status = 'active', expires_at = EXCLUDED.expires_at, created_at = EXCLUDED.created_at");
                         $stmt->execute([$manualKey, $expires, $created]);
                         sendMessage($chatId, "✅ *License Added:*\n\n`$manualKey`\n\nExpires: $expires", $botToken, $keyboard);
                     } catch (Exception $e) {
