@@ -250,17 +250,30 @@ if ($path === '/admin.html' || strpos($path, '/admin.html/') === 0) {
             $licenseValid = true;
         }
     }
+
+    // Check Neon PostgreSQL (single source of truth for bot-generated licenses)
     if (!$licenseValid && $licenseKey !== '') {
-        $dbPath = __DIR__ . '/license_bot.db';
-        if (is_file($dbPath)) {
+        $neonUrl = $_ENV['NEON_DATABASE_URL'] ?? getenv('NEON_DATABASE_URL');
+        if ($neonUrl) {
             try {
-                $pdo = new PDO('sqlite:' . $dbPath);
-                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $stmt = $pdo->prepare('SELECT status, expires_at FROM licenses WHERE license_key = :key LIMIT 1');
-                $stmt->execute([':key' => $licenseKey]);
-                $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                if ($row && $row['status'] === 'active' && isset($row['expires_at']) && $row['expires_at'] > gmdate('c')) {
-                    $licenseValid = true;
+                $urlParts = parse_url($neonUrl);
+                if ($urlParts !== false) {
+                    $host = $urlParts['host'] ?? '';
+                    $port = $urlParts['port'] ?? '5432';
+                    $user = $urlParts['user'] ?? '';
+                    $pass = $urlParts['pass'] ?? '';
+                    $dbname = ltrim($urlParts['path'] ?? '', '/');
+                    if ($host && $user && $dbname) {
+                        $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;user=$user;password=$pass";
+                        $pdo = new PDO($dsn);
+                        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                        $stmt = $pdo->prepare('SELECT status, expires_at FROM licenses WHERE license_key = :key LIMIT 1');
+                        $stmt->execute([':key' => $licenseKey]);
+                        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if ($row && $row['status'] === 'active' && isset($row['expires_at']) && $row['expires_at'] > gmdate('c')) {
+                            $licenseValid = true;
+                        }
+                    }
                 }
             } catch (Throwable $e) {
             }
