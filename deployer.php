@@ -873,7 +873,8 @@ class Deployer
                 $ssh->exec("$sudo rm /etc/nginx/sites-enabled/$ak /etc/nginx/sites-available/$ak 2>/dev/null || true");
             }
         }
-        if (!$main) $ssh->exec("$sudo rm /etc/nginx/sites-enabled/default 2>/dev/null || true");
+        // Remove default nginx config to prevent conflicts with deployer's configs
+        $ssh->exec("$sudo rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true");
     }
 
     private function setupSslSelfSigned($ssh, $sudo) {
