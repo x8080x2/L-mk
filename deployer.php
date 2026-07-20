@@ -1144,31 +1144,13 @@ class Deployer
                     $this->serverConfig = (is_array($d) && isset($d[0])) ? $d : (is_array($d) ? [$d] : []);
                     return;
                 }
-            } catch (Exception $e) {}
-        }
-
-        // Migration: Check for legacy file
-        $envPath = getenv('DEPLOY_CONFIG_PATH');
-        $f = $envPath ?: ((is_dir('/data') && is_writable('/data')) ? '/data/deploy_config.json' : __DIR__ . '/deploy_config.json');
-        
-        // Add file cache to avoid reading config file on every request
-        $configCacheFile = sys_get_temp_dir() . '/deploy_config_cache.json';
-        if (file_exists($configCacheFile) && (time() - filemtime($configCacheFile) < 300)) {
-            $this->serverConfig = json_decode(file_get_contents($configCacheFile), true) ?: [];
-        } elseif (is_file($f)) {
-            $d = json_decode(file_get_contents($f), true);
-            $this->serverConfig = (is_array($d) && isset($d[0])) ? $d : (is_array($d) ? [$d] : []);
-            
-            // Cache the config to avoid future file reads
-            @file_put_contents($configCacheFile, json_encode($this->serverConfig));
-            
-            // Migrate to DB
-            if ($pdo && !empty($this->serverConfig)) {
-                $this->saveConfig($this->serverConfig);
-                // Optional: Rename legacy file
-                @rename($f, $f . '.migrated');
+            } catch (Exception $e) {
+                error_log("loadConfig: " . $e->getMessage());
             }
         }
+        
+        error_log("loadConfig: No database connection or no config found.");
+        $this->serverConfig = [];
     }
 
     private function saveConfig($d) {
@@ -1176,16 +1158,15 @@ class Deployer
         if ($pdo) {
             try {
                 $json = json_encode(array_values($d), JSON_PRETTY_PRINT);
-                $stmt = $pdo->prepare("INSERT OR REPLACE INTO configurations (key, value) VALUES ('deploy_config', :val)");
+                $stmt = $pdo->prepare("INSERT INTO configurations (key, value) VALUES ('deploy_config', :val) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value");
                 $stmt->execute([':val' => $json]);
                 return;
-            } catch (Exception $e) {}
+            } catch (Exception $e) {
+                error_log("saveConfig: " . $e->getMessage());
+            }
         }
         
-        // Fallback to file if DB fails (should not happen if getPdo works)
-        $envPath = getenv('DEPLOY_CONFIG_PATH');
-        $f = $envPath ?: ((is_dir('/data') && is_writable('/data')) ? '/data/deploy_config.json' : __DIR__ . '/deploy_config.json');
-        file_put_contents($f, json_encode(array_values($d), JSON_PRETTY_PRINT));
+        error_log("saveConfig: No database connection — update lost.");
     }
 
     private function getUsedIdentifiers($servers) {
