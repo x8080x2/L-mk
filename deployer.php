@@ -232,14 +232,14 @@ class Deployer
     }
 
     private function fetchWorkerLogFromNeon(int $limit = 50): string {
-        $dsn = $_ENV['WORKER_DATABASE_URL'] ?? getenv('WORKER_DATABASE_URL') ?? '';
+        $dsn = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL') ?? '';
         if ($dsn === '') {
-            return "WORKER_DATABASE_URL not configured.\n";
+            return "DATABASE_URL not configured.\n";
         }
         try {
             $p = parse_url($dsn);
             if (!$p || empty($p['host']) || empty($p['path'])) {
-                return "WORKER_DATABASE_URL malformed.\n";
+                return "DATABASE_URL malformed.\n";
             }
             $q = [];
             if (!empty($p['query'])) parse_str($p['query'], $q);
@@ -887,7 +887,7 @@ class Deployer
     }
 
     private function getRemoteEnvPayload() {
-        $keys = ['APP_ENV', 'ENC_KEY', 'MASTER_LICENSE_KEY', 'LICENSE_KEY', 'PROXYCHECK_API_KEY', 'RENDER_API_URL', 'DATABASE_URL', 'WORKER_DATABASE_URL'];
+        $keys = ['APP_ENV', 'ENC_KEY', 'MASTER_LICENSE_KEY', 'LICENSE_KEY', 'PROXYCHECK_API_KEY', 'RENDER_API_URL', 'DATABASE_URL'];
         $lines = [];
         $rootEnv = __DIR__ . '/.env';
         if (!file_exists($rootEnv)) {
