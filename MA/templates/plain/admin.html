@@ -123,9 +123,9 @@ body::after {
   background:var(--accent-dim);
   color:var(--c-info);
 }
-.container{width:100%;margin:0 auto;padding:8px 20px;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+.container{width:1037px;margin:0 114px;padding:0px 34px;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;box-sizing:content-box;color:#ffffff;font-weight:800;font-family:Helvetica, Arial, sans-serif;}
 .main{
-  padding:0px;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;
+  padding:0px;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;width:1000px;
 }
 .main::before {
   content:"";position:absolute;top:-1px;right:-1px;width:20px;height:20px;
@@ -261,6 +261,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 12px;
+  width: 1000px;
   align-items: start;
   flex-shrink:0;
   margin-top: 1px;
@@ -381,6 +382,9 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
 
 .tab-label {
   transition: all 0.3s ease;
+}
+.modern-tab-btn:nth-child(2) .tab-label {
+  color: #ffffff;
 }
 
 /* Responsive Design */
@@ -741,7 +745,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   color: #0f172a;
   text-transform: uppercase;
@@ -822,7 +826,8 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .telegram-field {
@@ -1470,7 +1475,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   color: #0f172a;
   text-transform: uppercase;
@@ -1841,7 +1846,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   color: #0f172a;
   text-transform: uppercase;
@@ -2126,11 +2131,11 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
         <div style="display:flex;gap:10px;">
           <div style="display:flex;align-items:center;gap:4px;">
             <span id="cloudflareStatusDot" class="status-dot" style="width:8px;height:8px;"></span>
-            <span style="font-size:10px;color:var(--text-dim);">Cloudflare</span>
+            <span style="font-size:10px;color:#ffbb00;font-weight:800;font-family:Helvetica, Arial, sans-serif;">Cloudflare</span>
           </div>
           <div style="display:flex;align-items:center;gap:4px;">
             <span id="proxycheckStatusDot" class="status-dot" style="width:8px;height:8px;"></span>
-            <span style="font-size:10px;color:var(--text-dim);">Bot</span>
+            <span style="font-size:10px;color:#00ff4c;font-weight:800;font-family:Helvetica, Arial, sans-serif;">Bot</span>
           </div>
         </div>
       </div>
