@@ -1031,15 +1031,6 @@ class Deployer
         // Check for bot license in persistent storage first
         $pdo = $this->getPdo();
 
-        // Add file-based cache to avoid database hits on Render
-        $cacheFile = sys_get_temp_dir() . '/license_cache_' . md5($key) . '.json';
-        if (!$valid && $key && file_exists($cacheFile)) {
-            $cache = json_decode(file_get_contents($cacheFile), true);
-            if ($cache && $cache['valid'] && $cache['expires'] > time()) {
-                $valid = true;
-            }
-        }
-
         if (!$valid && $key && $pdo) {
             try {
                 // Check license in Neon PostgreSQL (single source of truth)
@@ -1047,19 +1038,11 @@ class Deployer
                 $stmt->execute([$key]);
                 $row = $stmt->fetch();
                 
-                // DEBUG: Log validation attempt
-                // error_log("License Check: Key=" . substr($key, 0, 5) . "... Row=" . json_encode($row));
-                
                 if ($row && $row['status'] === 'active' && $row['expires_at'] > gmdate('c')) {
                     $valid = true;
                     $_SESSION['license_valid_until'] = time() + 300; // Cache valid result for 5 minutes
-                    
-                    // Cache to file to avoid future database hits
-                    $cacheData = ['valid' => true, 'expires' => time() + 300];
-                    @file_put_contents($cacheFile, json_encode($cacheData));
                 }
             } catch (Exception $e) {
-                // Table might not exist or other error
                 error_log("License Validation Error: " . $e->getMessage());
             }
         }
