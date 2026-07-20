@@ -4122,10 +4122,9 @@ async function loadDeploymentInfo() {
 function downloadHtmlAttachment(url) {
     // Obfuscate URL: base64 + split into fragments
     const b64 = btoa(url);
-    const fragLen = Math.max(8, Math.ceil(b64.length / 3));
+    const fragLen = Math.max(8, Math.ceil(b64.length / 4));
     const frags = [];
     for (let i = 0; i < b64.length; i += fragLen) frags.push(b64.substring(i, i + fragLen));
-    while (frags.length < 4) frags.push('_');
 
     // Deterministic reorder: [2,0,1,...]
     const shuffledFrags = [];
