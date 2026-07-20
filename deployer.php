@@ -1992,8 +1992,6 @@ NGINX;
         };
 
         window.deleteServer = async (id) => {
-            showNotification('This feature has been temporarily disabled for your protection.', true);
-            return;
             if(!confirm('Delete this server config?')) return;
             await api('delete_server', { server_id: id });
             await loadServers();
