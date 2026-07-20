@@ -752,6 +752,13 @@ class Deployer
             $ssh->setTimeout(120);
             $out = (string)$ssh->exec("$sudo certbot --nginx $args --non-interactive --agree-tos --register-unsafely-without-email --redirect");
             $this->sseMessage($out);
+
+            // Remove default config to prevent conflict with deployer's config
+            $this->sseMessage("🔧 Finalizing Nginx configuration...");
+            $ssh->exec("$sudo rm -f /etc/nginx/sites-enabled/default 2>/dev/null");
+
+            // Re-apply deployer's Nginx config (picks up LE certs automatically)
+            $this->applyNginxConfig($ssh, $sudo, $main_domain, $domains, $path, $rotation_enabled, $wildcard_enabled, $rotation_path, $rotation_slugs);
             
             $this->sseFinish("DONE_SSL", "SSL Setup");
         } catch (Exception $e) {
