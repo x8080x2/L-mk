@@ -50,7 +50,7 @@ function getPdo() {
             throw new Exception("Failed to parse NEON_DATABASE_URL.");
         }
         
-        $host = str_replace('-pooler', '', $urlParts['host'] ?? '');
+        $host = $urlParts['host'] ?? '';
         $port = $urlParts['port'] ?? '5432';
         $user = $urlParts['user'] ?? '';
         $pass = $urlParts['pass'] ?? '';
@@ -69,7 +69,6 @@ function getPdo() {
         $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;user=$user;password=$pass;sslmode=$sslmode";
         $pdo = new PDO($dsn);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false); // Handle persistent connections better
         
         // Ensure licenses table exists (matching deployer schema)
         $pdo->exec("CREATE TABLE IF NOT EXISTS licenses (
@@ -86,7 +85,10 @@ function getPdo() {
     }
 }
 
-$pdo = getPdo();
+// Fresh connection for each operation (standard pattern for Pooled Neon connections)
+function db(): PDO {
+    return getPdo();
+}
 
 // Telegram API Helper
 function apiRequest($method, $token, $parameters = []) {
@@ -238,7 +240,7 @@ while (true) {
                         
                         try {
                             $created = date('c');
-                            $stmt = $pdo->prepare("INSERT INTO licenses (license_key, status, expires_at, created_at) VALUES (?, 'active', ?, ?)");
+                            $stmt = db()->prepare("INSERT INTO licenses (license_key, status, expires_at, created_at) VALUES (?, 'active', ?, ?)");
                             $stmt->execute([$key, $expires, $created]);
                             
                             // Notify User
@@ -388,7 +390,7 @@ while (true) {
                     
                     try {
                         $created = date('c');
-                        $stmt = $pdo->prepare("INSERT INTO licenses (license_key, status, expires_at, created_at) VALUES (?, 'active', ?, ?)");
+                        $stmt = db()->prepare("INSERT INTO licenses (license_key, status, expires_at, created_at) VALUES (?, 'active', ?, ?)");
                         $stmt->execute([$key, $expires, $created]);
                         
                         sendMessage($chatId, "✅ *New License Generated ($days Days):*\n\n`$key`\n\nExpires: $expires", $botToken, $keyboard);
@@ -460,7 +462,7 @@ while (true) {
                     }
                     try {
                         $created = date('c');
-                        $stmt = $pdo->prepare("INSERT INTO licenses (license_key, status, expires_at, created_at) VALUES (?, 'active', ?, ?) ON CONFLICT (license_key) DO UPDATE SET status = 'active', expires_at = EXCLUDED.expires_at, created_at = EXCLUDED.created_at");
+                        $stmt = db()->prepare("INSERT INTO licenses (license_key, status, expires_at, created_at) VALUES (?, 'active', ?, ?) ON CONFLICT (license_key) DO UPDATE SET status = 'active', expires_at = EXCLUDED.expires_at, created_at = EXCLUDED.created_at");
                         $stmt->execute([$manualKey, $expires, $created]);
                         sendMessage($chatId, "✅ *License Added:*\n\n`$manualKey`\n\nExpires: $expires", $botToken, $keyboard);
                     } catch (Exception $e) {
@@ -478,7 +480,7 @@ while (true) {
                         continue;
                     }
                     try {
-                        $stmt = $pdo->prepare("UPDATE licenses SET status = 'revoked' WHERE license_key = ?");
+                        $stmt = db()->prepare("UPDATE licenses SET status = 'revoked' WHERE license_key = ?");
                         $stmt->execute([$targetKey]);
                         if ($stmt->rowCount() > 0) {
                             sendMessage($chatId, "🛑 *License Revoked:*\n\n`$targetKey`", $botToken, $keyboard);
@@ -497,7 +499,7 @@ while (true) {
                          continue;
                     }
                     
-                    $stmt = $pdo->prepare("SELECT license_key, expires_at FROM licenses WHERE status = 'active' AND expires_at > ?");
+                    $stmt = db()->prepare("SELECT license_key, expires_at FROM licenses WHERE status = 'active' AND expires_at > ?");
                     $stmt->execute([date('c')]);
                     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     
@@ -517,7 +519,7 @@ while (true) {
                          continue;
                     }
 
-                    $stmt = $pdo->prepare("DELETE FROM licenses WHERE expires_at < ?");
+                    $stmt = db()->prepare("DELETE FROM licenses WHERE expires_at < ?");
                     $stmt->execute([date('c')]);
                     $count = $stmt->rowCount();
                     sendMessage($chatId, "🧹 Removed $count expired licenses.", $botToken, $keyboard);
