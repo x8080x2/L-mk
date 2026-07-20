@@ -262,7 +262,7 @@ if ($path === '/admin.html' || strpos($path, '/admin.html/') === 0) {
 
     // Check Neon PostgreSQL (single source of truth for bot-generated licenses)
     if (!$licenseValid && $licenseKey !== '') {
-        $neonUrl = $_ENV['NEON_DATABASE_URL'] ?? getenv('NEON_DATABASE_URL');
+        $neonUrl = $_ENV['NEON_DATABASE_URL'] ?? getenv('NEON_DATABASE_URL') ?? $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL');
         if ($neonUrl) {
             try {
                 $urlParts = parse_url($neonUrl);
