@@ -688,6 +688,20 @@ class Deployer
             $outCheck = (string)$ssh->exec($sudo . "bash -lc " . escapeshellarg($checkCmd));
             $this->sseMessage("📊 Status:\n" . $outCheck);
 
+            // Ensure Nginx is installed before applying config
+            $this->sseMessage("🔧 Checking Nginx installation...");
+            $ssh->exec("command -v nginx 2>/dev/null");
+            $hasNginx = $ssh->getExitStatus() === 0;
+            if (!$hasNginx) {
+                $this->sseMessage("📥 Installing Nginx...");
+                $ssh->exec("$sudo apt-get update -qq");
+                $installOut = (string)$ssh->exec("$sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nginx 2>&1");
+                $this->sseMessage($installOut);
+                $ssh->exec("$sudo systemctl enable nginx");
+            } else {
+                $this->sseMessage("✅ Nginx already installed.");
+            }
+
             $this->applyNginxConfig($ssh, $sudo, $main_domain, $domains, $remotePath, $rotation_enabled, $wildcard_enabled, $rotation_path, $rotation_slugs);
             $ssh->exec("$sudo systemctl reload nginx php*-fpm || true");
 
