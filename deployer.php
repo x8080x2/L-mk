@@ -664,6 +664,7 @@ class Deployer
             $combinedCmd = "cd " . escapeshellarg($remotePath) 
                 . " && echo 'Extracting package...' && tar -xzf deploy_package.tar.gz"
                 . " && echo 'Setting permissions...' && chmod +x setup.sh"
+                . " && echo 'Installing Node.js if missing...' && (command -v node &>/dev/null || (curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs))"
                 . " && echo 'Running setup script...' && ./setup.sh > deploy.log 2>&1; SETUP_RC=$?"
                 . " && echo \"Setup exit code: $SETUP_RC\" && cat deploy.log && exit $SETUP_RC";
 
