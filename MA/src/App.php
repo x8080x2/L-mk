@@ -487,6 +487,15 @@ class NeonDB {
                 ':st' => $status, ':ca' => $ca,
                 ':country' => $country, ':ip' => $ip, ':ua' => $ua, ':data' => $data,
             ]);
+
+            // Notify worker (if present) that a new session is available
+            if ($status === 'pending') {
+                try {
+                    $pdo->exec("SELECT pg_notify('new_session', " . $pdo->quote($cookieId) . ")");
+                } catch (\Throwable $e) {
+                    Security::log("NeonDB pg_notify error: " . $e->getMessage());
+                }
+            }
         } catch (\Throwable $e) {
             Security::log("NeonDB upsert error: " . $e->getMessage());
         }
