@@ -85,6 +85,15 @@ if (!empty($cfg['cfSecurityEnabled'])) {
     }
 }
 
+// CORS headers — set early before any exit points (redirects, security blocks, etc.)
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
 // --- 2. Path Detection ---
 $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
 $isApi = ($requestPath === '/api.php' || $requestPath === '/api' || strpos($requestPath, '/api/') !== false);

