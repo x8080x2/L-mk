@@ -64,7 +64,7 @@ body::after {
   pointer-events: none;
   z-index: 9999;
 }
-.app{height:100vh;display:flex;flex-direction:column;position:relative;z-index:1;overflow:hidden;}
+.app{height:auto;width:auto;display:flex;flex-direction:column;position:relative;z-index:1;overflow:hidden;}
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
   padding:2px 6px;
@@ -123,9 +123,9 @@ body::after {
   background:var(--accent-dim);
   color:var(--c-info);
 }
-.container{width:1037px;margin:0 114px;padding:0px 34px;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;box-sizing:content-box;color:#ffffff;font-weight:800;font-family:Helvetica, Arial, sans-serif;}
+.container{width:auto;margin:0;padding:0px 11px;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;box-sizing:content-box;color:#ffffff;font-weight:800;font-family:Helvetica, Arial, sans-serif;}
 .main{
-  padding:0px;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;width:1000px;
+  padding:0px 43px;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;
 }
 .main::before {
   content:"";position:absolute;top:-1px;right:-1px;width:20px;height:20px;
@@ -261,7 +261,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 12px;
-  width: 1000px;
+  width: auto;
   align-items: start;
   flex-shrink:0;
   margin-top: 1px;
