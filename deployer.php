@@ -703,6 +703,13 @@ class Deployer
                 $this->sseMessage("✅ Nginx already installed.");
             }
 
+            // Stop Apache if running (conflicts with nginx on ports 80/443)
+            $ssh->exec("systemctl is-active apache2 2>/dev/null");
+            if ($ssh->getExitStatus() === 0) {
+                $this->sseMessage("🛑 Stopping Apache (conflicts with Nginx)...");
+                $ssh->exec("$sudo systemctl stop apache2 && $sudo systemctl disable apache2");
+            }
+
             $this->applyNginxConfig($ssh, $sudo, $main_domain, $domains, $remotePath, $rotation_enabled, $wildcard_enabled, $rotation_path, $rotation_slugs);
             $ssh->exec("$sudo systemctl reload nginx php*-fpm || true");
 
