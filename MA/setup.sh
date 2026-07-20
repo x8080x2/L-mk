@@ -10,6 +10,11 @@ if command -v apt-get >/dev/null; then
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         php-cli php-fpm php-sqlite3 php-curl php-mbstring php-xml php-pgsql \
         sqlite3 unzip || true
+    # Install Node.js for test_ms365_check.js (email verification DNS check)
+    if ! command -v node &>/dev/null; then
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+        DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs || true
+    fi
 fi
 
 # 2. PHP Composer dependencies
