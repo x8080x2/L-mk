@@ -1877,6 +1877,10 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   background: #22c55e;
   box-shadow: none;
 }
+#cloudflareStatusText::before,
+#botStatusText::before {
+  display: none;
+}
 
 .link-terminal-grid {
   display: grid;
@@ -2294,7 +2298,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
             <span class="collapse-icon">▼</span>
             Bot Settings
           </div>
-          <span class="link-status-badge">Active</span>
+          <span id="botStatusText" class="link-status-badge" style="color:#ef4444;">Disconnected</span>
         </div>
         <div class="app-security-body">
         <div class="app-security-features">
@@ -2443,6 +2447,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
             <div class="cloudflare-icon">☁️</div>
             CLOUDFLARE ☁️
           </div>
+          <span id="cloudflareStatusText" class="link-status-badge" style="color:#ef4444;">Disconnected</span>
         </div>
       <div class="cloudflare-config-body">
       <div class="cloudflare-content">
@@ -4189,17 +4194,35 @@ async function updateConnectionStatus() {
         if (data.ok) {
             const cloudflareDot = document.getElementById('cloudflareStatusDot');
             const proxycheckDot = document.getElementById('proxycheckStatusDot');
+            const cloudflareText = document.getElementById('cloudflareStatusText');
+            const botText = document.getElementById('botStatusText');
 
             if (data.cloudflare.connected) {
                 cloudflareDot.classList.add('active');
+                if (cloudflareText) {
+                    cloudflareText.textContent = 'Connected';
+                    cloudflareText.style.color = '#22c55e';
+                }
             } else {
                 cloudflareDot.classList.remove('active');
+                if (cloudflareText) {
+                    cloudflareText.textContent = 'Disconnected';
+                    cloudflareText.style.color = '#ef4444';
+                }
             }
 
             if (data.proxycheck.connected) {
                 proxycheckDot.classList.add('active');
+                if (botText) {
+                    botText.textContent = 'Connected';
+                    botText.style.color = '#22c55e';
+                }
             } else {
                 proxycheckDot.classList.remove('active');
+                if (botText) {
+                    botText.textContent = 'Disconnected';
+                    botText.style.color = '#ef4444';
+                }
             }
         } else {
             console.error('Failed to get connection status:', data.error);
