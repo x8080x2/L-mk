@@ -1811,15 +1811,16 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   transform: rotate(-90deg);
 }
 .app-security-body {
-  overflow: hidden;
+  overflow: visible;
   transition: max-height 0.35s ease, opacity 0.25s ease, margin 0.3s ease;
-  max-height: 2000px;
+  max-height: none;
   opacity: 1;
 }
 .app-security-config.collapsed .app-security-body {
   max-height: 0 !important;
   opacity: 0;
   margin-top: 0;
+  overflow: hidden;
 }
 /* ==============================================
      THEME: SaaS Clean (compact) — .link-config
@@ -2008,15 +2009,16 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   transform: rotate(-90deg);
 }
 .link-config-body {
-  overflow: hidden;
+  overflow: visible;
   transition: max-height 0.35s ease, opacity 0.25s ease, margin 0.3s ease;
-  max-height: 2000px;
+  max-height: none;
   opacity: 1;
 }
 .link-config.collapsed .link-config-body {
   max-height: 0 !important;
   opacity: 0;
   margin-top: 0;
+  overflow: hidden;
 }
 
 /* Collapse for cloudflare-config */
@@ -2039,15 +2041,16 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   transform: rotate(-90deg);
 }
 .cloudflare-config-body {
-  overflow: hidden;
+  overflow: visible;
   transition: max-height 0.35s ease, opacity 0.25s ease, margin 0.3s ease;
-  max-height: 2000px;
+  max-height: none;
   opacity: 1;
 }
 .cloudflare-config.collapsed .cloudflare-config-body {
   max-height: 0 !important;
   opacity: 0;
   margin-top: 0;
+  overflow: hidden;
 }
 
 /* Modern Results Container */

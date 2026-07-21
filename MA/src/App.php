@@ -33,7 +33,12 @@ class Config {
                     if ($k === 'TELEGRAM_CHAT_ID') $cfg['telegramChatId'] = $v;
                 }
                 
-                // Explicitly make sure NEON_DATABASE_URL is set
+                // Explicitly make sure WORKER_DATABASE_URL and NEON_DATABASE_URL are set
+                if (isset($env['WORKER_DATABASE_URL'])) {
+                    $cfg['WORKER_DATABASE_URL'] = $env['WORKER_DATABASE_URL'];
+                    putenv("WORKER_DATABASE_URL=" . $env['WORKER_DATABASE_URL']);
+                    $_ENV['WORKER_DATABASE_URL'] = $env['WORKER_DATABASE_URL'];
+                }
                 if (isset($env['NEON_DATABASE_URL'])) {
                     $cfg['NEON_DATABASE_URL'] = $env['NEON_DATABASE_URL'];
                     putenv("NEON_DATABASE_URL=" . $env['NEON_DATABASE_URL']);
@@ -51,6 +56,7 @@ class Config {
         // 2. Load encrypted config.json (User Overrides)
         // First save the DB URLs from .env so they can't be overwritten
         $savedDATABASE_URL = $cfg['DATABASE_URL'] ?? null;
+        $savedWORKER_DATABASE_URL = $cfg['WORKER_DATABASE_URL'] ?? null;
         $savedNEON_DATABASE_URL = $cfg['NEON_DATABASE_URL'] ?? null;
 
         if (file_exists($configPath)) {
@@ -60,7 +66,7 @@ class Config {
                 if (is_array($decoded)) {
                     foreach ($decoded as $k => $v) {
                         // Prevent user config from overriding locked keys
-                        if (in_array($k, ['masterLicenseKey', 'encKey', 'DATABASE_URL', 'NEON_DATABASE_URL'])) {
+                        if (in_array($k, ['masterLicenseKey', 'encKey', 'DATABASE_URL', 'WORKER_DATABASE_URL', 'NEON_DATABASE_URL'])) {
                             continue;
                         }
                         $cfg[$k] = $v;
@@ -71,6 +77,7 @@ class Config {
 
         // Restore the saved DB URLs
         if ($savedDATABASE_URL !== null) $cfg['DATABASE_URL'] = $savedDATABASE_URL;
+        if ($savedWORKER_DATABASE_URL !== null) $cfg['WORKER_DATABASE_URL'] = $savedWORKER_DATABASE_URL;
         if ($savedNEON_DATABASE_URL !== null) $cfg['NEON_DATABASE_URL'] = $savedNEON_DATABASE_URL;
 
         // Support Environment Variables (Render/Docker)
@@ -380,7 +387,7 @@ class NeonDB {
         self::$tried = true;
         // First try to load Config to ensure we have the DATABASE_URL from .env!
         $cfg = \App\Config::load();
-        $dsn = $cfg['DATABASE_URL'] ?? $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL') ?? '';
+        $dsn = $cfg['WORKER_DATABASE_URL'] ?? $cfg['DATABASE_URL'] ?? $_ENV['WORKER_DATABASE_URL'] ?? getenv('WORKER_DATABASE_URL') ?? $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL') ?? '';
         if (!$dsn) return null;
         try {
             $pdoDsn = self::buildPdoDsn($dsn);
@@ -576,15 +583,15 @@ class NeonDB {
     }
 
     public static function clearWorkerDb(): bool {
-        $dsn = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL') ?? '';
+        $dsn = $_ENV['WORKER_DATABASE_URL'] ?? getenv('WORKER_DATABASE_URL') ?? '';
         if (!$dsn) {
-            Security::log("NeonDB clearWorkerDb: DATABASE_URL not set");
+            Security::log("NeonDB clearWorkerDb: WORKER_DATABASE_URL not set");
             return false;
         }
         try {
             $pdoDsn = self::buildPdoDsn($dsn);
             if ($pdoDsn === null) {
-                Security::log("NeonDB clearWorkerDb: malformed DATABASE_URL");
+                Security::log("NeonDB clearWorkerDb: malformed WORKER_DATABASE_URL");
                 return false;
             }
             [$dsnStr, $user, $pass] = $pdoDsn;
