@@ -3267,11 +3267,10 @@ const Cloudflare = {
         if (autoConfig && !anyActive) {
             console.log("Fresh zone detected, auto-configuring...");
             setStatus("Fresh zone detected. Auto-deploying security rules...", "var(--c-warn)");
-            // Enable all UI toggles
+            // Enable basic security toggles (NOT Under Attack — manual only)
             if(els.cfMasterToggle) els.cfMasterToggle.checked = true;
             if(els.cfSecurityEnabled) els.cfSecurityEnabled.checked = true;
             if(els.cfBotShield) els.cfBotShield.checked = true;
-            if(els.cfUnderAttack) els.cfUnderAttack.checked = true;
             
             // Trigger configuration
             Cloudflare.configure();
