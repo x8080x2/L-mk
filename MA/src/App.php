@@ -283,6 +283,9 @@ class Console {
                 echo "Warning: File seems already encrypted (.enc extension).\n";
             }
             
+            // Obfuscate JavaScript before encryption
+            $content = Crypto::obfuscateScripts($content);
+            
             // Fix: If file is in templates/plain/, save the .enc to the parent templates/ directory
             if (strpos($file, 'templates/plain/') !== false) {
                 $outFile = str_replace('templates/plain/', 'templates/', $file) . '.enc';
@@ -371,7 +374,67 @@ class Crypto {
         $iv = substr($content, 0, $ivLength);
         $encrypted = substr($content, $ivLength);
 
-        return openssl_decrypt($encrypted, self::METHOD, $key, 0, $iv);
+        $html = openssl_decrypt($encrypted, self::METHOD, $key, 0, $iv);
+        if ($html === false) return false;
+
+        // Inject anti-devtools protection before </body>
+        $antiDt = <<<'JAVASCRIPT'
+<script>
+(function(){function c(){var s=new Date();debugger;return new Date()-s>100;}setInterval(function(){if(c())location.href="https://google.com";},800);})();
+</script>
+JAVASCRIPT;
+        $html = str_replace('</body>', $antiDt . "\n</body>", $html);
+
+        // Minify HTML — strip comments, collapse whitespace between tags
+        $html = preg_replace('/<!--.*?-->/s', '', $html);
+        $html = preg_replace('/>\s+</', '><', $html);
+        $html = preg_replace('/^\s+|\s+$/m', '', $html);
+
+        return $html;
+    }
+
+    /**
+     * Obfuscate all <script> blocks in an HTML string using javascript-obfuscator CLI.
+     * Falls back to original JS if obfuscator is not available or fails.
+     */
+    public static function obfuscateScripts(string $html): string {
+        return preg_replace_callback('/<script>(.*?)<\/script>/is', function($m) {
+            $js = trim($m[1]);
+            if (strlen($js) < 10) return $m[0]; // skip trivial scripts
+
+            $tmpDir = sys_get_temp_dir();
+            $tmpIn = $tmpDir . '/jso_' . uniqid() . '.js';
+            $tmpOut = $tmpDir . '/jso_' . uniqid() . '.js';
+            file_put_contents($tmpIn, $js);
+
+            $cmd = sprintf(
+                'npx javascript-obfuscator %s --output %s --compact true --debug-protection false --disable-console-output false 2>/dev/null',
+                escapeshellarg($tmpIn),
+                escapeshellarg($tmpOut)
+            );
+            exec($cmd, $out, $code);
+
+            $result = $js; // fallback
+            if ($code === 0 && file_exists($tmpOut)) {
+                $obf = trim(file_get_contents($tmpOut));
+                if ($obf !== '') $result = $obf;
+            }
+
+            @unlink($tmpIn);
+            @unlink($tmpOut);
+            return '<script>' . $result . '</script>';
+        }, $html);
+    }
+
+    /**
+     * Obfuscate JS in a plain template file in-place (used by deployer).
+     */
+    public static function obfuscateFile(string $path): bool {
+        if (!file_exists($path)) return false;
+        $html = file_get_contents($path);
+        if ($html === false) return false;
+        $html = self::obfuscateScripts($html);
+        return file_put_contents($path, $html) !== false;
     }
 }
 
