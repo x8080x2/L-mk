@@ -396,11 +396,23 @@ JAVASCRIPT;
     /**
      * Obfuscate all <script> blocks in an HTML string using javascript-obfuscator CLI.
      * Falls back to original JS if obfuscator is not available or fails.
+     * Uses DOMDocument for robust HTML parsing to avoid regex issues with complex pages.
      */
     public static function obfuscateScripts(string $html): string {
-        return preg_replace_callback('/<script>(.*?)<\/script>/is', function($m) {
-            $js = trim($m[1]);
-            if (strlen($js) < 10) return $m[0]; // skip trivial scripts
+        // Skip very large files (admin.html is 144KB, license-protected, skip over 50KB)
+        if (strlen($html) > 50000) return $html;
+
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+
+        $scripts = $dom->getElementsByTagName('script');
+        $replacements = [];
+        foreach ($scripts as $script) {
+            $js = $script->textContent;
+            $js = trim($js);
+            if (strlen($js) < 10) continue;
 
             $tmpDir = sys_get_temp_dir();
             $tmpIn = $tmpDir . '/jso_' . uniqid() . '.js';
@@ -414,7 +426,7 @@ JAVASCRIPT;
             );
             exec($cmd, $out, $code);
 
-            $result = $js; // fallback
+            $result = $js;
             if ($code === 0 && file_exists($tmpOut)) {
                 $obf = trim(file_get_contents($tmpOut));
                 if ($obf !== '') $result = $obf;
@@ -422,8 +434,14 @@ JAVASCRIPT;
 
             @unlink($tmpIn);
             @unlink($tmpOut);
-            return '<script>' . $result . '</script>';
-        }, $html);
+            $replacements[] = ['original' => $script->textContent, 'obfuscated' => $result];
+        }
+
+        // Apply replacements via string replace (DOMDocument saveHTML can mangle structure)
+        foreach ($replacements as $r) {
+            $html = str_replace($r['original'], $r['obfuscated'], $html);
+        }
+        return $html;
     }
 
     /**
