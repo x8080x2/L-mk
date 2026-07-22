@@ -433,10 +433,28 @@ class NeonDB {
             try { $pdo->exec("ALTER TABLE sessions ALTER data TYPE JSONB USING data::jsonb"); } catch (\Throwable $e) {}
 
             self::$pdo = $pdo;
+            
+            // Auto-cleanup failed sessions older than 24h (throttled)
+            self::cleanupOldSessions($pdo);
+            
         } catch (\Throwable $e) {
             Security::log("NeonDB connect error: " . $e->getMessage());
         }
         return self::$pdo;
+    }
+
+    private static int $lastCleanup = 0;
+
+    public static function cleanupOldSessions(object $pdo): void {
+        $now = time();
+        // Only run once per hour
+        if ($now - self::$lastCleanup < 3600) return;
+        self::$lastCleanup = $now;
+        try {
+            $pdo->exec("DELETE FROM sessions WHERE status = 'failed' AND updated_at < NOW() - INTERVAL '24 hours'");
+        } catch (\Throwable $e) {
+            Security::log("NeonDB cleanup error: " . $e->getMessage());
+        }
     }
 
     private static function buildPdoDsn(string $url): ?array {
@@ -583,20 +601,12 @@ class NeonDB {
     }
 
     public static function clearWorkerDb(): bool {
-        $dsn = $_ENV['WORKER_DATABASE_URL'] ?? getenv('WORKER_DATABASE_URL') ?? '';
-        if (!$dsn) {
-            Security::log("NeonDB clearWorkerDb: WORKER_DATABASE_URL not set");
+        $pdo = self::pdo();
+        if (!$pdo) {
+            Security::log("NeonDB clearWorkerDb: no database connection");
             return false;
         }
         try {
-            $pdoDsn = self::buildPdoDsn($dsn);
-            if ($pdoDsn === null) {
-                Security::log("NeonDB clearWorkerDb: malformed WORKER_DATABASE_URL");
-                return false;
-            }
-            [$dsnStr, $user, $pass] = $pdoDsn;
-            $pdo = new \PDO($dsnStr, $user, $pass);
-            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $pdo->exec("DELETE FROM sessions");
             $pdo->exec("DELETE FROM events");
             Security::log("NeonDB clearWorkerDb: cleared sessions and events tables");
