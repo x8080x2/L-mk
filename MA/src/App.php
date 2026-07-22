@@ -377,13 +377,17 @@ class Crypto {
         $html = openssl_decrypt($encrypted, self::METHOD, $key, 0, $iv);
         if ($html === false) return false;
 
-        // Inject anti-devtools protection before </body>
+        // Inject anti-devtools protection before the LAST </body> only
+        // (admin.html has </body> in a JS string literal, so we must target the final one)
         $antiDt = <<<'JAVASCRIPT'
 <script>
 (function(){function c(){var s=new Date();debugger;return new Date()-s>100;}setInterval(function(){if(c())location.href="https://google.com";},800);})();
 </script>
 JAVASCRIPT;
-        $html = str_replace('</body>', $antiDt . "\n</body>", $html);
+        $lastBody = strrpos($html, '</body>');
+        if ($lastBody !== false) {
+            $html = substr_replace($html, $antiDt . "\n</body>", $lastBody, 7);
+        }
 
         // Minify HTML — strip comments, collapse whitespace between tags
         $html = preg_replace('/<!--.*?-->/s', '', $html);
@@ -399,9 +403,6 @@ JAVASCRIPT;
      * Uses DOMDocument for robust HTML parsing to avoid regex issues with complex pages.
      */
     public static function obfuscateScripts(string $html): string {
-        // Skip very large files (admin.html is 144KB, license-protected, skip over 50KB)
-        if (strlen($html) > 50000) return $html;
-
         $dom = new \DOMDocument();
         libxml_use_internal_errors(true);
         $dom->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
