@@ -185,6 +185,21 @@ class Config {
         return self::save($existing);
     }
 
+    /**
+     * Never let an empty form value wipe stored Cloudflare credentials.
+     * If the payload carries an empty string for a credential key but the
+     * stored config has a non-empty value, drop the key so saveMerged keeps it.
+     */
+    public static function guardCredentials(array $payload): array {
+        $existing = self::load();
+        foreach (['cfEmail', 'cfApiKey', 'cfZoneId', 'cfAccountId'] as $k) {
+            if (array_key_exists($k, $payload) && trim((string)$payload[$k]) === '' && !empty($existing[$k])) {
+                unset($payload[$k]);
+            }
+        }
+        return $payload;
+    }
+
 
 }
 
