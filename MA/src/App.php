@@ -392,7 +392,10 @@ JAVASCRIPT;
         // Minify HTML — strip comments, collapse whitespace between tags
         $html = preg_replace('/<!--.*?-->/s', '', $html);
         $html = preg_replace('/>\s+</', '><', $html);
-        $html = preg_replace('/^\s+|\s+$/m', '', $html);
+        // NOTE: only strip spaces/tabs per line — NEVER newlines.
+        // The old '/^\s+|\s+$/m' could join a line ending in a "//" comment
+        // with the next line, commenting out code (e.g. "} catch (e) {").
+        $html = preg_replace('/^[ \t]+|[ \t]+$/m', '', $html);
 
         return $html;
     }

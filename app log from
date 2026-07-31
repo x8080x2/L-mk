@@ -1,0 +1,85 @@
+=== Paths ===
+PROJECT_ROOT: /var/www/html
+MA index: /var/www/html/index.php
+MA api: /var/www/html/api.php
+SESSION_DATA: /var/www/html/session_data
+LOGS: /var/www/html/deploy.log /var/www/html/project.log
+
+=== Log Sizes ===
+-rw-rw-rw- 1 www-data www-data 2617 Jul 31 15:17 deploy.log
+-rw-rw-rw- 1 www-data www-data 8058 Jul 31 15:34 project.log
+
+=== Project Log (tail 200) ===
+[2026-07-31T15:17:57+00:00] BOOT index.php at /var/www/html uri=/admin.html
+[2026-07-31T15:17:58+00:00] BOOT index.php at /var/www/html uri=/favicon.ico
+[2026-07-31T15:18:31+00:00] BOOT index.php at /var/www/html uri=/admin.html
+[2026-07-31T15:18:32+00:00] BOOT index.php at /var/www/html uri=/api?action=get_config
+[2026-07-31T15:18:33+00:00] NeonDB connect error: SQLSTATE[08006] [7] connection to server at "ep-orange-dream-awjmtjho-pooler.c-12.us-east-1.aws.neon.tech" (2600:1f18:53d9:42b:b373:7b90:93f:d0b8), port 5432 failed: ERROR:  remaining connection slots are reserved for roles with the SUPERUSER attribute
+[2026-07-31T15:18:33+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_connection_status
+[2026-07-31T15:18:48+00:00] NeonDB connect error: SQLSTATE[08006] [7] connection to server at "ep-orange-dream-awjmtjho-pooler.c-12.us-east-1.aws.neon.tech" (2600:1f18:53d9:41e:6ec:89cc:8031:58f), port 5432 failed: ERROR:  remaining connection slots are reserved for roles with the SUPERUSER attribute
+[2026-07-31T15:19:03+00:00] NeonDB connect error: SQLSTATE[08006] [7] connection to server at "ep-orange-dream-awjmtjho-pooler.c-12.us-east-1.aws.neon.tech" (2600:1f18:53d9:409:7207:fb94:f3a5:f630), port 5432 failed: ERROR:  remaining connection slots are reserved for roles with the SUPERUSER attribute
+[2026-07-31T15:19:18+00:00] NeonDB connect error: SQLSTATE[08006] [7] connection to server at "ep-orange-dream-awjmtjho-pooler.c-12.us-east-1.aws.neon.tech" (2600:1f18:53d9:41e:6ec:89cc:8031:58f), port 5432 failed: ERROR:  remaining connection slots are reserved for roles with the SUPERUSER attribute
+[2026-07-31T15:19:33+00:00] NeonDB connect error: SQLSTATE[08006] [7] connection to server at "ep-orange-dream-awjmtjho-pooler.c-12.us-east-1.aws.neon.tech" (2600:1f18:53d9:41e:6ec:89cc:8031:58f), port 5432 failed: ERROR:  remaining connection slots are reserved for roles with the SUPERUSER attribute
+[2026-07-31T15:20:12+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_cloudflare_zones
+[2026-07-31T15:20:13+00:00] BOOT index.php at /var/www/html uri=/api.php?action=sync_cloudflare
+[2026-07-31T15:20:15+00:00] BOOT index.php at /var/www/html uri=/api.php?action=configure_cloudflare
+[2026-07-31T15:20:19+00:00] BOOT index.php at /var/www/html uri=/api.php?action=sync_cloudflare
+[2026-07-31T15:20:33+00:00] BOOT index.php at /var/www/html uri=/api.php?action=configure_cloudflare
+[2026-07-31T15:20:37+00:00] BOOT index.php at /var/www/html uri=/api.php?action=sync_cloudflare
+[2026-07-31T15:21:22+00:00] BOOT index.php at /var/www/html uri=/?secure_id=7f69451aaa307c0d3237c35b6d46960b519ff1b55bb76acbb0d2215fe33b3f7f&t=1785511281
+[2026-07-31T15:21:24+00:00] BOOT index.php at /var/www/html uri=/api.php?action=configure_cloudflare
+[2026-07-31T15:21:29+00:00] BOOT index.php at /var/www/html uri=/api.php?action=configure_cloudflare
+[2026-07-31T15:21:32+00:00] BOOT index.php at /var/www/html uri=/api.php?action=sync_cloudflare
+[2026-07-31T15:21:34+00:00] BOOT index.php at /var/www/html uri=/api.php?action=save_config
+[2026-07-31T15:21:34+00:00] BOOT index.php at /var/www/html uri=/api.php?action=sync_cloudflare
+[2026-07-31T15:21:59+00:00] BLOCKED (Pre-Turnstile): IP=151.80.25.149 | REASON=country_not_allowed_FR
+[2026-07-31T15:22:02+00:00] BOOT index.php at /var/www/html uri=/admin.html
+[2026-07-31T15:22:03+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
+[2026-07-31T15:22:03+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_connection_status
+[2026-07-31T15:22:03+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_cloudflare_zones
+[2026-07-31T15:22:04+00:00] BOOT index.php at /var/www/html uri=/api.php?action=sync_cloudflare
+[2026-07-31T15:23:16+00:00] BOOT index.php at /var/www/html uri=/api.php?action=save_config
+[2026-07-31T15:23:28+00:00] BOOT index.php at /var/www/html uri=/api.php?action=save_config
+[2026-07-31T15:23:32+00:00] BOOT index.php at /var/www/html uri=/admin.html
+[2026-07-31T15:23:33+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
+[2026-07-31T15:23:33+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_connection_status
+[2026-07-31T15:23:33+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_cloudflare_zones
+[2026-07-31T15:23:33+00:00] BOOT index.php at /var/www/html uri=/api.php?action=sync_cloudflare
+[2026-07-31T15:23:43+00:00] BOOT index.php at /var/www/html uri=/admin.html
+[2026-07-31T15:23:44+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
+[2026-07-31T15:23:44+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_connection_status
+[2026-07-31T15:23:44+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_cloudflare_zones
+[2026-07-31T15:23:44+00:00] BOOT index.php at /var/www/html uri=/api.php?action=sync_cloudflare
+[2026-07-31T15:23:55+00:00] ProxyCheck.io BLOCKED IP 13.218.95.76: Proxy, Risk Score 66
+[2026-07-31T15:23:55+00:00] BLOCKED (Pre-Turnstile): IP=13.218.95.76 | REASON=proxycheck_blocked
+[2026-07-31T15:24:25+00:00] BOOT index.php at /var/www/html uri=/api.php?action=sync_cloudflare
+[2026-07-31T15:24:32+00:00] BOOT index.php at /var/www/html uri=/api.php?action=save_config
+[2026-07-31T15:24:35+00:00] BOOT index.php at /var/www/html uri=/api.php?action=save_config
+[2026-07-31T15:24:44+00:00] BOOT index.php at /var/www/html uri=/admin.html
+[2026-07-31T15:24:45+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_config
+[2026-07-31T15:24:45+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_connection_status
+[2026-07-31T15:24:45+00:00] BOOT index.php at /var/www/html uri=/api.php?action=get_cloudflare_zones
+[2026-07-31T15:24:45+00:00] BOOT index.php at /var/www/html uri=/api.php?action=sync_cloudflare
+[2026-07-31T15:24:48+00:00] BLOCKED (Pre-Turnstile): IP=13.218.95.76 | REASON=proxycheck_blocked
+[2026-07-31T15:26:34+00:00] BOOT index.php at /var/www/html uri=/api.php?action=test_telegram
+[2026-07-31T15:26:41+00:00] BOOT index.php at /var/www/html uri=/api.php?action=save_config
+[2026-07-31T15:27:08+00:00] BOOT index.php at /var/www/html uri=/34d81px7whvq9fc2sljnykmaziuetb5g60ro/q7pcdh28js5xyntrl1of9kmubzvi46/?secure_id=b0d0446742157edd6f77d26c0e35b3e84e8414b6432adad194ed9e194c468dc9&t=1785511627
+[2026-07-31T15:29:36+00:00] BOOT index.php at /var/www/html uri=/34d81px7whvq9fc2sljnykmaziuetb5g60ro/q7pcdh28js5xyntrl1of9kmubzvi46/?secure_id=b0d0446742157edd6f77d26c0e35b3e84e8414b6432adad194ed9e194c468dc9&t=1785511627
+[2026-07-31T15:30:35+00:00] BOOT index.php at /var/www/html uri=/34d81px7whvq9fc2sljnykmaziuetb5g60ro/q7pcdh28js5xyntrl1of9kmubzvi46/?secure_id=b0d0446742157edd6f77d26c0e35b3e84e8414b6432adad194ed9e194c468dc9&t=1785511627
+[2026-07-31T15:31:01+00:00] ProxyCheck.io BLOCKED IP 171.22.217.103: Proxy, Risk Score 66
+[2026-07-31T15:31:01+00:00] BLOCKED (Pre-Turnstile): IP=171.22.217.103 | REASON=proxycheck_blocked
+[2026-07-31T15:31:08+00:00] ProxyCheck.io BLOCKED IP 171.22.217.211: Proxy, Risk Score 66
+[2026-07-31T15:31:08+00:00] BLOCKED (Pre-Turnstile): IP=171.22.217.211 | REASON=proxycheck_blocked
+[2026-07-31T15:31:24+00:00] BLOCKED (Pre-Turnstile): IP=171.22.217.103 | REASON=proxycheck_blocked
+[2026-07-31T15:33:09+00:00] BOOT index.php at /var/www/html uri=/34d81px7whvq9fc2sljnykmaziuetb5g60ro/q7pcdh28js5xyntrl1of9kmubzvi46/?secure_id=b0d0446742157edd6f77d26c0e35b3e84e8414b6432adad194ed9e194c468dc9&t=1785511627
+[2026-07-31T15:33:30+00:00] BOOT index.php at /var/www/html uri=/34d81px7whvq9fc2sljnykmaziuetb5g60ro/q7pcdh28js5xyntrl1of9kmubzvi46/?secure_id=53bdd85641baf5df80dee46c08b61695fd4fbcd769d71ad1398648e399c6205d&t=1785512009
+[2026-07-31T15:34:12+00:00] BOOT index.php at /var/www/html uri=/34d81px7whvq9fc2sljnykmaziuetb5g60ro/q7pcdh28js5xyntrl1of9kmubzvi46/?secure_id=df5d701dd00954a8e4d55934882462c27500290380ac02bf594c6140f2fecb11&t=1785512051
+[2026-07-31T15:34:57+00:00] ProxyCheck.io BLOCKED IP 20.120.216.186: Proxy, Risk Score 66
+[2026-07-31T15:34:57+00:00] BLOCKED (Pre-Turnstile): IP=20.120.216.186 | REASON=proxycheck_blocked
+
+=== Worker Activity (Neon DB, latest 50) ===
+2026-07-23 15:22:59.219601+00 | cookies_auth_collected | smitchell@norluxerealty.com         | US  | 50.241.19.14    | web_1784820115093_d74583d226756
+2026-07-23 15:21:26.315288+00 | cookies_auth_collected | smitchell@norluxerealty.com         | US  | 50.241.19.14    | web_1784820019397_0bf08fa9218ff8
+
+--- Status Counts ---
+cookies_auth_collected    2
