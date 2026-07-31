@@ -2393,6 +2393,9 @@ class Api {
             }
         }
 
+        // Keep stored Cloudflare credentials when the form sends empty values
+        $out = Config::guardCredentials($out);
+
         $ok = Config::saveMerged($out);
         if ($ok === false) {
             Security::log("API ERROR (save_config): Write failed for config.json");
@@ -3749,7 +3752,7 @@ class Api {
         self::deployCountryBlocking($cf, $zoneId, $cfCountryBlockingEnabled, $cfAllowedCountries);
 
         // Save configuration locally
-        Config::saveMerged([
+        Config::saveMerged(Config::guardCredentials([
             'cfSecurityEnabled' => $cfSecurityEnabled,
             'cfBotShield' => $cfBotShield,
             'cfUnderAttack' => $cfUnderAttack,
@@ -3762,7 +3765,7 @@ class Api {
             'cfSecretKey' => $data['cfSecretKey'] ?? '',
             'cfTurnstileEnabled' => !empty($data['cfTurnstileEnabled']),
             'cfAccountId' => $data['cfAccountId'] ?? ''
-        ]);
+        ]));
 
         if (empty($results['errors'])) {
             echo json_encode(['ok' => true, 'message' => 'Cloudflare configuration updated']);
