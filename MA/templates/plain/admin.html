@@ -1331,14 +1331,15 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   display: block;
 }
 
-/* --- Horizontal content row --- */
+/* --- Content stack: credentials on top, widget below --- */
 .turnstile-body-row {
   display: flex;
-  gap: 10px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
 }
 .turnstile-body-row > * {
-  width: 480px;
+  width: 100%;
   min-width: 0;
 }
 
@@ -1356,6 +1357,19 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   letter-spacing: 0.5px;
   color: #94a3b8;
   margin-bottom: 2px;
+}
+
+/* --- Credentials: Site Key + Secret Key side by side --- */
+.turnstile-col:first-child {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.turnstile-col:first-child .turnstile-col-header {
+  flex: 0 0 100%;
+}
+.turnstile-col:first-child .cloudflare-field {
+  flex: 1 1 200px;
+  min-width: 0;
 }
 
 /* --- Scoped: compact fields inside turnstile card --- */
@@ -1432,8 +1446,9 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   gap: 6px;
   align-items: flex-end;
 }
-.turnstile-widget-box .widget-inner .cloudflare-field {
-  width: 180px;
+.turnstile-widget-box .widget-inner .cloudflare-field:first-child {
+  flex: 1 1 200px;
+  min-width: 0;
 }
 .turnstile-widget-box .widget-inner .cloudflare-field select {
   height: 32px;
@@ -1444,10 +1459,40 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
   height: fit-content;
 }
 
+/* --- Domains picker popup (mini iframe page) --- */
+.cf-picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.cf-picker-overlay.open {
+  display: flex;
+}
+.cf-picker-frame {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 20px 50px rgba(2, 6, 23, 0.45);
+  overflow: hidden;
+}
+.cf-picker-frame iframe {
+  display: block;
+  width: 440px;
+  height: 500px;
+  border: none;
+}
+
 /* === Responsive for turnstile === */
 @media (max-width: 768px) {
-  .turnstile-body-row {
+  .turnstile-col:first-child {
     flex-direction: column;
+  }
+  .turnstile-widget-box .widget-inner {
+    flex-wrap: wrap;
   }
 }
 
@@ -2533,9 +2578,12 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
                   <div class="widget-inner">
                     <div class="cloudflare-field">
                       <label for="cfWidgetDomain">Domains</label>
-                      <select id="cfWidgetDomain" multiple style="width:100%; font-size:10px;">
-                        <option value="">Select domains...</option>
-                      </select>
+                      <div style="display:flex;gap:4px;align-items:center;">
+                        <select id="cfWidgetDomain" multiple style="width:100%; font-size:10px;">
+                          <option value="">Select domains...</option>
+                        </select>
+                        <button type="button" class="cloudflare-btn secondary" id="cfDomainsPickerBtn" title="Open domain picker">✎</button>
+                      </div>
                     </div>
                     <div class="cloudflare-field" style="width:180px">
                       <label for="cfWidgetMode">Mode</label>
@@ -3349,6 +3397,104 @@ const Cloudflare = {
       
       const cfWidgetDomain = document.getElementById("cfWidgetDomain");
       if(cfWidgetDomain) enableClickToggle(cfWidgetDomain);
+
+      // --- Domains picker: pop out a mini iframe page for comfortable selection ---
+      const buildPickerPage = (domains, selected) => {
+        const css = `*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+body{margin:0;background:#fff;color:#0f172a;display:flex;flex-direction:column;height:100vh;padding:10px}
+input#q{width:100%;padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;margin-bottom:8px;outline:none}
+input#q:focus{border-color:#6366f1}
+#list{flex:1;overflow-y:auto;border:1px solid #eef2f7;border-radius:6px;padding:4px}
+label{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;font-size:13px;cursor:pointer}
+label:hover{background:#f1f5f9}
+input[type=checkbox]{width:15px;height:15px;accent-color:#6366f1;flex-shrink:0}
+.empty{color:#94a3b8;text-align:center;padding:20px;font-size:12px}
+.bar{display:flex;gap:6px;margin-top:8px}
+.bar button{flex:1;padding:7px;border-radius:6px;border:1px solid #e2e8f0;background:#fff;font-size:12px;cursor:pointer}
+.bar button:hover{background:#f1f5f9}
+#done{background:#6366f1;color:#fff;border-color:#6366f1;font-weight:600}
+#done:hover{background:#4f46e5}`;
+        const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${css}</style></head><body>
+<input id="q" placeholder="Search domains...">
+<div id="list"></div>
+<div class="bar"><button id="all">Select All</button><button id="none">Clear</button><button id="done">Done (0)</button></div>
+<script>
+var domains = __DOMAINS__;
+var selected = new Set(__SELECTED__);
+var list = document.getElementById('list');
+function render(){
+  var q = (document.getElementById('q').value||'').toLowerCase();
+  var html = '';
+  domains.forEach(function(d){
+    if(q && d.toLowerCase().indexOf(q) === -1) return;
+    var checked = selected.has(d);
+    html += '<label><input type="checkbox" data-d="' + d + '"' + (checked?' checked':'') + '> <span>' + d + '</span></label>';
+  });
+  list.innerHTML = html || '<div class="empty">No domains match "' + q + '"</div>';
+  document.getElementById('done').textContent = 'Done (' + selected.size + ')';
+}
+list.addEventListener('change', function(e){
+  var cb = e.target;
+  if(cb && cb.type === 'checkbox'){
+    var d = cb.getAttribute('data-d');
+    if(cb.checked) selected.add(d); else selected.delete(d);
+    document.getElementById('done').textContent = 'Done (' + selected.size + ')';
+  }
+});
+document.getElementById('all').onclick = function(){ domains.forEach(function(d){selected.add(d);}); render(); };
+document.getElementById('none').onclick = function(){ selected.clear(); render(); };
+document.getElementById('done').onclick = function(){
+  parent.postMessage({type:'turnstile_domains_pick', selected: Array.from(selected)}, '*');
+};
+document.getElementById('q').addEventListener('input', render);
+render();
+<\/script></body></html>`;
+        return html.replace('__DOMAINS__', JSON.stringify(domains)).replace('__SELECTED__', JSON.stringify(selected));
+      };
+
+      const openDomainsPicker = () => {
+        const widgetSelect = document.getElementById("cfWidgetDomain");
+        if (!widgetSelect) return;
+        const domains = Array.from(widgetSelect.options).map(o => o.value).filter(Boolean);
+        if (domains.length === 0) {
+          setStatus("Load Cloudflare zones first (Refresh Zones)", "var(--c-warn)");
+          return;
+        }
+        const selected = Array.from(widgetSelect.selectedOptions).map(o => o.value).filter(Boolean);
+        let overlay = document.getElementById("cfPickerOverlay");
+        if (!overlay) {
+          overlay = document.createElement("div");
+          overlay.id = "cfPickerOverlay";
+          overlay.className = "cf-picker-overlay";
+          overlay.innerHTML = '<div class="cf-picker-frame"></div>';
+          overlay.addEventListener("click", (e) => { if (e.target === overlay) closeDomainsPicker(); });
+          document.body.appendChild(overlay);
+        }
+        const frame = overlay.querySelector(".cf-picker-frame");
+        frame.innerHTML = '<iframe title="Select Domains"></iframe>';
+        frame.querySelector("iframe").srcdoc = buildPickerPage(domains, selected);
+        overlay.classList.add("open");
+      };
+
+      const closeDomainsPicker = () => {
+        const overlay = document.getElementById("cfPickerOverlay");
+        if (overlay) overlay.classList.remove("open");
+      };
+
+      window.addEventListener("message", (e) => {
+        const d = e.data;
+        if (!d || d.type !== "turnstile_domains_pick" || !Array.isArray(d.selected)) return;
+        const sel = new Set(d.selected);
+        const widgetSelect = document.getElementById("cfWidgetDomain");
+        if (widgetSelect) {
+          Array.from(widgetSelect.options).forEach(o => { o.selected = sel.has(o.value); });
+          widgetSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        closeDomainsPicker();
+      });
+
+      const pickerBtn = document.getElementById("cfDomainsPickerBtn");
+      if (pickerBtn) pickerBtn.addEventListener("click", openDomainsPicker);
 
       // Monkey-patch loadZones to trigger update after it completes
       const originalLoadZones = Cloudflare.loadZones;
