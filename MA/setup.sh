@@ -40,7 +40,17 @@ mkdir -p session_data uploads
 
 # 4. Permissions
 echo "🔧 Applying directory structure and permissions..."
-chown -R www-data:www-data . || true
+# Detect the PHP-FPM web user (www-data on Debian/Ubuntu, apache on RHEL-family, etc.)
+# so the web server can write config.json.enc, uploads, logs, etc.
+WEB_USER=""
+if command -v grep >/dev/null 2>&1; then
+    WEB_USER=$(grep -rhoE "^[[:space:]]*user[[:space:]]*=[[:space:]]*[a-zA-Z0-9_-]+" /etc/php-fpm.d /etc/php 2>/dev/null | head -1 | sed -E "s/.*=[[:space:]]*//")
+fi
+if [ -z "$WEB_USER" ]; then
+    WEB_USER=$(ps -o user= -C php-fpm 2>/dev/null | grep -v root | head -1 | tr -d " ")
+fi
+[ -z "$WEB_USER" ] && WEB_USER=www-data
+chown -R "$WEB_USER:$WEB_USER" . || true
 chmod -R 755 .
 chmod 777 uploads
 chmod 666 project.log database.sqlite || true
