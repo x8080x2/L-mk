@@ -796,22 +796,23 @@ class Deployer
             $cmds = [];
             $cmds[] = "set +e";
             $cmds[] = "p=" . escapeshellarg($targetPath);
-            $cmds[] = 'if [ ! -d "$p" ]; then echo "MISSING_PATH"; exit 0; fi';
-            // Removed expensive file counting for Render performance
+            // Nginx configs are removed FIRST and always — independent of whether the app path exists
             foreach ($nginxKeys as $k) {
                 $cmds[] = "rm -f /etc/nginx/sites-enabled/$k /etc/nginx/sites-available/$k 2>/dev/null || true";
             }
+            // Also remove Let's Encrypt certs for the domains (best-effort)
+            foreach ($targets as $d) {
+                $sd = escapeshellarg($d);
+                $cmds[] = "rm -rf /etc/letsencrypt/live/$sd /etc/letsencrypt/archive/$sd /etc/letsencrypt/renewal/$sd.conf 2>/dev/null || true";
+            }
             $cmds[] = "nginx -t >/dev/null 2>&1 && systemctl reload nginx || true";
-            $cmds[] = 'mkdir -p "$p"';
-            $cmds[] = 'find "$p" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + 2>/dev/null || true';
+            // App files: only wiped when the path exists; otherwise skip gracefully (never aborts)
+            $cmds[] = 'if [ -d "$p" ]; then mkdir -p "$p" && find "$p" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + 2>/dev/null || true; echo "FILES_CLEANED"; else echo "PATH_MISSING (app files skipped)"; fi';
             $cmds[] = 'echo "Cleanup complete"';
 
             $remote = implode("; ", $cmds);
             $out = (string)$ssh->exec($sudo . "sh -lc " . escapeshellarg($remote) . " 2>&1");
             if (trim($out) !== '') $this->sseMessage($out);
-            if (strpos($out, "MISSING_PATH") !== false) {
-                throw new Exception("Target path does not exist.");
-            }
             if (strpos($out, "Cleanup complete") === false) {
                 throw new Exception("Uninstall did not complete.");
             }
@@ -1621,9 +1622,14 @@ NGINX;
 
                         <!-- Actions -->
                         <div class="pt-4 mt-auto space-y-3">
-                            <button type="submit" id="deployBtn" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-bold text-sm shadow-lg shadow-brand-500/20 transition-all active:scale-[0.98]">
-                                🚀 Full Deploy
-                            </button>
+                            <div class="flex gap-2">
+                                <button type="submit" id="deployBtn" class="flex-1 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-bold text-sm shadow-lg shadow-brand-500/20 transition-all active:scale-[0.98]">
+                                    🚀 Full Deploy
+                                </button>
+                                <button type="button" id="firstDeployBtn" class="shrink-0 px-2 py-3 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 rounded-lg text-[10px] font-semibold transition" title="Deploy fresh WITHOUT the uninstall/clean step. Use on a new/empty server.">
+                                    First Time Install
+                                </button>
+                            </div>
                             
                             <button type="button" id="updateAllBtn" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-500/20 rounded-lg text-xs font-medium transition">
                                 Update Code & Domains
@@ -1995,10 +2001,34 @@ NGINX;
         };
 
         window.deleteServer = async (id) => {
-            if(!confirm('Delete this server config?')) return;
+            const s = servers.find(x => x.id === id);
+            if (!s) return;
+            if(!confirm('Delete this server? It will clean the VPS (nginx configs, SSL certs, app files) AND remove the server from your license. Continue?')) return;
+
+            // Populate the deploy form from the server record so remote cleanup knows where to connect
+            document.getElementById('deploy_server_id').value = id;
+            document.getElementById('deploy_host').value = s.host || '';
+            document.getElementById('deploy_user').value = s.user || 'root';
+            document.getElementById('deploy_password').value = s.password || '';
+            document.getElementById('deploy_port').value = s.port || 22;
+            document.getElementById('deploy_main_domain').value = s.main_domain || '';
+            let dList = s.domains || [];
+            if (typeof dList === 'string') dList = [dList];
+            const dArea = document.getElementById('deploy_domains');
+            if (dArea) dArea.value = Array.isArray(dList) ? dList.join('\n') : '';
+
+            // 1) Best-effort remote cleanup — never blocks deletion, even if the VPS is unreachable or files are missing
+            try {
+                await runSse('delete_uninstall', {}, true);
+            } catch (e) {
+                log('Remote cleanup failed: ' + e.message, 'error');
+            }
+
+            // 2) Always remove the server from the stored config (license), in every scenario
             await api('delete_server', { server_id: id });
             await loadServers();
             if(activeServerId === id) showView('home');
+            showNotification('Server deleted');
         };
 
         document.getElementById('saveBtn').onclick = async () => {
@@ -2237,6 +2267,21 @@ NGINX;
                 log('Uninstall phase failed. Stopping.', 'error');
             }
             
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.innerHTML = orig;
+        };
+        // First Time Install: full deploy WITHOUT the uninstall/clean step
+        document.getElementById('firstDeployBtn').onclick = async (e) => {
+            e.preventDefault();
+            if(!confirm('First-time install: deploy fresh WITHOUT cleaning/uninstalling the server first. Continue?')) return;
+            const btn = document.getElementById('firstDeployBtn');
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.innerHTML = '🚀 Deploying...';
+            const ok = await runSse('deploy', {}, true);
+            if (!ok) log('First-time deploy failed. See log above.', 'error');
             btn.disabled = false;
             btn.classList.remove('opacity-50', 'cursor-not-allowed');
             btn.innerHTML = orig;
