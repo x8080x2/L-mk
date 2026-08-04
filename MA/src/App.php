@@ -3613,7 +3613,9 @@ class Api {
         $hasRules = false;
         if ($rulesRes['code'] === 200 && !empty($rulesRes['body']['result'])) {
             foreach ($rulesRes['body']['result'] as $rs) {
-                if (strpos($rs['name'] ?? '', 'Custom WAF Ruleset') !== false) {
+                // Match the zone custom ruleset by phase+kind (same lookup as deployCountryBlocking),
+                // NOT by name — deploy creates it as "L1mk Custom Rules".
+                if (($rs['phase'] ?? '') === 'http_request_firewall_custom' && ($rs['kind'] ?? '') === 'zone') {
                     // Check if ruleset actually has rules
                     $rsId = $rs['id'];
                     $rsDetails = $cf('GET', "zones/$zoneId/rulesets/$rsId");

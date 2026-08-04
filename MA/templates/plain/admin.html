@@ -2640,6 +2640,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
                 <label for="cfCountryBlockingEnabled" style="display:flex;align-items:center;gap:8px;">
                   🌍 Country Blocking
                   <span class="tooltip-icon" title="Enable country blocking on Cloudflare">?</span>
+                  <span id="cfCountryStatus" style="margin-left:auto;font-size:11px;font-weight:700;color:#ef4444;">Not synced</span>
                 </label>
                 <input id="cfCountryBlockingEnabled" type="checkbox">
               </div>
@@ -3233,6 +3234,18 @@ const Cloudflare = {
     if(els.cfAllowedCountries && r.cfAllowedCountries) els.cfAllowedCountries.value = r.cfAllowedCountries;
     updateCountryToggleState();
 
+    // Show live country-block state + allowed countries in the UI
+    const cfCountryStatus = document.getElementById("cfCountryStatus");
+    if (cfCountryStatus) {
+      if (r.cfCountryBlockingEnabled) {
+        cfCountryStatus.textContent = "✅ " + (r.cfAllowedCountries || "ACTIVE");
+        cfCountryStatus.style.color = "var(--c-success)";
+      } else {
+        cfCountryStatus.textContent = "OFF";
+        cfCountryStatus.style.color = "#ef4444";
+      }
+    }
+
     updateStatusLabel("cfMasterStatusText", any, any ? "var(--c-success)" : "var(--c-error)");
   },
 
@@ -3698,7 +3711,9 @@ Cloudflare.init();
       setStatus("Loaded config.json", "var(--accent)");
       if (data.cfApiKey) {
         Cloudflare.loadZones(true).then(() => {
-          if (data.cfZoneId) Cloudflare.sync();
+          // Always sync from Cloudflare when creds exist, so live ruleset state
+          // (e.g. country block + allowed countries) is visible in the UI.
+          Cloudflare.sync();
         });
       }
     }else{
