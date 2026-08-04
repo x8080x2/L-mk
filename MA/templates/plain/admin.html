@@ -3071,6 +3071,7 @@ function loadForm(cfg){
   els.cfAccountId.value=cfg.cfAccountId||"";
   els.cfCountryBlockingEnabled.checked=!!cfg.cfCountryBlockingEnabled;
   els.cfAllowedCountries.value=cfg.cfAllowedCountries||"";
+  updateCountryToggleState();
   els.countryBlockingEnabled.checked=!!cfg.countryBlockingEnabled;
   const allowedSet=new Set(parseIsoList(cfg.allowedCountries));
   for(const opt of els.allowedCountries.options){opt.selected=allowedSet.has(opt.value);}
@@ -3197,6 +3198,12 @@ const checkTelegram = () => {
 els.telegramBotToken.addEventListener("input", checkTelegram);
 els.telegramChatId.addEventListener("input", checkTelegram);
 
+// Guard: Country Block toggle can't be enabled until at least one country is entered
+function updateCountryToggleState() {
+  if (!els.cfCountryBlockingEnabled || !els.cfAllowedCountries) return;
+  els.cfCountryBlockingEnabled.disabled = !els.cfAllowedCountries.value.trim();
+}
+
 const Cloudflare = {
   getCreds: () => ({
     apiKey: els.cfApiKey.value.trim(),
@@ -3224,6 +3231,7 @@ const Cloudflare = {
     // Update Country Blocking UI
     if(els.cfCountryBlockingEnabled) els.cfCountryBlockingEnabled.checked = !!r.cfCountryBlockingEnabled;
     if(els.cfAllowedCountries && r.cfAllowedCountries) els.cfAllowedCountries.value = r.cfAllowedCountries;
+    updateCountryToggleState();
 
     updateStatusLabel("cfMasterStatusText", any, any ? "var(--c-success)" : "var(--c-error)");
   },
@@ -3325,7 +3333,7 @@ const Cloudflare = {
     finally { Cloudflare.setScanning(false); }
   },
 
-  configure: async () => {
+  configure: async (countryOnly = false) => {
     if (!Cloudflare.requireCreds()) return;
     
     setStatus(`Updating Cloudflare security...`, "var(--accent)");
@@ -3334,7 +3342,7 @@ const Cloudflare = {
       const r = await apiFetch("configure_cloudflare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(readForm())
+        body: JSON.stringify(Object.assign(readForm(), { cfCountryOnly: countryOnly }))
       });
       
       if (r.ok) {
@@ -3615,7 +3623,7 @@ render();
       // Wire up Country Blocking Toggle
       if(els.cfCountryBlockingEnabled) {
           els.cfCountryBlockingEnabled.addEventListener('change', () => {
-              Cloudflare.configure();
+              Cloudflare.configure(true); // country-only: never touch other CF settings
           });
       }
 
@@ -3623,7 +3631,7 @@ render();
       const updateCountriesBtn = document.getElementById("updateCfCountriesBtn");
       if(updateCountriesBtn) {
           updateCountriesBtn.addEventListener("click", () => {
-              Cloudflare.configure();
+              Cloudflare.configure(true); // country-only: never touch other CF settings
           });
       }
 
@@ -3632,9 +3640,10 @@ render();
           els.cfAllowedCountries.addEventListener("keypress", (e) => {
               if(e.key === "Enter") {
                   e.preventDefault();
-                  Cloudflare.configure();
+                  Cloudflare.configure(true); // country-only: never touch other CF settings
               }
           });
+          els.cfAllowedCountries.addEventListener("input", updateCountryToggleState);
       }
       
       if (els.syncCloudflareBtn) els.syncCloudflareBtn.addEventListener("click", Cloudflare.sync);
@@ -3661,6 +3670,8 @@ render();
       if(els.cfZoneId) els.cfZoneId.addEventListener("change", () => {
           if(els.cfZoneId.value) Cloudflare.sync();
       });
+
+      updateCountryToggleState();
   }
 };
 Cloudflare.init();

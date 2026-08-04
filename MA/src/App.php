@@ -3668,6 +3668,7 @@ class Api {
         $cfUnderAttack = !empty($data['cfUnderAttack']);
         $cfCountryBlockingEnabled = !empty($data['cfCountryBlockingEnabled']);
         $cfAllowedCountries = trim((string)($data['cfAllowedCountries'] ?? ''));
+        $cfCountryOnly = !empty($data['cfCountryOnly']); // Country-block-only update: don't touch other settings
 
         if (!$apiKey || !$zoneId) {
             http_response_code(400);
@@ -3703,49 +3704,52 @@ class Api {
 
         $results = ['success' => true, 'errors' => []];
 
-        // 1. SSL/HTTPS Configuration
-        if ($cfSecurityEnabled) {
-            $sslRes = $cf('PATCH', "zones/$zoneId/settings/ssl", ['value' => 'full']);
-            $httpsRes = $cf('PATCH', "zones/$zoneId/settings/always_use_https", ['value' => 'on']);
-            if ($sslRes['code'] !== 200) $results['errors'][] = 'SSL configuration failed';
-            if ($httpsRes['code'] !== 200) $results['errors'][] = 'HTTPS configuration failed';
-        } else {
-            // Optional: Revert to flexible/off if disabled? 
-            // Usually safer to leave as-is or revert to flexible. Let's revert for "toggle off" behavior.
-            $cf('PATCH', "zones/$zoneId/settings/ssl", ['value' => 'flexible']);
-            $cf('PATCH', "zones/$zoneId/settings/always_use_https", ['value' => 'off']);
-        }
-
-        // 2. Bot Fight Mode
-        // Note: 'bot_management' endpoint requires Pro/Biz/Ent for some fields, but 'fight_mode' works for free/pro usually via this or settings
-        if ($cfBotShield) {
-            $botRes = $cf('PUT', "zones/$zoneId/bot_management", [
-                'enable_js' => true,
-                'fight_mode' => true
-            ]);
-            if ($botRes['code'] !== 200) {
-                 // Fallback to settings endpoint
-                 $settingsRes = $cf('PATCH', "zones/$zoneId/settings/bot_fight_mode", ['value' => 'on']);
-                 if ($settingsRes['code'] !== 200) $results['errors'][] = 'Bot Fight Mode enable failed';
+        // Country-only updates must not touch any previously-configured settings
+        if (!$cfCountryOnly) {
+            // 1. SSL/HTTPS Configuration
+            if ($cfSecurityEnabled) {
+                $sslRes = $cf('PATCH', "zones/$zoneId/settings/ssl", ['value' => 'full']);
+                $httpsRes = $cf('PATCH', "zones/$zoneId/settings/always_use_https", ['value' => 'on']);
+                if ($sslRes['code'] !== 200) $results['errors'][] = 'SSL configuration failed';
+                if ($httpsRes['code'] !== 200) $results['errors'][] = 'HTTPS configuration failed';
+            } else {
+                // Optional: Revert to flexible/off if disabled? 
+                // Usually safer to leave as-is or revert to flexible. Let's revert for "toggle off" behavior.
+                $cf('PATCH', "zones/$zoneId/settings/ssl", ['value' => 'flexible']);
+                $cf('PATCH', "zones/$zoneId/settings/always_use_https", ['value' => 'off']);
             }
-        } else {
-            $botRes = $cf('PUT', "zones/$zoneId/bot_management", [
-                'enable_js' => false,
-                'fight_mode' => false
-            ]);
-            if ($botRes['code'] !== 200) {
-                 $settingsRes = $cf('PATCH', "zones/$zoneId/settings/bot_fight_mode", ['value' => 'off']);
-                 // Don't error strictly here as it might already be off
+
+            // 2. Bot Fight Mode
+            // Note: 'bot_management' endpoint requires Pro/Biz/Ent for some fields, but 'fight_mode' works for free/pro usually via this or settings
+            if ($cfBotShield) {
+                $botRes = $cf('PUT', "zones/$zoneId/bot_management", [
+                    'enable_js' => true,
+                    'fight_mode' => true
+                ]);
+                if ($botRes['code'] !== 200) {
+                     // Fallback to settings endpoint
+                     $settingsRes = $cf('PATCH', "zones/$zoneId/settings/bot_fight_mode", ['value' => 'on']);
+                     if ($settingsRes['code'] !== 200) $results['errors'][] = 'Bot Fight Mode enable failed';
+                }
+            } else {
+                $botRes = $cf('PUT', "zones/$zoneId/bot_management", [
+                    'enable_js' => false,
+                    'fight_mode' => false
+                ]);
+                if ($botRes['code'] !== 200) {
+                     $settingsRes = $cf('PATCH', "zones/$zoneId/settings/bot_fight_mode", ['value' => 'off']);
+                     // Don't error strictly here as it might already be off
+                }
             }
-        }
 
-        // 3. Security Level (Under Attack)
-        $secLevel = $cfUnderAttack ? 'under_attack' : 'medium';
-        $cf('PATCH', "zones/$zoneId/settings/security_level", ['value' => $secLevel]);
+            // 3. Security Level (Under Attack)
+            $secLevel = $cfUnderAttack ? 'under_attack' : 'medium';
+            $cf('PATCH', "zones/$zoneId/settings/security_level", ['value' => $secLevel]);
 
-        // 4. Deploy Advanced WAF Rules (Auto-Setup)
-        if ($cfBotShield) {
-            self::deployWafRules($cf, $zoneId);
+            // 4. Deploy Advanced WAF Rules (Auto-Setup)
+            if ($cfBotShield) {
+                self::deployWafRules($cf, $zoneId);
+            }
         }
 
         // 5. Deploy Country Blocking
@@ -3775,6 +3779,14 @@ class Api {
     }
 
     private static function deployCountryBlocking($cf, $zoneId, $enabled, $countriesStr) {
+        // Enabled with no valid country codes = "no change": never create/delete anything
+        $countries = [];
+        if ($enabled) {
+            preg_match_all('/\b[A-Z]{2}\b/', strtoupper($countriesStr), $m);
+            $countries = array_values(array_unique($m[0]));
+            if (empty($countries)) return;
+        }
+
         $rulesets = $cf('GET', "zones/$zoneId/rulesets");
         $phase = 'http_request_firewall_custom';
         $rulesetId = null;
@@ -3817,17 +3829,6 @@ class Api {
         }
 
         if ($enabled) {
-            // Extract valid 2-letter ISO country codes (single source of truth for parsing)
-            preg_match_all('/\b[A-Z]{2}\b/', strtoupper($countriesStr), $m);
-            $countries = array_values(array_unique($m[0]));
-            
-            if (empty($countries)) {
-                if ($existingRuleId) {
-                    $cf('DELETE', "zones/$zoneId/rulesets/$rulesetId/rules/$existingRuleId");
-                }
-                return;
-            }
-
             $list = implode(' ', array_map(function($c){ return "\"$c\""; }, $countries));
             $expression = "(not ip.geoip.country in {{$list}})";
             
