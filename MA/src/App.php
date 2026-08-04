@@ -3625,8 +3625,8 @@ class Api {
                                 $results['cfCountryBlockingEnabled'] = true;
                                 // Extract countries from expression: (not ip.geoip.country in {"US" "CA"})
                                 if (preg_match('/ip\.geoip\.country in \{(.*?)\}/', $rule['expression'], $m)) {
-                                    $cList = str_replace('"', '', $m[1]);
-                                    $results['cfAllowedCountries'] = str_replace(' ', ', ', $cList);
+                                    preg_match_all('/\b[A-Z]{2}\b/', $m[1], $mm);
+                                    $results['cfAllowedCountries'] = implode(', ', array_values(array_unique($mm[0])));
                                 }
                             }
                         }
@@ -3817,8 +3817,9 @@ class Api {
         }
 
         if ($enabled) {
-            $countries = array_map('trim', explode(',', strtoupper($countriesStr)));
-            $countries = array_filter($countries);
+            // Extract valid 2-letter ISO country codes (single source of truth for parsing)
+            preg_match_all('/\b[A-Z]{2}\b/', strtoupper($countriesStr), $m);
+            $countries = array_values(array_unique($m[0]));
             
             if (empty($countries)) {
                 if ($existingRuleId) {

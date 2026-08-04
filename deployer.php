@@ -1071,6 +1071,7 @@ class Deployer
                 if ($row && $row['status'] === 'active' && $row['expires_at'] > gmdate('c')) {
                     $valid = true;
                     $_SESSION['license_valid_until'] = time() + 300; // Cache valid result for 5 minutes
+                    $_SESSION['license_expires_at'] = $row['expires_at']; // For license countdown display
                 }
             } catch (Exception $e) {
                 error_log("License Validation Error: " . $e->getMessage());
@@ -1079,7 +1080,10 @@ class Deployer
         
         $this->currentLicense = $key;
         if ($valid) {
-            if ($master && hash_equals($master, $key)) $this->isMaster = true;
+            if ($master && hash_equals($master, $key)) {
+                $this->isMaster = true;
+                $_SESSION['license_expires_at'] = ''; // Master key = lifetime, no countdown
+            }
             $_SESSION['license_key'] = $key; // Save to session
             // Do NOT update MASTER_LICENSE_KEY - bot licenses should remain regular licenses
             return true;
@@ -1348,6 +1352,7 @@ NGINX;
 
     private function renderDashboard() {
         $lic = htmlspecialchars($this->currentLicense);
+        $licenseExpiresAt = $_SESSION['license_expires_at'] ?? '';
         
         // Lazy load removed from here to improve initial page load speed
         ?>
@@ -1465,6 +1470,10 @@ NGINX;
             <span id="license-key"><?php echo $lic; ?></span>
                         <button id="copy-btn" onclick="copyLicense()" class="ml-2 px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-white text-xs">Copy</button>
             <a href="?action=logout" class="ml-4 hover:text-red-400">Logout</a>
+            <div id="license-countdown" data-expires="<?php echo htmlspecialchars($licenseExpiresAt); ?>" class="mt-1.5 pt-1.5 border-t border-white/5">
+                <span class="uppercase tracking-wider text-slate-600">License</span>
+                <span id="license-countdown-value" class="text-slate-300 ml-1"></span>
+            </div>
         </div>
         <?php endif; ?>
     </aside>
@@ -2339,6 +2348,36 @@ NGINX;
 
 
 
+
+        // License expiry countdown (live ticker, source = Neon licenses.expires_at)
+        (function () {
+            const holder = document.getElementById('license-countdown');
+            const valueEl = document.getElementById('license-countdown-value');
+            if (!holder || !valueEl) return;
+            const expires = holder.dataset.expires || '';
+            if (!expires) {
+                valueEl.textContent = 'Lifetime';
+                valueEl.className = 'text-emerald-400';
+                return;
+            }
+            const target = new Date(expires).getTime();
+            const tick = () => {
+                const diff = target - Date.now();
+                if (diff <= 0) {
+                    valueEl.textContent = 'EXPIRED';
+                    valueEl.className = 'text-red-500 font-bold';
+                    return;
+                }
+                const d = Math.floor(diff / 86400000);
+                const h = Math.floor(diff / 3600000) % 24;
+                const m = Math.floor(diff / 60000) % 60;
+                const s = Math.floor(diff / 1000) % 60;
+                valueEl.textContent = d + 'd ' + h + 'h ' + m + 'm ' + s + 's remaining';
+                valueEl.className = d < 7 ? 'text-amber-400' : 'text-emerald-400';
+            };
+            tick();
+            setInterval(tick, 1000);
+        })();
 
         loadServers().then(() => showView('home'));
     </script>
