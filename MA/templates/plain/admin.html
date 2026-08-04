@@ -2639,7 +2639,7 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
               <div class="cloudflare-field">
                 <label for="cfCountryBlockingEnabled" style="display:flex;align-items:center;gap:8px;">
                   🌍 Country Blocking
-                  <span class="tooltip-icon" title="Enable country blocking on Cloudflare">?</span>
+                  <span class="tooltip-icon" title="Live state from Cloudflare: shows rule ACTIVE + allowed countries, rule found but disabled, or no rule. Click Update to apply changes.">?</span>
                   <span id="cfCountryStatus" style="margin-left:auto;font-size:11px;font-weight:700;color:#ef4444;">Not synced</span>
                 </label>
                 <input id="cfCountryBlockingEnabled" type="checkbox">
@@ -3238,10 +3238,13 @@ const Cloudflare = {
     const cfCountryStatus = document.getElementById("cfCountryStatus");
     if (cfCountryStatus) {
       if (r.cfCountryBlockingEnabled) {
-        cfCountryStatus.textContent = "✅ " + (r.cfAllowedCountries || "ACTIVE");
+        cfCountryStatus.textContent = "✅ ACTIVE · " + (r.cfAllowedCountries || "NO COUNTRIES");
         cfCountryStatus.style.color = "var(--c-success)";
+      } else if (r.cfCountryRuleExists) {
+        cfCountryStatus.textContent = "⚠️ RULE FOUND · DISABLED" + (r.cfAllowedCountries ? " · " + r.cfAllowedCountries : "");
+        cfCountryStatus.style.color = "var(--c-warn)";
       } else {
-        cfCountryStatus.textContent = "OFF";
+        cfCountryStatus.textContent = "— NO RULE · OFF";
         cfCountryStatus.style.color = "#ef4444";
       }
     }

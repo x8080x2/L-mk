@@ -3583,6 +3583,7 @@ class Api {
             'cfBotShield' => false,
             'cfUnderAttack' => false,
             'cfCountryBlockingEnabled' => false,
+            'cfCountryRuleExists' => false,
             'cfAllowedCountries' => '',
             'raw' => []
         ];
@@ -3623,8 +3624,11 @@ class Api {
                         $hasRules = true;
                         // Check for Country Blocking Rule
                         foreach ($rsDetails['body']['result']['rules'] as $rule) {
-                            if (($rule['description'] ?? '') === 'L1mk: Country Block (Allow Only)' && !empty($rule['enabled'])) {
-                                $results['cfCountryBlockingEnabled'] = true;
+                            if (($rule['description'] ?? '') === 'L1mk: Country Block (Allow Only)') {
+                                $results['cfCountryRuleExists'] = true;
+                                if (!empty($rule['enabled'])) {
+                                    $results['cfCountryBlockingEnabled'] = true;
+                                }
                                 // Extract countries from expression: (not ip.geoip.country in {"US" "CA"})
                                 if (preg_match('/ip\.geoip\.country in \{(.*?)\}/', $rule['expression'], $m)) {
                                     preg_match_all('/\b[A-Z]{2}\b/', $m[1], $mm);
