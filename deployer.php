@@ -1451,7 +1451,7 @@ NGINX;
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1" id="server-list">
+        <div class="w-[250px] flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1" id="server-list">
             <!-- Server Items injected here -->
         </div>
 
@@ -1486,7 +1486,7 @@ NGINX;
     <!-- Main Content -->
     <main class="flex-1 flex flex-col min-w-0 bg-slate-950 relative">
         <!-- Top Bar -->
-        <header class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-slate-950/80 backdrop-blur z-10" style="width: 1040px;">
+        <header class="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-slate-950/80 backdrop-blur z-10 w-full">
             <div class="flex items-center gap-4">
                  <h2 id="page-title" class="text-lg font-semibold text-slate-100">Dashboard</h2>
             </div>
@@ -1499,7 +1499,7 @@ NGINX;
         <div class="flex-1 overflow-hidden relative">
             
             <!-- Welcome View -->
-            <div id="view-home" class="absolute inset-0 p-8 flex flex-col items-center justify-center text-center opacity-100 transition-opacity duration-300">
+            <div id="view-home" class="absolute inset-0 p-8 flex flex-col items-center justify-center text-center opacity-100 transition-opacity duration-300 overflow-y-auto custom-scrollbar">
                 <div class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center mb-6 border border-white/5">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-600"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
                 </div>
@@ -1564,11 +1564,11 @@ NGINX;
             </div>
 
             <!-- Deploy View -->
-            <div id="view-deploy" class="hidden absolute inset-0 flex flex-col lg:flex-row">
+            <div id="view-deploy" class="hidden absolute inset-0 flex flex-col lg:flex-row overflow-y-auto custom-scrollbar">
                 
                 <!-- Left Panel: Config -->
-                <div class="w-full lg:w-[400px] xl:w-[450px] border-b lg:border-b-0 lg:border-r border-white/5 bg-slate-900/30 flex flex-col overflow-y-auto custom-scrollbar">
-                    <form id="deployForm" class="flex-1 flex flex-col py-0 px-2.5 space-y-6">
+                <div class="w-[400px] shrink-0 max-h-[60vh] lg:max-h-none border-b lg:border-b-0 lg:border-r border-white/5 bg-slate-900/30 flex flex-col overflow-y-auto custom-scrollbar">
+                    <form id="deployForm" class="w-[350px] mx-auto flex flex-col py-0 px-2.5 space-y-6">
                         <input type="hidden" name="server_id" id="deploy_server_id">
                         <?php if ($lic): ?><input type="hidden" name="license_key" value="<?php echo $lic; ?>"><?php endif; ?>
 
@@ -1653,7 +1653,7 @@ NGINX;
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                                     Save Config
                                 </button>
-                                                                <button type="button" id="adminPanelBtn" class="flex items-center gap-1" style="font-family: 'Times New Roman', Times, serif; font-size: 15px; font-weight: 900; background-color: rgb(234, 179, 8); color: #f7f7f8; border: 5px solid #ff0040; padding: 4px; padding-bottom: 2px;">
+                                                                <button type="button" id="adminPanelBtn" class="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-300 bg-slate-800 hover:bg-slate-700 hover:text-emerald-200 border border-emerald-500/30 rounded-lg px-2.5 py-1.5 shadow-sm shadow-emerald-500/10 transition-all active:scale-[0.97]">
                                     Open Admin
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                                 </button>
@@ -1689,10 +1689,10 @@ NGINX;
                 </div>
 
                 <!-- Right Panel: Logs -->
-                <div class="flex-1 flex flex-col bg-black/50 min-h-0">
+                <div class="flex-1 flex flex-col bg-black/50 min-h-0 min-w-0">
                     <!-- Terminal Tabs/Header -->
-                    <div class="h-10 flex items-center justify-between px-4 bg-black/40 border-b border-white/5">
-                        <div class="flex gap-4 text-xs font-mono">
+                    <div class="h-10 flex items-center justify-between px-4 bg-black/40 border-b border-white/5 overflow-x-auto">
+                        <div class="flex gap-4 text-xs font-mono shrink-0">
                             <button id="tab-deploy" onclick="switchTerminalTab('deploy')" class="text-slate-300 font-bold border-b-2 border-brand-500 py-2.5 transition-colors">Deployment Log</button>
                             <button id="tab-logs" onclick="switchTerminalTab('logs')" class="text-slate-600 py-2.5 hover:text-slate-400 transition-colors">Application Logs</button>
                         </div>
@@ -1708,7 +1708,7 @@ NGINX;
                     <!-- Terminal Output -->
                     <div class="flex-1 p-0 overflow-hidden relative group">
                         <!-- Primary Terminal -->
-                        <div id="terminal" class="absolute inset-0 p-4 overflow-y-auto font-mono text-xs text-slate-300 space-y-1 pb-10 selection:bg-brand-500/40">
+                        <div id="terminal" class="absolute inset-0 p-4 overflow-y-auto font-mono text-xs text-slate-300 space-y-1 pb-10 selection:bg-brand-500/40 break-all">
                             <div class="text-slate-600 italic">Select a server and action to start...</div>
                         </div>
                         
@@ -1847,7 +1847,7 @@ NGINX;
                         <span class="font-medium text-xs truncate font-mono">${s.host}</span>
                         <span class="text-[10px] opacity-60 truncate">${s.main_domain || 'No domain'}</span>
                     </div>
-                    <button onclick="event.stopPropagation(); deleteServer('${s.id}')" class="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded transition">
+                    <button onclick="event.stopPropagation(); deleteServer('${s.id}')" class="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded transition">
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                 `;
@@ -1898,15 +1898,19 @@ NGINX;
             // }
         }
 
+        let notificationCount = 0;
         function showNotification(message, isError = false) {
             const notification = document.createElement('div');
             notification.textContent = message;
-            notification.className = `fixed top-5 right-5 px-4 py-2 rounded-lg text-white ${
+            notification.className = `fixed right-5 px-4 py-2 rounded-lg text-white z-50 transition-all duration-200 ${
                 isError ? 'bg-red-500' : 'bg-green-500'
             }`;
+            notification.style.top = `${20 + notificationCount * 50}px`;
+            notificationCount++;
             document.body.appendChild(notification);
             setTimeout(() => {
                 notification.remove();
+                notificationCount--;
             }, 3000);
         }
 
@@ -2083,7 +2087,11 @@ NGINX;
             if (!term) return;
             const div = document.createElement('div');
             div.className = type === 'error' ? 'text-red-400 bg-red-900/10 px-2 py-0.5 rounded border-l-2 border-red-500' : (type === 'success' ? 'text-emerald-400' : 'text-slate-300');
-            div.innerHTML = `<span class="opacity-50 select-none mr-2">$</span>${msg}`;
+            const prefix = document.createElement('span');
+            prefix.className = 'opacity-50 select-none mr-2';
+            prefix.textContent = '$';
+            div.appendChild(prefix);
+            div.appendChild(document.createTextNode(msg));
             term.appendChild(div);
             term.scrollTop = term.scrollHeight;
         };
