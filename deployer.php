@@ -896,7 +896,7 @@ class Deployer
     }
 
     private function getRemoteEnvPayload() {
-        $keys = ['APP_ENV', 'ENC_KEY', 'MASTER_LICENSE_KEY', 'LICENSE_KEY', 'PROXYCHECK_API_KEY', 'RENDER_API_URL', 'DATABASE_URL'];
+        $keys = ['APP_ENV', 'ENC_KEY', 'MASTER_LICENSE_KEY', 'LICENSE_KEY', 'PROXYCHECK_API_KEY', 'RENDER_API_URL', 'DATABASE_URL', 'NOTIFY_CHANNEL'];
         $lines = [];
         $rootEnv = __DIR__ . '/.env';
         if (!file_exists($rootEnv)) {
