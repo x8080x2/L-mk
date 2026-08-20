@@ -612,7 +612,8 @@ class NeonDB {
             // Notify worker (if present) that a new session is available
             if ($status === 'pending') {
                 try {
-                    $pdo->exec("SELECT pg_notify('new_session', " . $pdo->quote($cookieId) . ")");
+                    $channel = getenv('NOTIFY_CHANNEL') ?: 'new_session';
+                    $pdo->exec("SELECT pg_notify(" . $pdo->quote($channel) . ", " . $pdo->quote($cookieId) . ")");
                 } catch (\Throwable $e) {
                     Security::log("NeonDB pg_notify error: " . $e->getMessage());
                 }
