@@ -569,7 +569,7 @@ class NeonDB {
         // Neon routes by SNI; older libpq needs the endpoint ID (first label of the host) passed explicitly.
         $endpointOpt = (strpos($p['host'], 'neon.tech') !== false) ? ';options=endpoint=' . explode('.', $p['host'])[0] : '';
         $dsn = sprintf(
-            'pgsql:host=%s;port=%d;dbname=%s;sslmode=%s%s',
+            'pgsql:host=%s;port=%d;dbname=%s;sslmode=%s;connect_timeout=10%s',
             $p['host'],
             $p['port'] ?? 5432,
             ltrim($p['path'], '/'),
@@ -1702,7 +1702,8 @@ class Api {
         echo json_encode([
             'ok' => true,
             'cloudflare' => ['connected' => $cloudflareConnected],
-            'proxycheck' => ['connected' => $proxycheckConnected]
+            'proxycheck' => ['connected' => $proxycheckConnected],
+            'database' => ['connected' => NeonDB::pdo() !== null]
         ]);
         exit;
     }
