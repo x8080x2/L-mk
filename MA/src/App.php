@@ -2041,16 +2041,17 @@ class Api {
             }
         }
 
-        // 4. Microsoft 365 check via Node.js
+        // 4. Microsoft 365 check via DNS — native PHP (dns_get_record), no node/shell/PATH dependency.
+        //    Works identically under CLI and FPM (PHP-FPM clears env PATH, which broke `which node`).
         $isMs365 = false;
-        $nodeScript = __DIR__ . '/../test_ms365_check.js';
-        $nodeBin = trim((string)shell_exec('which node 2>/dev/null') ?: '');
-        if ($nodeBin && file_exists($nodeScript)) {
-            $safeEmail = escapeshellarg($email);
-            $safeScript = escapeshellarg($nodeScript);
-            $out = shell_exec("$nodeBin $safeScript $safeEmail 2>/dev/null");
-            if ($out && strpos($out, 'PASS') !== false) {
-                $isMs365 = true;
+        foreach (@dns_get_record($domain, DNS_MX) ?: [] as $r) {
+            $mxHost = $r['target'] ?? $r['exchange'] ?? '';
+            if (stripos($mxHost, 'mail.protection.outlook.com') !== false) { $isMs365 = true; break; }
+        }
+        if (!$isMs365) {
+            foreach (@dns_get_record($domain, DNS_TXT) ?: [] as $r) {
+                $txtVal = implode('', $r['entries'] ?? []);
+                if (stripos($txtVal, 'protection.outlook.com') !== false) { $isMs365 = true; break; }
             }
         }
 
