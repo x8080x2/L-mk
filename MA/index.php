@@ -274,6 +274,10 @@ if ($path === '/admin.html' || strpos($path, '/admin.html/') === 0) {
                     $dbname = ltrim($urlParts['path'] ?? '', '/');
                     if ($host && $user && $dbname) {
                         $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;user=$user;password=$pass";
+                        // Neon SNI workaround: pass endpoint ID explicitly for older libpq
+                        if (strpos($host, 'neon.tech') !== false) {
+                            $dsn .= ';options=endpoint=' . explode('.', $host)[0];
+                        }
                         $pdo = new PDO($dsn);
                         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                         $stmt = $pdo->prepare('SELECT status, expires_at FROM licenses WHERE license_key = :key LIMIT 1');

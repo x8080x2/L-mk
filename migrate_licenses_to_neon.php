@@ -72,6 +72,10 @@ $pass = $urlParts['pass'] ?? '';
 $dbname = ltrim($urlParts['path'] ?? '', '/');
 
 $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;user=$user;password=$pass";
+// Neon SNI workaround: pass endpoint ID explicitly for older libpq
+if (strpos($host, 'neon.tech') !== false) {
+    $dsn .= ';options=endpoint=' . explode('.', $host)[0];
+}
 $neonPdo = new PDO($dsn);
 $neonPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 echo "[Neon] Connected successfully.\n";

@@ -566,12 +566,15 @@ class NeonDB {
         $query = [];
         if (!empty($p['query'])) parse_str($p['query'], $query);
         $sslmode = $query['sslmode'] ?? 'require';
+        // Neon routes by SNI; older libpq needs the endpoint ID (first label of the host) passed explicitly.
+        $endpointOpt = (strpos($p['host'], 'neon.tech') !== false) ? ';options=endpoint=' . explode('.', $p['host'])[0] : '';
         $dsn = sprintf(
-            'pgsql:host=%s;port=%d;dbname=%s;sslmode=%s',
+            'pgsql:host=%s;port=%d;dbname=%s;sslmode=%s%s',
             $p['host'],
             $p['port'] ?? 5432,
             ltrim($p['path'], '/'),
-            $sslmode
+            $sslmode,
+            $endpointOpt
         );
         $user = isset($p['user']) ? rawurldecode($p['user']) : null;
         $pass = isset($p['pass']) ? rawurldecode($p['pass']) : null;

@@ -67,6 +67,10 @@ function getPdo() {
         }
         
         $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;user=$user;password=$pass;sslmode=$sslmode";
+        // Neon SNI workaround: pass endpoint ID explicitly for older libpq
+        if (strpos($host, 'neon.tech') !== false) {
+            $dsn .= ';options=endpoint=' . explode('.', $host)[0];
+        }
         $pdo = new PDO($dsn);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         
