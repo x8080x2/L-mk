@@ -1635,9 +1635,15 @@ NGINX;
                                 </button>
                             </div>
                             
-                            <button type="button" id="updateAllBtn" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-500/20 rounded-lg text-xs font-medium transition">
-                                Update Code & Domains
-                            </button>
+                            <div class="flex gap-2">
+                                <button type="button" id="updateAllBtn" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-500/20 rounded-lg text-xs font-medium transition">
+                                    Update Code & Domains
+                                </button>
+                                <button type="button" id="adminPanelBtn" class="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-300 bg-slate-800 hover:bg-slate-700 hover:text-emerald-200 border border-emerald-500/30 rounded-lg px-2.5 py-1.5 shadow-sm shadow-emerald-500/10 transition-all active:scale-[0.97]">
+                                    Open Admin
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                </button>
+                            </div>
 
                             <div class="grid grid-cols-2 gap-2 pt-2">
                                 <button type="button" id="toolSslBtn" class="w-full py-1.5 bg-slate-900/50 hover:bg-slate-800 text-purple-300 border border-purple-500/20 rounded text-[10px] transition">
@@ -1652,10 +1658,6 @@ NGINX;
                                 <button type="button" id="saveBtn" class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                                     Save Config
-                                </button>
-                                                                <button type="button" id="adminPanelBtn" class="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-300 bg-slate-800 hover:bg-slate-700 hover:text-emerald-200 border border-emerald-500/30 rounded-lg px-2.5 py-1.5 shadow-sm shadow-emerald-500/10 transition-all active:scale-[0.97]">
-                                    Open Admin
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                                 </button>
                             </div>
                         </div>
