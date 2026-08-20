@@ -2097,7 +2097,7 @@ class Api {
                             'cookieId' => $cid,
                             'botStatus' => $row['status'] ?? 'pending',
                             'error' => $err,
-                            'hasScript' => false,
+                            'hasScript' => is_array($data) && !empty($data['cookies']),
                         ];
                     }
                 }
