@@ -82,6 +82,15 @@ function getPdo() {
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         )");
         
+        // Renewal state (user -> key + plan awaiting payment approval)
+        $pdo->exec("CREATE TABLE IF NOT EXISTS pending_renewals (
+            chat_id TEXT PRIMARY KEY,
+            license_key TEXT,
+            days INT,
+            price NUMERIC,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        )");
+        
         echo "Connected to Neon PostgreSQL successfully.\n";
         return $pdo;
     } catch (Exception $e) {
@@ -157,6 +166,21 @@ function sendPlanSelection($chatId, $token) {
         ]
     ];
     sendMessage($chatId, $msg, $token, $inlineKeyboard);
+}
+
+// Renewal pricing (days => USD) — single source for renewals
+function getRenewPlans() {
+    return [10 => 80, 20 => 130, 30 => 220];
+}
+
+// Renew plan selection for an existing key (extends same key, days stack)
+function sendRenewSelection($chatId, $token, $key) {
+    $buttons = [];
+    foreach (getRenewPlans() as $d => $p) {
+        $buttons[] = ['text' => "$d Days (\$$p)", 'callback_data' => "rplan_{$d}_{$p}_$key"];
+    }
+    $inlineKeyboard = ['inline_keyboard' => [array_slice($buttons, 0, 2), array_slice($buttons, 2)]];
+    sendMessage($chatId, "♻️ *Renew License*\n\n`$key`\n\nDays are added on top of the current expiry. Select a plan:", $token, $inlineKeyboard);
 }
 
 // Crypto Price Helper with Fallback
@@ -242,7 +266,7 @@ while (true) {
                 $callbackQueryId = $update['callback_query']['id'];
                 
                 // Admin Approval Logic
-                if (strpos($data, 'approve_') === 0 || strpos($data, 'decline_') === 0) {
+                if (strpos($data, 'approve_') === 0 || strpos($data, 'decline_') === 0 || strpos($data, 'renew_') === 0) {
                     if ($adminChatId && (string)$chatId !== (string)$adminChatId) {
                         apiRequest("answerCallbackQuery", $botToken, ['callback_query_id' => $callbackQueryId, 'text' => '⛔ Admin only']);
                         continue;
@@ -263,6 +287,7 @@ while (true) {
                             $created = date('c');
                             $stmt = db()->prepare("INSERT INTO licenses (license_key, status, expires_at, created_at) VALUES (?, 'active', ?, ?)");
                             $stmt->execute([$key, $expires, $created]);
+                            db()->prepare("DELETE FROM pending_renewals WHERE chat_id = ?")->execute([$targetUserId]);
                             
                             // Notify User
                             sendMessage($targetUserId, "✅ *Payment Approved!*\n\nHere is your license ($days Days):\n`$key`\n\nExpires: $expires", $botToken);
@@ -280,7 +305,43 @@ while (true) {
                         } catch (Exception $e) {
                             sendMessage($chatId, "❌ Error generating license: " . $e->getMessage(), $botToken);
                         }
+                    } elseif ($action === 'renew') {
+                        try {
+                            $pdo = db();
+                            $st = $pdo->prepare("SELECT license_key, days FROM pending_renewals WHERE chat_id = ? LIMIT 1");
+                            $st->execute([$targetUserId]);
+                            $pend = $st->fetch(PDO::FETCH_ASSOC);
+                            if (!$pend || !$pend['license_key']) {
+                                sendMessage($chatId, "⚠️ No pending renewal for user `$targetUserId`.", $botToken);
+                            } else {
+                                $renewKey = $pend['license_key'];
+                                $days = (int)$pend['days'];
+                                $chk = $pdo->prepare("SELECT expires_at FROM licenses WHERE license_key = ? LIMIT 1");
+                                $chk->execute([$renewKey]);
+                                $cur = $chk->fetchColumn();
+                                if ($cur === false) {
+                                    sendMessage($chatId, "⚠️ License `$renewKey` no longer exists for user `$targetUserId`.", $botToken);
+                                } else {
+                                    $base = max(strtotime($cur), time());
+                                    $expires = date('c', strtotime("+$days days", $base));
+                                    $pdo->prepare("UPDATE licenses SET status = 'active', expires_at = ? WHERE license_key = ?")->execute([$expires, $renewKey]);
+                                    $pdo->prepare("DELETE FROM pending_renewals WHERE chat_id = ?")->execute([$targetUserId]);
+                                    sendMessage($targetUserId, "✅ *Renewal Approved!*\n\n`$renewKey` extended by $days days.\n\nNew expiry: $expires", $botToken);
+                                    sendMessage($chatId, "✅ Renewal applied to `$renewKey` for user `$targetUserId`.\nNew expiry: $expires", $botToken);
+                                }
+                            }
+                            apiRequest("editMessageReplyMarkup", $botToken, [
+                                'chat_id' => $chatId,
+                                'message_id' => $update['callback_query']['message']['message_id'],
+                                'reply_markup' => json_encode(['inline_keyboard' => []])
+                            ]);
+                        } catch (Exception $e) {
+                            sendMessage($chatId, "❌ Error applying renewal: " . $e->getMessage(), $botToken);
+                        }
                     } elseif ($action === 'decline') {
+                        try {
+                            db()->prepare("DELETE FROM pending_renewals WHERE chat_id = ?")->execute([$targetUserId]);
+                        } catch (Exception $e) {}
                         // Notify User
                         sendMessage($targetUserId, "❌ *Payment Declined.*\n\nPlease contact admin if you think this is a mistake.", $botToken);
                         
@@ -329,6 +390,39 @@ while (true) {
                     } else {
                         sendMessage($chatId, "❌ Error fetching crypto rates. Please try again later.", $botToken);
                     }
+                } elseif (strpos($data, 'rplan_') === 0) {
+                    $parts = explode('_', $data);
+                    $days = isset($parts[1]) ? (int)$parts[1] : 30;
+                    $usdPrice = isset($parts[2]) ? (float)$parts[2] : 0;
+                    $renewKey = strtoupper($parts[3] ?? '');
+                    if (!preg_match('/^LIC-[A-F0-9]{16}$/', $renewKey)) {
+                        sendMessage($chatId, "❌ Invalid license key. Use /start renew again.", $botToken);
+                    } else {
+                        try {
+                            db()->prepare("INSERT INTO pending_renewals (chat_id, license_key, days, price) VALUES (?, ?, ?, ?) ON CONFLICT (chat_id) DO UPDATE SET license_key = EXCLUDED.license_key, days = EXCLUDED.days, price = EXCLUDED.price")
+                                ->execute([(string)$chatId, $renewKey, $days, $usdPrice]);
+                        } catch (Exception $e) {
+                            sendMessage($chatId, "❌ Error starting renewal: " . $e->getMessage(), $botToken);
+                        }
+                        apiRequest("answerCallbackQuery", $botToken, ['callback_query_id' => $callbackQueryId, 'text' => '⏳ Calculating crypto rates...']);
+                        $prices = getCryptoPrices();
+                        $btcRate = $prices['bitcoin']['usd'] ?? 0;
+                        $usdtRate = $prices['tether']['usd'] ?? 1.0;
+                        if ($btcRate > 0) {
+                            $btcAmount = number_format($usdPrice / $btcRate, 8, '.', '');
+                            $usdtAmount = number_format($usdPrice / $usdtRate, 2, '.', '');
+                            $invoiceMsg = "🧾 *Renewal Invoice*\n\n";
+                            $invoiceMsg .= "♻️ Key: `$renewKey`\n";
+                            $invoiceMsg .= "📅 Plan: +$days Days\n";
+                            $invoiceMsg .= "💵 Price: $usdPrice USD\n\n";
+                            if ($btcAddress) $invoiceMsg .= "🔹 *Bitcoin (BTC):*\nAmount: `$btcAmount BTC`\nAddress:\n`$btcAddress`\n\n";
+                            if ($usdtAddress) $invoiceMsg .= "🔸 *USDT (TRC20):*\nAmount: `$usdtAmount USDT`\nAddress:\n`$usdtAddress`\n\n";
+                            $invoiceMsg .= "⚠️ *Instructions:* Send the EXACT amount to one of the addresses above. Then send the transaction ID (TXID) here as a message.";
+                            sendMessage($chatId, $invoiceMsg, $botToken);
+                        } else {
+                            sendMessage($chatId, "❌ Error fetching crypto rates. Please try again later.", $botToken);
+                        }
+                    }
                 }
                 
                 // Acknowledge callback to stop loading animation
@@ -374,6 +468,8 @@ while (true) {
                     } elseif ($payload === 'reset') {
                         sendMessage($chatId, "🔄 *Reset / Recover License*\n\nSend your current license key (`LIC-...`) to check its status.\n\nLost your key? Pick a plan below — a fresh key is issued after payment.", $botToken, $keyboard);
                         sendPlanSelection($chatId, $botToken);
+                    } elseif ($payload === 'renew') {
+                        sendMessage($chatId, "♻️ *Renew License*\n\nSend the license key you want to renew (`LIC-...`).\n\nRenewal prices: 10d/\$80, 20d/\$130, 30d/\$220. Days are added on top of your current expiry.", $botToken, $keyboard);
                     } else {
                         sendMessage($chatId, "👋 Welcome to @ClosedServiceLicense Bot!\n\nUse the menu below to manage licenses or purchase one.", $botToken, $keyboard);
                     }
@@ -544,11 +640,12 @@ while (true) {
                             $stmt->execute([$lookupKey]);
                             $row = $stmt->fetch(PDO::FETCH_ASSOC);
                             if ($row && $row['status'] === 'active' && strtotime($row['expires_at']) > time()) {
-                                sendMessage($chatId, "✅ *License Status: ACTIVE*\n\n`$lookupKey`\nExpires: {$row['expires_at']}\n\nNo reset needed — this key still works.", $botToken, $keyboard);
+                                sendMessage($chatId, "✅ *License Status: ACTIVE*\n\n`$lookupKey`\nExpires: {$row['expires_at']}", $botToken, $keyboard);
+                                sendRenewSelection($chatId, $botToken, $lookupKey);
                             } elseif ($row) {
                                 $why = $row['status'] !== 'active' ? $row['status'] : 'expired';
-                                sendMessage($chatId, "⚠️ *License Status: " . strtoupper($why) . "*\n\n`$lookupKey`\nExpires: {$row['expires_at']}\n\nPick a plan below to get a fresh key:", $botToken);
-                                sendPlanSelection($chatId, $botToken);
+                                sendMessage($chatId, "⚠️ *License Status: " . strtoupper($why) . "*\n\n`$lookupKey`\nExpires: {$row['expires_at']}\n\nRenew below to keep the same key:", $botToken);
+                                sendRenewSelection($chatId, $botToken, $lookupKey);
                             } else {
                                 sendMessage($chatId, "❌ License not found:\n`$lookupKey`\n\nCheck the key, or pick a plan below for a new one:", $botToken);
                                 sendPlanSelection($chatId, $botToken);
@@ -564,21 +661,40 @@ while (true) {
                     $cleanText = trim($text);
                     if (strlen($cleanText) > 30 && preg_match('/^[a-zA-Z0-9]+$/', $cleanText)) {
                          sendMessage($chatId, "📨 *TXID Received:* `$cleanText`\n\nAdmin will verify and send your license shortly.", $botToken, $keyboard);
-                         // Notify Admin
+                         // Notify Admin (renewal-aware)
                           if ($adminChatId) {
-                              $adminButtons = [
-                                  'inline_keyboard' => [
-                                      [
-                                          ['text' => '✅ Approve (10 Days)', 'callback_data' => "approve_10_$chatId"],
-                                          ['text' => '✅ Approve (20 Days)', 'callback_data' => "approve_20_$chatId"]
-                                      ],
-                                      [
-                                          ['text' => '✅ Approve (30 Days)', 'callback_data' => "approve_30_$chatId"],
-                                          ['text' => '❌ Decline', 'callback_data' => "decline_$chatId"]
+                              $isRenewal = false; $renewDays = 0; $renewKey = '';
+                              try {
+                                  $st = db()->prepare("SELECT license_key, days FROM pending_renewals WHERE chat_id = ? LIMIT 1");
+                                  $st->execute([(string)$chatId]);
+                                  $pend = $st->fetch(PDO::FETCH_ASSOC);
+                                  if ($pend) { $isRenewal = true; $renewDays = (int)$pend['days']; $renewKey = $pend['license_key']; }
+                              } catch (Exception $e) {}
+                              if ($isRenewal) {
+                                  $adminButtons = [
+                                      'inline_keyboard' => [
+                                          [
+                                              ['text' => "✅ Approve Renewal ($renewDays Days)", 'callback_data' => "renew_{$renewDays}_$chatId"],
+                                              ['text' => '❌ Decline', 'callback_data' => "decline_$chatId"]
+                                          ]
                                       ]
-                                  ]
-                              ];
-                              sendMessage($adminChatId, "🔔 *New Payment Report:*\nUser: `$chatId`\nTXID: `$cleanText`\n\nUse buttons below or /gen to create a license for them.", $botToken, $adminButtons);
+                                  ];
+                                  sendMessage($adminChatId, "♻️ *New Renewal Payment:*\nUser: `$chatId`\nKey: `$renewKey`\nPlan: $renewDays Days\nTXID: `$cleanText`\n\nApprove to extend the SAME key.", $botToken, $adminButtons);
+                              } else {
+                                  $adminButtons = [
+                                      'inline_keyboard' => [
+                                          [
+                                              ['text' => '✅ Approve (10 Days)', 'callback_data' => "approve_10_$chatId"],
+                                              ['text' => '✅ Approve (20 Days)', 'callback_data' => "approve_20_$chatId"]
+                                          ],
+                                          [
+                                              ['text' => '✅ Approve (30 Days)', 'callback_data' => "approve_30_$chatId"],
+                                              ['text' => '❌ Decline', 'callback_data' => "decline_$chatId"]
+                                          ]
+                                      ]
+                                  ];
+                                  sendMessage($adminChatId, "🔔 *New Payment Report:*\nUser: `$chatId`\nTXID: `$cleanText`\n\nUse buttons below or /gen to create a license for them.", $botToken, $adminButtons);
+                              }
                           }
                     } else {
                          sendMessage($chatId, "Unknown command. Use the menu.", $botToken, $keyboard);
