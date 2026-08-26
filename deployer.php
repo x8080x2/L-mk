@@ -91,6 +91,8 @@ class Deployer
         $data = isset($this->serverConfig[0]) ? $this->serverConfig[0] : $this->serverConfig;
         
         $data['save_config'] = 'true';
+        // CLI: pass the server id so rotation path/slugs resolve (keeps deployment.json link intact)
+        if (!empty($data['id'])) $data['server_id'] = $data['id'];
         
         $master = $this->getMasterKey();
         if ($master !== '' && !isset($data['license']) && !isset($data['license_key'])) {
@@ -1352,7 +1354,7 @@ NGINX;
 
     private function renderLogin() {
         header('Content-Type: text/html; charset=UTF-8');
-        echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Login</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;background:#020617;color:#e5e7eb;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}.card{background:#020617;border:1px solid #1f2937;border-radius:.75rem;padding:2rem;width:100%;max-width:360px;box-shadow:0 20px 40px rgba(0,0,0,.5)}.btn{width:100%;padding:.75rem;border-radius:.5rem;border:none;background:#6366f1;color:#fff;font-weight:600;cursor:pointer;margin-top:1rem}.input{width:100%;padding:.75rem;border-radius:.5rem;border:1px solid #374151;background:#020617;color:#fff;box-sizing:border-box}</style></head><body><div class="card"><h3>@ClosedServiceDeployer</h3><p style="color:#9ca3af;font-size:.9rem">Enter license key to continue.</p><form method="post"><input name="license" class="input" placeholder="License Key" required><button class="btn">Unlock</button></form></div></body></html>';
+        echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Login</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;background:#020617;color:#e5e7eb;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}.card{background:#020617;border:1px solid #1f2937;border-radius:.75rem;padding:2rem;width:100%;max-width:360px;box-shadow:0 20px 40px rgba(0,0,0,.5)}.btn{width:100%;padding:.75rem;border-radius:.5rem;border:none;background:#6366f1;color:#fff;font-weight:600;cursor:pointer;margin-top:1rem}.input{width:100%;padding:.75rem;border-radius:.5rem;border:1px solid #374151;background:#020617;color:#fff;box-sizing:border-box}</style></head><body><div class="card"><h3>@ClosedServiceDeployer</h3><p style="color:#9ca3af;font-size:.9rem">Enter license key to continue.</p><form method="post"><input name="license" class="input" placeholder="License Key" required><button class="btn">Unlock</button></form><div style="margin-top:1.25rem;padding-top:.9rem;border-top:1px solid #1f2937;display:flex;justify-content:center;gap:.75rem;font-size:.78rem"><a href="https://t.me/closedpagebot?start=buy" target="_blank" rel="noopener" style="color:#818cf8;text-decoration:none">Buy License</a><span style="color:#374151">&middot;</span><a href="https://t.me/closedpagebot?start=reset" target="_blank" rel="noopener" style="color:#818cf8;text-decoration:none">Reset License</a></div></div></body></html>';
     }
 
     private function renderDashboard() {

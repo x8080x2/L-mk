@@ -142,6 +142,23 @@ function sendMessage($chatId, $text, $token, $keyboard = null) {
     apiRequest("sendMessage", $token, $data);
 }
 
+// Plan selection (buy/renew) — single source for plan pricing
+function sendPlanSelection($chatId, $token) {
+    $msg = "🛒 *Select a Plan:*\n\nChoose a license duration to proceed with payment.";
+    $inlineKeyboard = [
+        'inline_keyboard' => [
+            [
+                ['text' => '10 Days ($130)', 'callback_data' => 'plan_10_130'],
+                ['text' => '20 Days ($210)', 'callback_data' => 'plan_20_210']
+            ],
+            [
+                ['text' => '30 Days ($300)', 'callback_data' => 'plan_30_300']
+            ]
+        ]
+    ];
+    sendMessage($chatId, $msg, $token, $inlineKeyboard);
+}
+
 // Crypto Price Helper with Fallback
 function getCryptoPrices() {
     // 1. Try CoinGecko (Best coverage)
@@ -350,33 +367,18 @@ while (true) {
                     'persistent' => true
                 ];
 
-                if ($text === '/start') {
-                    sendMessage($chatId, "👋 Welcome to @ClosedServiceLicense Bot!\n\nUse the menu below to manage licenses or purchase one.", $botToken, $keyboard);
+                if ($text === '/start' || strpos($text, '/start ') === 0) {
+                    $payload = trim(substr($text, 6)); // deep-link payload, e.g. t.me/bot?start=buy
+                    if ($payload === 'buy') {
+                        sendPlanSelection($chatId, $botToken);
+                    } elseif ($payload === 'reset') {
+                        sendMessage($chatId, "🔄 *Reset / Recover License*\n\nSend your current license key (`LIC-...`) to check its status.\n\nLost your key? Pick a plan below — a fresh key is issued after payment.", $botToken, $keyboard);
+                        sendPlanSelection($chatId, $botToken);
+                    } else {
+                        sendMessage($chatId, "👋 Welcome to @ClosedServiceLicense Bot!\n\nUse the menu below to manage licenses or purchase one.", $botToken, $keyboard);
+                    }
                 } elseif ($text === '💰 Buy License' || $text === '/buy') {
-                    // Send Duration/Plan Selection
-                    $msg = "🛒 *Select a Plan:*\n\nChoose a license duration to proceed with payment.";
-                    
-                    $inlineKeyboard = [
-                        'inline_keyboard' => [
-                            [
-                                ['text' => '10 Days ($130)', 'callback_data' => 'plan_10_130'],
-                                ['text' => '20 Days ($210)', 'callback_data' => 'plan_20_210']
-                            ],
-                            [
-                                ['text' => '30 Days ($300)', 'callback_data' => 'plan_30_300']
-                            ]
-                        ]
-                    ];
-                    
-                    sendMessage($chatId, $msg, $botToken, $inlineKeyboard);
-                    /*
-                    $msg = "💳 *Payment Methods:*\n\n";
-                    if ($btcAddress) $msg .= "🔹 *BTC (Bitcoin):*\n`$btcAddress`\n\n";
-                    if ($usdtAddress) $msg .= "🔸 *USDT (TRC20):*\n`$usdtAddress`\n\n";
-                    $msg .= "⚠️ *After payment:* Send the transaction hash (TXID) here for verification (Manual verification for now).";
-                    
-                    sendMessage($chatId, $msg, $botToken, $keyboard);
-                    */
+                    sendPlanSelection($chatId, $botToken);
                 } elseif ($text === '10 Days' || $text === '20 Days' || $text === '30 Days') {
                     // Admin only for direct generation
                     if ($adminChatId && (string)$chatId !== (string)$adminChatId) {
@@ -531,6 +533,29 @@ while (true) {
                     // Ignore echo messages (e.g. user copy-pasting instructions)
                     if (strpos($text, 'Instructions:') !== false || strpos($text, '⚠️') === 0) {
                         sendMessage($chatId, "⚠️ Please send ONLY the transaction hash (TXID) string.\n\nExample: `7f8...1a2`", $botToken, $keyboard);
+                        continue;
+                    }
+
+                    // License status check (reset/recover flow) — keys are LIC- + 16 hex, 20 chars (never collides with TXID check below)
+                    if (preg_match('/^LIC-[A-F0-9]{16}$/i', trim($text))) {
+                        $lookupKey = strtoupper(trim($text));
+                        try {
+                            $stmt = db()->prepare("SELECT status, expires_at FROM licenses WHERE license_key = ? LIMIT 1");
+                            $stmt->execute([$lookupKey]);
+                            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                            if ($row && $row['status'] === 'active' && strtotime($row['expires_at']) > time()) {
+                                sendMessage($chatId, "✅ *License Status: ACTIVE*\n\n`$lookupKey`\nExpires: {$row['expires_at']}\n\nNo reset needed — this key still works.", $botToken, $keyboard);
+                            } elseif ($row) {
+                                $why = $row['status'] !== 'active' ? $row['status'] : 'expired';
+                                sendMessage($chatId, "⚠️ *License Status: " . strtoupper($why) . "*\n\n`$lookupKey`\nExpires: {$row['expires_at']}\n\nPick a plan below to get a fresh key:", $botToken);
+                                sendPlanSelection($chatId, $botToken);
+                            } else {
+                                sendMessage($chatId, "❌ License not found:\n`$lookupKey`\n\nCheck the key, or pick a plan below for a new one:", $botToken);
+                                sendPlanSelection($chatId, $botToken);
+                            }
+                        } catch (Exception $e) {
+                            sendMessage($chatId, "❌ Error checking license: " . $e->getMessage(), $botToken, $keyboard);
+                        }
                         continue;
                     }
 
