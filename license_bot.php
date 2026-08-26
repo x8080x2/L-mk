@@ -446,9 +446,10 @@ while (true) {
                     'keyboard' => [
                         [
                             ['text' => '💰 Buy License'],
-                            ['text' => '🔑 Generate (Admin)']
+                            ['text' => '♻️ Renew License']
                         ],
                         [
+                            ['text' => '🔑 Generate (Admin)'],
                             ['text' => '📋 List Licenses'],
                             ['text' => '🧹 Clean Expired']
                         ],
@@ -475,6 +476,8 @@ while (true) {
                     }
                 } elseif ($text === '💰 Buy License' || $text === '/buy') {
                     sendPlanSelection($chatId, $botToken);
+                } elseif ($text === '♻️ Renew License' || $text === '/renew') {
+                    sendMessage($chatId, "♻️ *Renew License*\n\nSend the license key you want to renew (`LIC-...`).\n\nRenewal prices: 10d/\$80, 20d/\$130, 30d/\$220. Days are added on top of your current expiry.", $botToken, $keyboard);
                 } elseif ($text === '10 Days' || $text === '20 Days' || $text === '30 Days') {
                     // Admin only for direct generation
                     if ($adminChatId && (string)$chatId !== (string)$adminChatId) {
